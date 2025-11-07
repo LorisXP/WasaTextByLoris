@@ -19,6 +19,7 @@ tags:
 security:
 - bearerAuth: []
 paths:
+
   /api/auth:
     post:
       tags:
@@ -33,11 +34,9 @@ paths:
         content:
           application/json:
             schema:
-              type: object
               properties:
                 userName:
                   $ref: '#/components/schemas/userName'
-                  description: A new or existing userName.
         required: true
       responses:
         '200':
@@ -45,7 +44,6 @@ paths:
           content:
             application/json:
               schema:
-                type: object
                 properties:
                   userID:
                     $ref: '#/components/schemas/userID'
@@ -54,7 +52,6 @@ paths:
           content:
             application/json:
               schema:
-                type: object
                 properties:
                   userID:
                     $ref: '#/components/schemas/userID'
@@ -63,6 +60,7 @@ paths:
         '500':
           description: An internal error during authentication
       parameters: []
+
   /api/users/{userID}/me/name:
     patch:
       tags:
@@ -78,7 +76,6 @@ paths:
         content:
           application/json:
             schema:
-              type: object
               properties:
                 userName:
                   $ref: '#/components/schemas/userName'
@@ -86,6 +83,11 @@ paths:
       responses:
         '200':
           description: userName successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Auto-generated response body
         '400':
           description: Invalid userName or userName already in use
         '401':
@@ -94,6 +96,7 @@ paths:
           description: User not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+  
   /api/users/{userID}/me/photo:
     put:
       tags:
@@ -118,6 +121,11 @@ paths:
       responses:
         '200':
           description: Profile photo updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Auto-generated response body
         '400':
           description: Invalid photo
         '401':
@@ -126,7 +134,8 @@ paths:
           description: User not found
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/search/{userName}:
+  
+  /api/users/{userID}/other/{userName}:
     get:
       tags:
       - User
@@ -153,13 +162,15 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/groups/{groupID}/info:
+  
+  /api/users/{userID}/groups/{groupID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #userID that wants to leave
+      - $ref: '#/components/parameters/groupID' #Unique identifier for the group.
+    
     get:
       tags:
       - Group
-      parameters:
-      - $ref: '#/components/parameters/userID'
-      - $ref: '#/components/parameters/groupID'
       summary: Get group info and members
       description: Returns group info and a list of users present in the specified
         group.
@@ -177,7 +188,26 @@ paths:
           description: Group not found or user does not have access to the group
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/groups/{groupID}/add:
+   
+    delete:
+      tags:
+      - Group
+      summary: Leave a group
+      description: Allows a user to leave an existing group they are part of.
+      operationId: leaveGroup
+      responses:
+        '204':
+          description: User successfully left the group
+        '400':
+          description: Invalid group id
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Group not found or user is not a member of the group
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /api/groups/{groupID}/users:
     post:
       tags:
       - Group
@@ -213,40 +243,7 @@ paths:
           description: Group or user not found
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/groups/{groupID}/leave:
-    delete:
-      parameters:
-      - schema:
-          $ref: '#/components/schemas/userID'
-        name: userID
-        in: path
-        required: true
-        description: userID that wants to leave
-      - schema:
-          type: integer
-          example: 1
-          readOnly: true
-          description: Unique identifier for the group.
-        name: groupID
-        in: path
-        required: true
-        description: the groupID that the user wants to leave
-      tags:
-      - Group
-      summary: Leave a group
-      description: Allows a user to leave an existing group they are part of.
-      operationId: leaveGroup
-      responses:
-        '204':
-          description: User successfully left the group
-        '400':
-          description: Invalid group id
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          description: Group not found or user is not a member of the group
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+  
   /api/groups/{groupID}/name:
     patch:
       tags:
@@ -280,6 +277,11 @@ paths:
       responses:
         '200':
           description: Group name updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Auto-generated response body
         '400':
           description: Invalid group name or userID isn't an administrator
         '401':
@@ -288,6 +290,7 @@ paths:
           description: Group not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+  
   /api/groups/{groupID}/photo:
     put:
       tags:
@@ -315,6 +318,11 @@ paths:
       responses:
         '200':
           description: Group photo updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Auto-generated response body
         '400':
           description: Invalid photo
         '401':
@@ -323,7 +331,8 @@ paths:
           description: Group not found
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/groups/{groupID}/member/{userName}/kick:
+  
+  /api/users/{userID}/groups/{groupID}/member/{userName}:
     delete:
       parameters:
       - $ref: '#/components/parameters/groupID'
@@ -361,7 +370,8 @@ paths:
           description: Group not found or user is not a member of the group.
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/groups/{groupID}/delete:
+  
+  /api/groups/{groupID}/users/{userID}:
     delete:
       parameters:
       - schema:
@@ -396,6 +406,7 @@ paths:
           description: Group not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+  
   /api/users/{userID}/conversations:
     get:
       tags:
@@ -421,16 +432,18 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+ 
   /api/users/{userID}/conversations/{conversationID}/messages:
+    parameters:
+      - $ref: '#/components/parameters/userID'
+      - $ref: '#/components/parameters/conversationID'
+
     get:
       tags:
       - Conversation
       summary: List messages in a conversation.
       description: Returns messages for the specified conversationID.
       operationId: getConversation
-      parameters:
-      - $ref: '#/components/parameters/userID'
-      - $ref: '#/components/parameters/conversationID'
       responses:
         '200':
           description: All messages of conversation
@@ -452,16 +465,13 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/conversations/{conversationID}/messages/send:
+    
     post:
       tags:
       - Message
       summary: Post a new message in the conversation
       description: Enables the user to send a new message in a particular conversation
       operationId: sendMessage
-      parameters:
-      - $ref: '#/components/parameters/userID'
-      - $ref: '#/components/parameters/conversationID'
       requestBody:
         required: true
         content:
@@ -495,17 +505,19 @@ paths:
           description: Conversation not found.
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/forward:
+
+  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #userID of the user performing the action.
+      - $ref: '#/components/parameters/conversationID'
+      - $ref: '#/components/parameters/messageID'
+
     post:
       tags:
       - Message
       summary: Forward a message
       description: Forwards an existing message to a target conversation.
       operationId: forwardMessage
-      parameters:
-      - $ref: '#/components/parameters/userID'
-      - $ref: '#/components/parameters/conversationID'
-      - $ref: '#/components/parameters/messageID'
       responses:
         '201':
           description: Message forward successfully
@@ -530,17 +542,8 @@ paths:
             the target conversation does not exist.
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/delete:
+
     delete:
-      parameters:
-      - schema:
-          $ref: '#/components/schemas/userID'
-        name: userID
-        in: path
-        required: true
-        description: userID of the user performing the action.
-      - $ref: '#/components/parameters/conversationID'
-      - $ref: '#/components/parameters/messageID'
       tags:
       - Message
       summary: Remove a message from a conversation
@@ -565,7 +568,14 @@ paths:
           description: Message not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+
   /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/comments/{commentID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #The userID of the user performing the action
+      - $ref: '#/components/parameters/conversationID'
+      - $ref: '#/components/parameters/messageID'
+      - $ref: '#/components/parameters/commentID'
+
     put:
       tags:
       - Comment
@@ -573,16 +583,6 @@ paths:
       description: Enables the user to react to or comment on a specific message within
         a conversation
       operationId: commentMessage
-      parameters:
-      - schema:
-          $ref: '#/components/schemas/userID'
-        name: userID
-        in: path
-        required: true
-        description: The userID of the user performing the action
-      - $ref: '#/components/parameters/conversationID'
-      - $ref: '#/components/parameters/messageID'
-      - $ref: '#/components/parameters/commentID'
       requestBody:
         required: true
         content:
@@ -590,7 +590,7 @@ paths:
             schema:
               type: object
               required:
-              - conversationID
+              - reaction
               properties:
                 reaction:
                   type: string
@@ -617,6 +617,7 @@ paths:
           description: Conversation or message not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+    
     delete:
       tags:
       - Comment
@@ -624,16 +625,6 @@ paths:
       description: Enables the user to delete a specific comment from a message within
         a conversation.
       operationId: uncommentMessage
-      parameters:
-      - schema:
-          $ref: '#/components/schemas/userID'
-        name: userID
-        in: path
-        required: true
-        description: The userID of the user performing the action
-      - $ref: '#/components/parameters/conversationID'
-      - $ref: '#/components/parameters/messageID'
-      - $ref: '#/components/parameters/commentID'
       responses:
         '204':
           description: Comment deleted successfully
@@ -645,12 +636,16 @@ paths:
           description: Conversation, message, or comment not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+
 components:
+
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+
   schemas:
+
     Message:
       title: Message
       description: Represent a Message between users.
@@ -691,6 +686,7 @@ components:
             $ref: '#/components/schemas/Comment'
         messageID:
           $ref: '#/components/schemas/messageID'
+    
     Comment:
       title: Comment
       description: Represent a Comment for message.
@@ -709,6 +705,7 @@ components:
           type: integer
           example: 1
           readOnly: true
+    
     Conversation:
       title: Conversation
       description: A conversation.
@@ -754,6 +751,7 @@ components:
           type: integer
           example: 1
           readOnly: true
+    
     User:
       title: User
       description: Represents a User.
@@ -763,6 +761,7 @@ components:
           $ref: '#/components/schemas/userName'
         userID:
           $ref: '#/components/schemas/userID'
+    
     UserAndPhoto:
       title: UserAndPhoto
       description: Represents a searched User.
@@ -772,6 +771,7 @@ components:
           $ref: '#/components/schemas/userName'
         photo:
           $ref: '#/components/schemas/Photo'
+    
     Photo:
       description: encoded image data
       type: string
@@ -779,6 +779,7 @@ components:
       minLength: 0
       maxLength: 13981013
       example: iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQn
+    
     Group:
       title: Group
       description: Represent a Group.
@@ -793,11 +794,13 @@ components:
           minLength: 3
           maxLength: 15
         photo:
+          allOf:
+          - $ref: '#/components/schemas/Photo'
           description: Picture of the group
-          $ref: '#/components/schemas/Photo'
         administrator:
+          allOf:
+          - $ref: '#/components/schemas/userName'
           description: Administrator of the group
-          $ref: '#/components/schemas/userName'
         members:
           description: List of members
           type: array
@@ -805,6 +808,7 @@ components:
           maxItems: 30
           items:
             $ref: '#/components/schemas/UserAndPhoto'
+    
     userName:
       description: The name of the user
       type: string
@@ -812,22 +816,27 @@ components:
       pattern: ^[a-z]+[0-9]*$
       minLength: 3
       maxLength: 15
+   
     userID:
       description: Unique user identifier
       type: integer
       example: 1
+    
     messageID:
       description: Unique message identifier.
       type: integer
       example: 1
+    
     commentID:
       type: integer
       example: 1
       description: Unique identifier for the comment.
+    
     groupID:
       description: Unique group identifier
       type: integer
       example: 1
+    
     Text:
       type: string
       description: Text content of the message
@@ -835,7 +844,9 @@ components:
       minLength: 1
       maxLength: 4095
       pattern: ^.*?$
+      
   parameters:
+
     userID:
       schema:
         $ref: '#/components/schemas/userID'
@@ -843,6 +854,7 @@ components:
       in: path
       required: true
       description: User identifier
+    
     conversationID:
       schema:
         type: integer
@@ -852,6 +864,7 @@ components:
       name: conversationID
       in: path
       required: true
+    
     messageID:
       schema:
         type: integer
@@ -862,6 +875,7 @@ components:
       in: path
       required: true
       description: Message id
+    
     commentID:
       schema:
         type: integer
@@ -872,6 +886,7 @@ components:
       in: path
       required: true
       description: Comment id
+    
     groupID:
       schema:
         type: integer
@@ -882,6 +897,7 @@ components:
       in: path
       required: true
       description: Group id
+    
     userName:
       schema:
         type: string
@@ -893,8 +909,11 @@ components:
       in: path
       required: true
       description: The name of the user
+
   responses:
+  
     UnauthorizedError:
       description: Access token is missing or invalid
+
     InternalServerError:
       description: Internal server error
