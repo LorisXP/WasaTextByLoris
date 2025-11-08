@@ -569,14 +569,12 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/comments/{commentID}:
+  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/comments:
     parameters:
       - $ref: '#/components/parameters/userID' #The userID of the user performing the action
       - $ref: '#/components/parameters/conversationID'
       - $ref: '#/components/parameters/messageID'
-      - $ref: '#/components/parameters/commentID'
-
-    put:
+    post:
       tags:
       - Comment
       summary: Add a reaction to a message
@@ -617,7 +615,13 @@ paths:
           description: Conversation or message not found
         '500':
           $ref: '#/components/responses/InternalServerError'
-    
+
+  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/comments/{commentID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #The userID of the user performing the action
+      - $ref: '#/components/parameters/conversationID'
+      - $ref: '#/components/parameters/messageID'
+      - $ref: '#/components/parameters/commentID'
     delete:
       tags:
       - Comment
@@ -636,6 +640,8 @@ paths:
           description: Conversation, message, or comment not found
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+      
 
 components:
 
@@ -686,6 +692,10 @@ components:
             $ref: '#/components/schemas/Comment'
         messageID:
           $ref: '#/components/schemas/messageID'
+        replyToMessageID:
+          type: integer
+          description: The ID of the message this message is replying to.
+          example: 12
     
     Comment:
       title: Comment
