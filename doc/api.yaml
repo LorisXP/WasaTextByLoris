@@ -336,22 +336,8 @@ paths:
     delete:
       parameters:
       - $ref: '#/components/parameters/groupID'
-      - schema:
-          $ref: '#/components/schemas/userID'
-        name: userID
-        in: path
-        required: true
-        description: userID of the administrator
-      - schema:
-          type: string
-          example: loris2155519
-          pattern: ^[a-z]+[0-9]*$
-          minLength: 3
-          maxLength: 15
-        name: userName
-        in: path
-        required: true
-        description: userName of the user who wants to be kicked out
+      - $ref: '#/components/parameters/userID' #userID of the administrator
+      - $ref: '#/components/parameters/userName' #userName of the user who wants to be kicked out
       tags:
       - Group
       summary: Kick a user from the group
@@ -374,25 +360,12 @@ paths:
   /api/groups/{groupID}/users/{userID}:
     delete:
       parameters:
-      - schema:
-          type: integer
-          example: 1
-          readOnly: true
-          description: Unique identifier for the group.
-        name: groupID
-        in: path
-        required: true
-        description: the groupID you want to delete
-      - schema:
-          $ref: '#/components/schemas/userID'
-        name: userID
-        in: path
-        required: true
-        description: userID of the administrator
+      - $ref: '#/components/parameters/groupID' #the groupID you want to delete
+      - $ref: '#/components/parameters/userID' #userID of the administrator
       tags:
       - Group
       summary: Delete a group
-      description: Allows a userID as administrator of the group to delete a group.
+      description: Allows a userID as administrator of the group to delete a group by groupID.
       operationId: removeGroup
       responses:
         '204':
@@ -649,6 +622,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+      description: JWT bearer authentication scheme.
 
   schemas:
 
@@ -667,6 +641,7 @@ components:
           format: date-time
           description: Message timestamp.
           example: '2025-10-25T17:40:11Z'
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
         sender:
           $ref: '#/components/schemas/User'
         status:
@@ -676,6 +651,7 @@ components:
           - read
           description: Status of the sent message
           example: received
+          pattern: '^(received|read)$'
         type:
           description: Type of the message
           type: string
@@ -683,6 +659,7 @@ components:
           - standard
           - forward
           example: standard
+          pattern: '^(standard|forward)$'
         comments:
           type: array
           minItems: 0
@@ -708,6 +685,7 @@ components:
           example: 👍
           minLength: 1
           maxLength: 2
+          pattern: '^.*?$'
         sender:
           $ref: '#/components/schemas/User'
         commentID:
@@ -723,9 +701,8 @@ components:
       properties:
         name:
           $ref: '#/components/schemas/userName'
-          description: The name of the user.
         lastMessage:
-          description: Details of the conversation’s most recent message.
+          description: Details of the conversation's most recent message.
           type: object
           properties:
             messageID:
@@ -737,6 +714,7 @@ components:
               description: photo or text content
               type: string
               example: text
+              pattern: '^(text|photo)$'
             preview:
               description: Text or photo preview in the chat list.
               oneOf:
@@ -746,7 +724,8 @@ components:
               type: string
               format: date-time
               description: Timestamp when the message was sent.
-              example: '2023-11-05T14:30:00Z'
+              example: '2025-11-05T14:35:10Z'
+              pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
         type:
           description: Type of the conversation
           type: string
@@ -754,6 +733,7 @@ components:
           - group
           - direct
           example: group
+          pattern: '^(group|direct)$'
         photo:
           $ref: '#/components/schemas/Photo'
         conversationID:
@@ -788,7 +768,8 @@ components:
       format: byte
       minLength: 0
       maxLength: 13981013
-      example: iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQn
+      example: aGVsbG8=
+      pattern: '^[A-Za-z0-9+/]+={0,2}$'
     
     Group:
       title: Group
@@ -803,6 +784,8 @@ components:
           example: Usciamo
           minLength: 3
           maxLength: 15
+          pattern: '^.*?$'
+
         photo:
           allOf:
           - $ref: '#/components/schemas/Photo'
@@ -915,6 +898,7 @@ components:
         pattern: ^[a-z]+[0-9]*$
         minLength: 3
         maxLength: 15
+        description: The name of the user.
       name: userName
       in: path
       required: true
