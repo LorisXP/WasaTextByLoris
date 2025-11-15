@@ -67,7 +67,8 @@ CREATE TABLE ConversationsUser (
     lastMessageID INTEGER,
     CHECK (user1ID <> user2ID)
 );
-CREATE INDEX idx_conversation_user ON ConversationsUser(user1ID, user2ID);
+CREATE INDEX idx_conversation_user1 ON ConversationsUser(user1ID);
+CREATE INDEX idx_conversation_user2 ON ConversationsUser(user2ID);
 
 CREATE TABLE MessagesUser (
     messageID INTEGER PRIMARY KEY AUTOINCREMENT,
