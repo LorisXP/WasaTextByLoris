@@ -1,0 +1,13 @@
+Quando uno user invia il primo messaggio in assoluto ad un utente:
+1. Si crea la riga in ConversationUsers con lastMessageID
+2. Si crea la riga in Contents per salvare il testo del messaggio
+3. Si crea la riga in MessagesUsers per salvare il messaggio
+4. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
+
+Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un utente invia un altro messaggio:
+1. Si crea la riga in Contents per salvare il testo del messaggio
+2. Si crea la riga in MessagesUsers per salvare il messaggio
+3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
+
+In ogni model:
+1. Andrebbe controllato se la struct è stata istanziata correttamente prima di chiamare i metodi interessati
