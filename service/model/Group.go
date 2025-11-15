@@ -201,8 +201,44 @@ func SetGroupPhoto(group *entity.Group, new_photo string) error {
 	return outErr
 }
 
-func KickFromGroup() {
+/*
+Allows an admin of group to kick out a user by his username
+*/
+func KickFromGroup(group *entity.Group, userName string) error {
+	//Bisogna prima ottenere lo userID corrispondente allo username e poi fare il kick
 
+	logrus.Debug("Entered in KickFromGroup()")
+	logrus.Infof("adminID %d is kicking out the user '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+
+	//Imposta i default
+	outErr := fmt.Errorf("Unable for adminID %d to kick out the user '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+
+	//Ottieni lo userID
+	user_id, err := queries.GetUserIDByName(userName)
+
+	//Se non ci sono errori, prosegui
+	if err == nil && user_id != 0 {
+		logrus.Infof("found userID by his userName '%s'", userName)
+		logrus.Debugf("The userID of userName '%s' is %d", userName, user_id)
+
+		//Quindi effettua il kick
+		err := dml.KickFromGroup(group.GroupID, group.AdminID, user_id)
+		logrus.Debug("Passed by KickFromGroup()")
+
+		//Se il remove ha funzionato
+		if err == nil {
+			outErr = nil
+			logrus.Infof("adminID %d kick out SUCCESFULLY the userName '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+		} else {
+			outErr = fmt.Errorf("Unable to kick out the userName '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+			logrus.Error(outErr)
+		}
+	} else {
+		outErr = fmt.Errorf("error during search userID by '%s' for kick out him in groupID %d: %w", userName, group.GroupID, err)
+		logrus.Error(outErr)
+	}
+
+	return outErr
 }
 
 /*

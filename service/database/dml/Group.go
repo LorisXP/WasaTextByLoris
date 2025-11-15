@@ -71,3 +71,14 @@ func DeleteGroup(groupID int, userID int) error {
 
 	return outErr
 }
+
+func KickFromGroup(groupID int, adminID int, userID int) error {
+	//Imposta i default
+	outErr := fmt.Errorf("For KickFromGroup(), unable to remove row in Members table for groupID %d to kick out the userID %d", groupID, userID)
+
+	//dml := "DELETE ..."
+
+	//err = DeleteDataToDatabase(query)
+
+	return outErr
+}
