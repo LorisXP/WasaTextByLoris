@@ -406,7 +406,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
  
-  /api/users/{userID}/conversations/{conversationID}/messages:
+  /api/users/{userID}/conversations/users/{conversationID}/messages:
     parameters:
       - $ref: '#/components/parameters/userID'
       - $ref: '#/components/parameters/conversationID'
@@ -414,8 +414,8 @@ paths:
     get:
       tags:
       - Conversation
-      summary: List messages in a conversation.
-      description: Returns messages for the specified conversationID.
+      summary: List messages in a conversation belong users.
+      description: Returns messages for the specified conversationID belong users.
       operationId: getConversation
       responses:
         '200':
@@ -442,8 +442,8 @@ paths:
     post:
       tags:
       - Message
-      summary: Post a new message in the conversation
-      description: Enables the user to send a new message in a particular conversation
+      summary: Post a new message in the conversation belong users
+      description: Enables the user to send a new message in a particular conversation belong users
       operationId: sendMessage
       requestBody:
         required: true
@@ -479,7 +479,80 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}:
+  /api/users/{userID}/conversations/groups/{conversationID}/messages:
+    parameters:
+      - $ref: '#/components/parameters/userID'
+      - $ref: '#/components/parameters/conversationID'
+
+    get:
+      tags:
+      - Conversation
+      summary: List messages in a conversation between users and groups.
+      description: Returns messages for the specified conversationID between users and groups.
+      operationId: getConversation
+      responses:
+        '200':
+          description: All messages of conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    description: List of messages.
+                    type: array
+                    minItems: 0
+                    maxItems: 10000
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '404':
+          description: Conversation or user not found
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+      - Message
+      summary: Post a new message in the conversation between users and groups
+      description: Enables the user to send a new message in a particular conversation between users and groups
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - content
+              properties:
+                content:
+                  description: Text or photo content.
+                  oneOf:
+                  - $ref: '#/components/schemas/Photo'
+                  - $ref: '#/components/schemas/Text'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                description: messageID of the new message
+                type: object
+                properties:
+                  messageID:
+                    $ref: '#/components/schemas/messageID'
+        '400':
+          description: Invalid message content.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Conversation not found.
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/users/{userID}/conversations/users/{conversationID}/messages/{messageID}:
     parameters:
       - $ref: '#/components/parameters/userID' #userID of the user performing the action.
       - $ref: '#/components/parameters/conversationID'
@@ -488,8 +561,8 @@ paths:
     post:
       tags:
       - Message
-      summary: Forward a message
-      description: Forwards an existing message to a target conversation.
+      summary: Forward a message belong users
+      description: Forwards an existing message to a target conversation belong users.
       operationId: forwardMessage
       responses:
         '201':
@@ -519,8 +592,8 @@ paths:
     delete:
       tags:
       - Message
-      summary: Remove a message from a conversation
-      description: Enables the user to remove a specific message from a conversation.
+      summary: Remove a message from a conversation belong users
+      description: Enables the user to remove a specific message from a conversation belong users.
       operationId: deleteMessage
       responses:
         '200':
@@ -542,17 +615,78 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/comments:
+  /api/users/{userID}/conversations/groups/{conversationID}/messages/{messageID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #userID of the user performing the action.
+      - $ref: '#/components/parameters/conversationID'
+      - $ref: '#/components/parameters/messageID'
+
+    post:
+      tags:
+      - Message
+      summary: Forward a message between users and groups.
+      description: Forwards an existing message to a target conversation between users and groups.
+      operationId: forwardMessage
+      responses:
+        '201':
+          description: Message forward successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messageID:
+                    $ref: '#/components/schemas/messageID'
+                  replyToMessageID:
+                    type: integer
+                    description: The ID of the message this message is replying to.
+                    example: 18
+        '400':
+          description: Invalid conversation or message id, or invalid target conversation
+            id
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: The original conversation or message could not be found, or
+            the target conversation does not exist.
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+      - Message
+      summary: Remove a message from a conversation between users and groups.
+      description: Enables the user to remove a specific message from a conversation between users and groups.
+      operationId: deleteMessage
+      responses:
+        '200':
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                description: messageID of removed message
+                type: object
+                properties:
+                  messageID:
+                    $ref: '#/components/schemas/messageID'
+        '400':
+          description: Invalid message id or conversation id
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Message not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/users/{userID}/conversations/users/messages/{messageID}/comments:
     parameters:
       - $ref: '#/components/parameters/userID' #The userID of the user performing the action
-      - $ref: '#/components/parameters/conversationID'
       - $ref: '#/components/parameters/messageID'
     post:
       tags:
       - Comment
-      summary: Add a reaction to a message
-      description: Enables the user to react to or comment on a specific message within
-        a conversation
+      summary: Add a reaction to a message belong users
+      description: Enables the user to react to or comment on a specific message belong users
       operationId: commentMessage
       requestBody:
         required: true
@@ -589,18 +723,84 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/users/{userID}/conversations/{conversationID}/messages/{messageID}/comments/{commentID}:
+  /api/users/{userID}/conversations/groups/messages/{messageID}/comments:
     parameters:
       - $ref: '#/components/parameters/userID' #The userID of the user performing the action
-      - $ref: '#/components/parameters/conversationID'
+      - $ref: '#/components/parameters/messageID'
+    post:
+      tags:
+      - Comment
+      summary: Add a reaction to a message between users and groups
+      description: Enables the user to react to or comment on a specific message between users and groups
+      operationId: commentMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - reaction
+              properties:
+                reaction:
+                  type: string
+                  description: The reaction as an emoji
+                  example: 👍
+                  minLength: 1
+                  maxLength: 2
+                  pattern: ^.*?$
+      responses:
+        '200':
+          description: Reaction added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commentID:
+                    $ref: '#/components/schemas/commentID'
+        '400':
+          description: Invalid comment format
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Conversation or message not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/users/{userID}/conversations/users/messages/{messageID}/comments/{commentID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #The userID of the user performing the action
       - $ref: '#/components/parameters/messageID'
       - $ref: '#/components/parameters/commentID'
     delete:
       tags:
       - Comment
-      summary: Remove a comment from a message
-      description: Enables the user to delete a specific comment from a message within
-        a conversation.
+      summary: Remove a comment from a message belong users
+      description: Enables the user to delete a specific comment from a message belong users
+      operationId: uncommentMessage
+      responses:
+        '204':
+          description: Comment deleted successfully
+        '400':
+          description: Invalid messageID or commentID
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Conversation, message, or comment not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/users/{userID}/conversations/groups/messages/{messageID}/comments/{commentID}:
+    parameters:
+      - $ref: '#/components/parameters/userID' #The userID of the user performing the action
+      - $ref: '#/components/parameters/messageID'
+      - $ref: '#/components/parameters/commentID'
+    delete:
+      tags:
+      - Comment
+      summary: Remove a comment from a message between users and groups
+      description: Enables the user to delete a specific comment from a message between users and groups
       operationId: uncommentMessage
       responses:
         '204':
