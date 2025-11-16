@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"sort"
+	"time"
 
 	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
 	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
@@ -135,8 +137,77 @@ func GetListMessages(conversation *entity.Conversation) {
 }
 
 /*
-Restituisce le conversazioni di un utente tra altri utenti e gruppi, attraverso il suo userID
-*/
-func GetByUser(conversation *entity.Conversation) {
+Returns a user's conversations (list) with other users and groups, using their user ID.
+The list will contain an object like this:
 
+	{
+		"name": "loris2155519",
+		"lastMessage":
+		{
+			"messageID": 1,
+			"messageType": "text",
+			"preview": "Prova messaggio",
+			"timestamp": "2025-11-05T14:35:10Z"
+		},
+		"type": "group",
+		"photo": "aGVsbG8=",
+		"conversationID": 1
+	}
+*/
+func GetByUser(userID int) ([]map[string]interface{}, error) {
+	logrus.Debug("Entered in GetByUser() in package model/Conversation")
+	logrus.Info("Returning conversation of user")
+	logrus.Debugf("Returning conversation of userID %d", userID)
+
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to retrieve conversations belong users of userID %d", userID)
+	//Crea una lista di dict
+	conversations := []map[string]interface{}{}
+
+	//Ottieni le conversazioni prima tra utenti e poi nei gruppi, con ordine cronologico inverso
+	conversations_users, err := queries.GetBelongUsers(userID)
+
+	//Se non ci sono errori, prosegui
+	if err == nil {
+		logrus.Info("conversation belong users obtained succesfully")
+
+		//Ora ottieni le conversazioni tra utente e gruppi
+		conversations_groups, err := queries.GetBetweenUsersAndGroups(userID)
+
+		//Se non ci sono errori, prosegui
+		if err == nil {
+			logrus.Info("conversation between users and groups obtained succesfully")
+
+			//Ora uniscile
+			conversations = append(conversations, conversations_users...)
+			conversations = append(conversations, conversations_groups...)
+
+			//Effetua l'ordinamento cronologico inverso per timestamp del messaggio
+			sort.Slice(conversations, func(i, j int) bool {
+
+				// Estrai timestamp i-esimo
+				ts1 := conversations[i]["lastMessage"].(map[string]interface{})["timestamp"].(string)
+				ts2 := conversations[j]["lastMessage"].(map[string]interface{})["timestamp"].(string)
+
+				// Converti in time.Time
+				t1, _ := time.Parse(time.RFC3339, ts1)
+				t2, _ := time.Parse(time.RFC3339, ts2)
+
+				// Ordine cronologico inverso → più recente prima
+				return t1.After(t2)
+			})
+
+			logrus.Infof("conversation of userID %d, sorted succesfully", userID)
+
+		} else {
+			outErr = fmt.Errorf("error during obtaining conversation between users and groups by userID %d: %w", userID, err)
+			logrus.Error(outErr)
+		}
+
+	} else {
+		outErr = fmt.Errorf("error during obtaining conversation belong users by userID %d: %w", userID, err)
+		logrus.Error(outErr)
+	}
+
+	return conversations, outErr
 }
