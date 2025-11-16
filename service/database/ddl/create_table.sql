@@ -39,23 +39,6 @@ CREATE TABLE Contents (
     content TEXT NOT NULL CHECK(length(content) BETWEEN 1 AND 13981013)
 );
 
-CREATE TABLE Messages (
-    messageID INTEGER PRIMARY KEY AUTOINCREMENT,
-    conversationID INTEGER NOT NULL REFERENCES Conversations(conversationID)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    senderID INTEGER NOT NULL REFERENCES Users(userID)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    sent_at TEXT NOT NULL DEFAULT(datetime('now')),
-    status TEXT NOT NULL CHECK(status IN('received', 'read')),
-    type TEXT NOT NULL CHECK(type IN('standard', 'forward')),
-    contentID INTEGER NOT NULL REFERENCES Contents(contentID)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
-CREATE INDEX idx_search_message ON Messages(conversationID,sent_at);
-
 CREATE TABLE ConversationsUser (
     conversationID INTEGER PRIMARY KEY AUTOINCREMENT,
     user1ID INTEGER NOT NULL REFERENCES Users(userID)
