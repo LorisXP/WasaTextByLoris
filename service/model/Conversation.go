@@ -14,8 +14,8 @@ import (
 /*
 Create a new conversation between user (true) or group (false) by userID of sender and userID/groupID of receiver.
 */
-func Create(between_users bool, sender int, receiver int) (entity.Conversation, error) {
-	logrus.Debug("Entered in Create() in package model/Conversation")
+func CreateConversation(between_users bool, sender int, receiver int) (entity.Conversation, error) {
+	logrus.Debug("Entered in CreateConversation()")
 	logrus.Infof("Creating a new conversation")
 
 	//Imposta i default
@@ -99,8 +99,8 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 /*
 Return a conversation struct in WasaText by his conversationID
 */
-func GetByID(conversationID int, between_users bool) (entity.Conversation, error) {
-	logrus.Debug("Entered in GetByID() in package model/Conversation")
+func GetConversationByID(conversationID int, between_users bool) (entity.Conversation, error) {
+	logrus.Debug("Entered in GetConversationByID() in package model/Conversation")
 
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve conversation by id %d ", conversationID)
@@ -154,8 +154,8 @@ The list will contain an object like this:
 		"conversationID": 1
 	}
 */
-func GetByUser(userID int) ([]map[string]interface{}, error) {
-	logrus.Debug("Entered in GetByUser() in package model/Conversation")
+func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
+	logrus.Debug("Entered in GetConversationByUserID() in package model/Conversation")
 	logrus.Info("Returning conversation of user")
 	logrus.Debugf("Returning conversation of userID %d", userID)
 
