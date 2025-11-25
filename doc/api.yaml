@@ -489,7 +489,7 @@ paths:
       - Conversation
       summary: List messages in a conversation between users and groups.
       description: Returns messages for the specified conversationID between users and groups.
-      operationId: getConversation
+      operationId: getConversationGroup
       responses:
         '200':
           description: All messages of conversation
@@ -517,7 +517,7 @@ paths:
       - Message
       summary: Post a new message in the conversation between users and groups
       description: Enables the user to send a new message in a particular conversation between users and groups
-      operationId: sendMessage
+      operationId: sendMessageGroup
       requestBody:
         required: true
         content:
@@ -626,7 +626,7 @@ paths:
       - Message
       summary: Forward a message between users and groups.
       description: Forwards an existing message to a target conversation between users and groups.
-      operationId: forwardMessage
+      operationId: forwardMessageGroups
       responses:
         '201':
           description: Message forward successfully
@@ -657,7 +657,7 @@ paths:
       - Message
       summary: Remove a message from a conversation between users and groups.
       description: Enables the user to remove a specific message from a conversation between users and groups.
-      operationId: deleteMessage
+      operationId: deleteMessageGroup
       responses:
         '200':
           description: Message deleted successfully
@@ -732,7 +732,7 @@ paths:
       - Comment
       summary: Add a reaction to a message between users and groups
       description: Enables the user to react to or comment on a specific message between users and groups
-      operationId: commentMessage
+      operationId: commentMessageGroup
       requestBody:
         required: true
         content:
@@ -801,7 +801,7 @@ paths:
       - Comment
       summary: Remove a comment from a message between users and groups
       description: Enables the user to delete a specific comment from a message between users and groups
-      operationId: uncommentMessage
+      operationId: uncommentMessageGroup
       responses:
         '204':
           description: Comment deleted successfully
