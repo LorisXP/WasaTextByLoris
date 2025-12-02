@@ -33,3 +33,24 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message) (int, int, strin
 
 	return messageID, receiver, sent_at, outErr
 }
+
+func DeleteMessageBelongUsers(messageID int, userID int, conversationID int) (error) {
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to remove the messageID %d belong users in the database", messageID)
+
+	//dml := "DELETE ..."
+	//err = DeleteDataToDatabase(query)
+
+	return outErr
+}
+
+func DeleteMessageBetweenUsersAndGroups(messageID int, userID int, conversationID int) (error) {
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to remove the messageID %d between users and groups in the database", messageID)
+
+	//dml := "DELETE ..."
+	//err = DeleteDataToDatabase(query)
+
+	return outErr
+}
+
