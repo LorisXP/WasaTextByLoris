@@ -6,8 +6,9 @@ type Message struct {
 	Between_users  bool
 	Sender         int
 	Receiver       int //groupID if between_users is false
+	Type 		   string
 	Sent_at        string
 	Status         string
-	Type           string
+	ContentType    string
 	Content        string
 }

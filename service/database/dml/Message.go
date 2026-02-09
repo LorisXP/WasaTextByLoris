@@ -54,3 +54,35 @@ func DeleteMessageBetweenUsersAndGroups(messageID int, userID int, conversationI
 	return outErr
 }
 
+func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string, string, error) {
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to insert the forwarded message belong users in the database")
+	messageID := 0
+	receiver := 0
+	sent_at := ""
+	content := ""
+	contentType := ""
+
+	//dml := "INSERT ..."
+
+	//err = InsertDataToDatabase(query)
+
+	return messageID, receiver, sent_at, content, contentType, outErr
+}
+
+func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, string, string, string, error) {
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to insert the the forwarded message between a user and group in the database")
+	messageID := 0
+	receiver := 0
+	sent_at := ""
+	content := ""
+	contentType := ""
+
+	//dml := "INSERT ..."
+
+	//err = InsertDataToDatabase(query)
+
+	return  messageID, receiver, sent_at, content, contentType, outErr
+}
+
