@@ -11,3 +11,6 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 
 In ogni model:
 1. Andrebbe controllato se la struct è stata istanziata correttamente prima di chiamare i metodi interessati
+
+Per la prossima volta:
+continuare con conversation model
