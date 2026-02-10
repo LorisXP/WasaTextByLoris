@@ -1,39 +1,38 @@
 package queries
 
-/*
-
 import (
 	"fmt"
 
 	"github.com/LorisXP/WasaTextByLoris/service/entity"
 )
 
-func GetByIDBelongUsers(conversationID int) (entity.Conversation, error) {
+func GetMesByIDBelongUsers(messageID int) (entity.Message, error) {
 
-	err := fmt.Errorf("Unable to return conversation by id %d in the table ConversationUsers", conversationID)
+	err := fmt.Errorf("Unable to return message by id %d in the table MessagesUser", messageID)
 
-	var conversation entity.Conversation
-
-	//query := "SELECT ..."
-
-	//result = getDataByDatabase(query)
-
-	return conversation, err
-}
-
-func GetByIDBelongGroups(conversationID int) (entity.Conversation, error) {
-
-	err := fmt.Errorf("Unable to return conversation by id %d in the table ConversationGroups", conversationID)
-
-	var conversation entity.Conversation
+	var message entity.Message
 
 	//query := "SELECT ..."
 
 	//result = getDataByDatabase(query)
 
-	return conversation, err
+	return message, err
 }
 
+func GetMesByIDBelongGroups(messageID int) (entity.Message, error) {
+
+	err := fmt.Errorf("Unable to return message by id %d in the table MessagesGroup", messageID)
+
+	var message entity.Message
+
+	//query := "SELECT ..."
+
+	//result = getDataByDatabase(query)
+
+	return message, err
+}
+
+/*
 func GetBelongUsers(userID int) ([]map[string]interface{}, error) {
 
 	err := fmt.Errorf("Unable to return conversation belong users by userID %d from database", userID)

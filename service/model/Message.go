@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
-	//"github.com/LorisXP/WasaTextByLoris/service/database/queries"
+	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
 	"github.com/LorisXP/WasaTextByLoris/service/entity"
 	"github.com/sirupsen/logrus"
 )
@@ -61,6 +61,37 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 
 	} else {
 		outErr = fmt.Errorf("error during creating message: %w", err)
+		logrus.Error(outErr)
+	}
+
+	return message, outErr
+}
+
+func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
+	logrus.Debug("Entered in GetMessageByID() in package model/Message")
+
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
+	err := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
+	var message entity.Message
+
+	//Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
+	if between_users {
+		logrus.Infof("Getting message by id %d between_users", messageID)
+
+		message, err = queries.GetMesByIDBelongUsers(messageID)
+	} else {
+		logrus.Infof("Getting message by id %d between users and groups", messageID)
+
+		message, err = queries.GetMesByIDBelongGroups(messageID)
+	}
+
+	//Se non ci sono errori, prosegui
+	if err == nil && message.MessageID != 0 {
+		outErr = nil
+		logrus.Info("message obtained succesfully")
+	} else {
+		outErr = fmt.Errorf("error during obtaining message by id %d: %w", messageID, err)
 		logrus.Error(outErr)
 	}
 
