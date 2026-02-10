@@ -89,3 +89,67 @@ func GetConvBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) 
 
 	return conversations_groups, err
 }
+
+//Ritornerà una lista di dict: [
+// {
+	//  content,
+	//  content_type,
+	//  sent_at, -> timestamp
+	//  senderID, 
+	// userNameSenderID,
+	//  status,
+	//  type,
+	// comment
+		//content
+		//  senderID, 
+		// userNameSenderID,
+		//commentID
+	// messageID,
+	// replyToMessageID,
+// }
+func GetMessagesUserList(conversationID int) ([]map[string]interface{}, error){
+	
+	err := fmt.Errorf("Unable to return message list belong users by conversationID %d from database", conversationID)
+
+	result := []map[string]interface{}{}
+
+	//Servirà una tripla join probabilmente
+	//query := "SELECT ..."
+
+	//result = getDataByDatabase(query)
+
+	return result, err
+}
+
+
+//Ritornerà una lista di dict: [
+// {
+	//  content,
+	//  content_type,
+	//  sent_at, -> timestamp
+	//  senderID, 
+	// userNameSenderID,
+	//  status,
+	//  type,
+	// comment
+		//content
+		//  senderID, 
+		// userNameSenderID,
+		//commentID
+	// messageID,
+	// replyToMessageID,
+// }
+func GetMessagesGroupList(conversationID int) ([]map[string]interface{}, error){
+	
+	err := fmt.Errorf("Unable to return message list between users and groups by conversationID %d from database", conversationID)
+
+	result := []map[string]interface{}{}
+
+	//Servirà una tripla join probabilmente
+	//query := "SELECT ..."
+
+	//result = getDataByDatabase(query)
+
+	return result, err
+}
+

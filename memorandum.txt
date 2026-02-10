@@ -9,8 +9,8 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 2. Si crea la riga in MessagesUsers per salvare il messaggio
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
-In ogni model:
-1. Andrebbe controllato se la struct è stata istanziata correttamente prima di chiamare i metodi interessati
-
-Per la prossima volta:
-continuare con conversation model
+Da fare:
+1. Manca il content_type (gif, text, photo) nell'API 'Returns messages for the specified conversationID belong users.' 
+2. Togliere lo userID in alcune risposte, sopratutto dove non è necessario, per motivi di sicurezza.
+3. Controllare se i log usano il metodo compatibile con la formattazione.
+4. Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti

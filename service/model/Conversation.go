@@ -132,8 +132,143 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 
 /*
 Return a list of messages of specific conversation (belonging users or group)
+{
+  "messages": [
+    {
+      "content": "aGVsbG8=",
+      "timestamp": "2025-10-25T17:40:11Z",
+      "sender": {
+        "userName": "loris2155519",
+        "userID": 1
+      },
+      "status": "received",
+      "type": "standard",
+      "comments": [
+        {
+          "content": "👍",
+          "sender": {
+            "userName": "loris2155519",
+            "userID": 1
+          },
+          "commentID": 1
+        }
+      ],
+      "messageID": 1,
+      "replyToMessageID": 12
+    }
+  ]
+}
 */
-func GetListMessages(conversation *entity.Conversation) {
+func GetListMessages(conversation *entity.Conversation) (map[string]interface{}, error) {
+	logrus.Debug("Entered in GetListMessages()")
+	logrus.Infof("Getting list of messages")
+
+	//Imposta i default
+	outErr := fmt.Errorf("Unable to get conversation message list")
+	err := fmt.Errorf("Unable to get conversation message list")
+	var result map[string]interface{}
+	var messagesList []map[string]interface{}
+
+	if conversation.Between_users {
+		//Recupera tutti i messaggi con conversationID = conversation.ConversationID
+		logrus.Infof("Retrieving list of messages of conversationID %d between two users", conversation.ConversationID)
+		
+		// GetMessagesUserList Ritornerà una lista di dict con:
+		// content, content_type, sent_at, senderID, userNameSenderID, 
+		// status, type, comment (content, senderID, userNameSenderID, commentID),
+		// messageID, replyToMessageID
+		messagesList, err = queries.GetMessagesUserList(conversation.ConversationID)
+		logrus.Debug("Passed by GetMessagesUserList()")
+
+	} else {
+		//Recupera tutti i messaggi con conversationID = conversation.ConversationID
+		logrus.Infof("Retrieving list of messages of conversationID %d between users and groups", conversation.ConversationID)
+		
+		// GetMessagesGroupList Ritornerà una lista di dict con:
+		// content, content_type, sent_at, senderID, userNameSenderID, 
+		// status, type, comment (content, senderID, userNameSenderID, commentID),
+		// messageID, replyToMessageID
+		messagesList, err = queries.GetMessagesGroupList(conversation.ConversationID)
+		logrus.Debug("Passed by GetMessagesGroupList()")
+	}
+
+	//Se non ci sono errori, prosegui
+	if err == nil && len(messagesList) > 0 {
+		
+		//Crea l'oggetto in output
+		formattedMessages := []map[string]interface{}{}
+		
+		for _, msg := range messagesList {
+			//Crea la struttura del sender
+			sender := map[string]interface{}{
+				"userName": msg["userNameSenderID"],
+				"userID":   msg["senderID"],
+			}
+			
+			//Prepara la lista dei commenti
+			comments := []map[string]interface{}{}
+			if msg["comment"] != nil {
+				//Se ci sono commenti, processali (assumendo che sia una lista)
+				if commentList, ok := msg["comment"].([]interface{}); ok {
+					for _, c := range commentList {
+						if comment, ok := c.(map[string]interface{}); ok {
+							commentSender := map[string]interface{}{
+								"userName": comment["userNameSenderID"],
+								"userID":   comment["senderID"],
+							}
+							formattedComment := map[string]interface{}{
+								"content":   comment["content"],
+								"sender":    commentSender,
+								"commentID": comment["commentID"],
+							}
+							comments = append(comments, formattedComment)
+						}
+					}
+				}
+			}
+			
+			//Crea il messaggio formattato
+			formattedMsg := map[string]interface{}{
+				"content":   msg["content"],
+				"timestamp": msg["sent_at"],
+				"sender":    sender,
+				"status":    msg["status"],
+				"type":      msg["type"],
+				"comments":  comments,
+				"messageID": msg["messageID"],
+			}
+			
+			//Aggiungi replyToMessageID solo se presente
+			if msg["replyToMessageID"] != nil {
+				formattedMsg["replyToMessageID"] = msg["replyToMessageID"]
+			}
+			
+			formattedMessages = append(formattedMessages, formattedMsg)
+		}
+		
+		//Crea il risultato finale
+		result = map[string]interface{}{
+			"messages": formattedMessages,
+		}
+		
+		outErr = nil
+		logrus.Info("List of messages obtained succesfully")
+
+	} else if err == nil && len(messagesList) == 0 {
+
+		// messagesList è vuota
+		outErr = nil
+		logrus.Infof("No messages found for this conversationID %d", conversation.ConversationID)
+		result = map[string]interface{}{
+			"messages": []map[string]interface{}{},
+		}
+
+	} else {
+		outErr = fmt.Errorf("error during obtaining messages by conversationID %d: %w", conversation.ConversationID, err)
+		logrus.Error(outErr)
+	}
+
+	return result, outErr
 }
 
 /*
