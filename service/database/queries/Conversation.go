@@ -6,7 +6,7 @@ import (
 	"github.com/LorisXP/WasaTextByLoris/service/entity"
 )
 
-func GetByIDBelongUsers(conversationID int) (entity.Conversation, error) {
+func GetConvByIDBelongUsers(conversationID int) (entity.Conversation, error) {
 
 	err := fmt.Errorf("Unable to return conversation by id %d in the table ConversationUsers", conversationID)
 
@@ -19,7 +19,7 @@ func GetByIDBelongUsers(conversationID int) (entity.Conversation, error) {
 	return conversation, err
 }
 
-func GetByIDBelongGroups(conversationID int) (entity.Conversation, error) {
+func GetConvByIDBelongGroups(conversationID int) (entity.Conversation, error) {
 
 	err := fmt.Errorf("Unable to return conversation by id %d in the table ConversationGroups", conversationID)
 
@@ -32,7 +32,7 @@ func GetByIDBelongGroups(conversationID int) (entity.Conversation, error) {
 	return conversation, err
 }
 
-func GetBelongUsers(userID int) ([]map[string]interface{}, error) {
+func GetConvBelongUsers(userID int) ([]map[string]interface{}, error) {
 
 	err := fmt.Errorf("Unable to return conversation belong users by userID %d from database", userID)
 
@@ -61,7 +61,7 @@ func GetBelongUsers(userID int) ([]map[string]interface{}, error) {
 	return conversations_users, err
 }
 
-func GetBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) {
+func GetConvBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) {
 
 	err := fmt.Errorf("Unable to return conversation between users and groups by userID %d from database", userID)
 

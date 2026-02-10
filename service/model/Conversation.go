@@ -111,11 +111,11 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 	if between_users {
 		logrus.Infof("Getting conversation by id %d between_users", conversationID)
 
-		conversation, err = queries.GetByIDBelongUsers(conversationID)
+		conversation, err = queries.GetConvByIDBelongUsers(conversationID)
 	} else {
 		logrus.Infof("Getting conversation by id %d between users and groups", conversationID)
 
-		conversation, err = queries.GetByIDBelongGroups(conversationID)
+		conversation, err = queries.GetConvByIDBelongGroups(conversationID)
 	}
 
 	//Se non ci sono errori, prosegui
@@ -165,14 +165,14 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 	conversations := []map[string]interface{}{}
 
 	//Ottieni le conversazioni prima tra utenti e poi nei gruppi, con ordine cronologico inverso
-	conversations_users, err := queries.GetBelongUsers(userID)
+	conversations_users, err := queries.GetConvBelongUsers(userID)
 
 	//Se non ci sono errori, prosegui
 	if err == nil {
 		logrus.Info("conversation belong users obtained succesfully")
 
 		//Ora ottieni le conversazioni tra utente e gruppi
-		conversations_groups, err := queries.GetBetweenUsersAndGroups(userID)
+		conversations_groups, err := queries.GetConvBetweenUsersAndGroups(userID)
 
 		//Se non ci sono errori, prosegui
 		if err == nil {
