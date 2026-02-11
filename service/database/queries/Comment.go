@@ -3,7 +3,7 @@ package queries
 import (
 	"fmt"
 
-	"github.com/LorisXP/WasaTextByLoris/service/entity"
+	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
 func GetCommentByID(commentID int) (entity.Comment, error) {

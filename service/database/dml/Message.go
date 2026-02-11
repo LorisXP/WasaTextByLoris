@@ -3,7 +3,7 @@ package dml
 import (
 	"fmt"
 
-	"github.com/LorisXP/WasaTextByLoris/service/entity"
+	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
 func CreateMessageBelongUsers(message entity.Message) (int, int, string, error) {

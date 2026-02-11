@@ -19,7 +19,5 @@ Da fare prima del front-end:
 se necessario
 
 Per la prossima volta:
-1. Vedere se esite un qualcosa su Go che crea metodi e valida in automatico in base allo swagger
-2. Altrimenti, creare un validatore in input (min e max, regex, tipo)
-3. Scrivere gli handler del controller
-4. Creare i 3 metodi del db: inserimento, cancellazione e creazione-
+1. Creare un validatore in input (min e max, regex, tipo)
+2. Scrivere gli handler del controller a partire dallo swagger

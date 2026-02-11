@@ -5,9 +5,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
 	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
-	"github.com/LorisXP/WasaTextByLoris/service/entity"
 	"github.com/sirupsen/logrus"
 )
 

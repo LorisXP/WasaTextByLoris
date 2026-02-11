@@ -3,7 +3,7 @@ package dml
 import (
 	"fmt"
 
-	"github.com/LorisXP/WasaTextByLoris/service/entity"
+	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
 func CreateTextContent(message_content entity.Content) (int, error) {

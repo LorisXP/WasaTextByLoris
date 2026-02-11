@@ -3,7 +3,7 @@ package queries
 import (
 	"fmt"
 
-	"github.com/LorisXP/WasaTextByLoris/service/entity"
+	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
 func GetUserByID(userID int) (entity.User, error) {
