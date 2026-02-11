@@ -11,7 +11,7 @@ Use this for queries that return multiple results.
 
 Example usage:
 
-	rows, err := database.ExecuteQuery(db, "SELECT userID, name FROM Users WHERE name LIKE ?", "%john%")
+	rows, err := appDB.ExecuteQuery("SELECT userID, name FROM Users WHERE name LIKE ?", "%john%")
 	if err != nil {
 		return nil, err
 	}
@@ -27,12 +27,22 @@ Example usage:
 		users = append(users, u)
 	}
 */
-func ExecuteQuery(db *sql.DB, query string, args ...interface{}) (*sql.Rows, error) {
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("error executing query: %w", err)
+func (db *appdbimpl) ExecuteQuery(query string, args ...interface{}) (*sql.Rows, error) {
+	// Imposta i default
+	outErr := fmt.Errorf("error executing query")
+	var rows *sql.Rows
+
+	// Esegui la query
+	rows, err := db.c.Query(query, args...)
+
+	// Se non ci sono errori, prosegui
+	if err == nil {
+		outErr = nil
+	} else {
+		outErr = fmt.Errorf("error executing query: %w", err)
 	}
-	return rows, nil
+
+	return rows, outErr
 }
 
 /*
@@ -42,7 +52,7 @@ Use this for queries that return exactly one result.
 Example usage:
 
 	var user entity.User
-	err := database.ExecuteQueryRow(db, "SELECT userID, name, photo FROM Users WHERE userID = ?", userID).Scan(&user.UserID, &user.Name, &user.Photo)
+	err := appDB.ExecuteQueryRow("SELECT userID, name, photo FROM Users WHERE userID = ?", userID).Scan(&user.UserID, &user.Name, &user.Photo)
 	if err == sql.ErrNoRows {
 		return entity.User{}, fmt.Errorf("user not found")
 	}
@@ -50,8 +60,8 @@ Example usage:
 		return entity.User{}, err
 	}
 */
-func ExecuteQueryRow(db *sql.DB, query string, args ...interface{}) *sql.Row {
-	return db.QueryRow(query, args...)
+func (db *appdbimpl) ExecuteQueryRow(query string, args ...interface{}) *sql.Row {
+	return db.c.QueryRow(query, args...)
 }
 
 /*
@@ -60,24 +70,33 @@ Use this for inserting new records.
 
 Example usage:
 
-	lastID, err := database.ExecuteInsert(db, "INSERT INTO Users (name, photo) VALUES (?, ?)", username, photo)
+	lastID, err := appDB.ExecuteInsert("INSERT INTO Users (name, photo) VALUES (?, ?)", username, photo)
 	if err != nil {
 		return 0, fmt.Errorf("error inserting user: %w", err)
 	}
 	return int(lastID), nil
 */
-func ExecuteInsert(db *sql.DB, query string, args ...interface{}) (int64, error) {
-	result, err := db.Exec(query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("error executing insert: %w", err)
+func (db *appdbimpl) ExecuteInsert(query string, args ...interface{}) (int64, error) {
+	// Imposta i default
+	outErr := fmt.Errorf("error executing insert")
+	var lastID int64 = 0
+
+	// Esegui l'insert
+	result, err := db.c.Exec(query, args...)
+
+	// Se non ci sono errori, prosegui
+	if err == nil {
+		lastID, err = result.LastInsertId()
+		if err == nil {
+			outErr = nil
+		} else {
+			outErr = fmt.Errorf("error getting last insert ID: %w", err)
+		}
+	} else {
+		outErr = fmt.Errorf("error executing insert: %w", err)
 	}
 
-	lastID, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("error getting last insert ID: %w", err)
-	}
-
-	return lastID, nil
+	return lastID, outErr
 }
 
 /*
@@ -86,7 +105,7 @@ Use this for updating existing records.
 
 Example usage:
 
-	rowsAffected, err := database.ExecuteUpdate(db, "UPDATE Users SET photo = ? WHERE userID = ?", photo, userID)
+	rowsAffected, err := appDB.ExecuteUpdate("UPDATE Users SET photo = ? WHERE userID = ?", photo, userID)
 	if err != nil {
 		return fmt.Errorf("error updating user photo: %w", err)
 	}
@@ -94,18 +113,27 @@ Example usage:
 		return fmt.Errorf("user not found")
 	}
 */
-func ExecuteUpdate(db *sql.DB, query string, args ...interface{}) (int64, error) {
-	result, err := db.Exec(query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("error executing update: %w", err)
+func (db *appdbimpl) ExecuteUpdate(query string, args ...interface{}) (int64, error) {
+	// Imposta i default
+	outErr := fmt.Errorf("error executing update")
+	var rowsAffected int64 = 0
+
+	// Esegui l'update
+	result, err := db.c.Exec(query, args...)
+
+	// Se non ci sono errori, prosegui
+	if err == nil {
+		rowsAffected, err = result.RowsAffected()
+		if err == nil {
+			outErr = nil
+		} else {
+			outErr = fmt.Errorf("error getting rows affected: %w", err)
+		}
+	} else {
+		outErr = fmt.Errorf("error executing update: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, fmt.Errorf("error getting rows affected: %w", err)
-	}
-
-	return rowsAffected, nil
+	return rowsAffected, outErr
 }
 
 /*
@@ -114,7 +142,7 @@ Use this for deleting records.
 
 Example usage:
 
-	rowsAffected, err := database.ExecuteDelete(db, "DELETE FROM Users WHERE userID = ?", userID)
+	rowsAffected, err := appDB.ExecuteDelete("DELETE FROM Users WHERE userID = ?", userID)
 	if err != nil {
 		return fmt.Errorf("error deleting user: %w", err)
 	}
@@ -122,33 +150,25 @@ Example usage:
 		return fmt.Errorf("user not found")
 	}
 */
-func ExecuteDelete(db *sql.DB, query string, args ...interface{}) (int64, error) {
-	result, err := db.Exec(query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("error executing delete: %w", err)
+func (db *appdbimpl) ExecuteDelete(query string, args ...interface{}) (int64, error) {
+	// Imposta i default
+	outErr := fmt.Errorf("error executing delete")
+	var rowsAffected int64 = 0
+
+	// Esegui il delete
+	result, err := db.c.Exec(query, args...)
+
+	// Se non ci sono errori, prosegui
+	if err == nil {
+		rowsAffected, err = result.RowsAffected()
+		if err == nil {
+			outErr = nil
+		} else {
+			outErr = fmt.Errorf("error getting rows affected: %w", err)
+		}
+	} else {
+		outErr = fmt.Errorf("error executing delete: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, fmt.Errorf("error getting rows affected: %w", err)
-	}
-
-	return rowsAffected, nil
-}
-
-/*
-GetDB returns the underlying *sql.DB connection from AppDatabase.
-Use this to access the raw DB connection when calling helper functions.
-
-Example usage:
-
-	db := database.GetDB(appDB)
-	rows, err := database.ExecuteQuery(db, "SELECT * FROM Users")
-*/
-func GetDB(appDB AppDatabase) *sql.DB {
-	// Type assertion to get the underlying implementation
-	if impl, ok := appDB.(*appdbimpl); ok {
-		return impl.c
-	}
-	return nil
+	return rowsAffected, outErr
 }
