@@ -9,8 +9,17 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 2. Si crea la riga in MessagesUsers per salvare il messaggio
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
-Da fare:
+Da fare prima del front-end:
 1. Manca il content_type (gif, text, photo) nell'API 'Returns messages for the specified conversationID belong users.' 
 2. Togliere lo userID in alcune risposte, sopratutto dove non è necessario, per motivi di sicurezza.
 3. Controllare se i log usano il metodo compatibile con la formattazione.
 4. Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti
+5. Rivedere bene gli import in ogni file
+6. Controlli di sicurezza: quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN
+se necessario
+
+Per la prossima volta:
+1. Vedere se esite un qualcosa su Go che crea metodi e valida in automatico in base allo swagger
+2. Altrimenti, creare un validatore in input (min e max, regex, tipo)
+3. Scrivere gli handler del controller
+4. Creare i 3 metodi del db: inserimento, cancellazione e creazione-
