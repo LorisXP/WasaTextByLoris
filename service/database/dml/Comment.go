@@ -18,7 +18,7 @@ func AddCommentBelongUsers(comment entity.Comment) (int, error) {
 	return commentID, outErr
 }
 
-func AddCommentBetweenUsersAndGroups(message entity.Message) (int, error) {
+func AddCommentBetweenUsersAndGroups(comment entity.Comment) (int, error) {
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to insert reaction to message between a user and group in the database")
 	commentID := 0

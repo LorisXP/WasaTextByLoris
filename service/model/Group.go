@@ -230,7 +230,7 @@ func KickFromGroup(group *entity.Group, userName string) error {
 			outErr = nil
 			logrus.Infof("adminID %d kick out SUCCESFULLY the userName '%s' from groupID %d", group.AdminID, userName, group.GroupID)
 		} else {
-			outErr = fmt.Errorf("Unable to kick out the userName '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+			outErr = fmt.Errorf("Unable to kick out the userName '%s' from groupID %d",userName, group.GroupID)
 			logrus.Error(outErr)
 		}
 	} else {

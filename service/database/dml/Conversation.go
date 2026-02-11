@@ -30,7 +30,7 @@ func CreateConversationBetweenGroups(userID int, groupID int) (int, error) {
 
 func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
 	//Imposta i default
-	outErr := fmt.Errorf("Unable to update lastMessageID %d value in the table ConversationsUser by conversationID %d")
+	outErr := fmt.Errorf("Unable to update lastMessageID %d value in the table ConversationsUser by conversationID %d", messageID, conversationID)
 
 	//dml := "UPDATE ..."
 
@@ -41,7 +41,7 @@ func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
 
 func UpdateLastMessageIDforGroup(conversationID int, messageID int) error {
 	//Imposta i default
-	outErr := fmt.Errorf("Unable to update lastMessageID %d value in the table ConversationsGroup by conversationID %d")
+	outErr := fmt.Errorf("Unable to update lastMessageID %d value in the table ConversationsGroup by conversationID %d", messageID, conversationID)
 
 	//dml := "UPDATE ..."
 
