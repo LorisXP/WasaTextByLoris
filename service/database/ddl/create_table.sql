@@ -3,6 +3,7 @@ CREATE TABLE Users (
     name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 3 AND 15),
     photo TEXT CHECK(photo IS NULL OR length(photo) > 0)
 );
+CREATE INDEX idx_users_name ON Users(name);
 
 CREATE TABLE Groups (
     groupID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -12,6 +13,7 @@ CREATE TABLE Groups (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+CREATE INDEX idx_groups_name ON Groups(name);
 
 CREATE TABLE Members (
     groupID INTEGER NOT NULL REFERENCES Groups(groupID)
