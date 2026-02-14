@@ -1,49 +1,33 @@
 package queries
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
+// GetCommentByID restituisce un commento (reaction) dato il suo commentID
 func GetCommentByID(commentID int) (entity.Comment, error) {
-
-	err := fmt.Errorf("Unable to return comment by id %d in the table Comments", commentID)
-
 	var comment entity.Comment
+	var msgUserID sql.NullInt64
+	var msgGroupID sql.NullInt64
 
-	//query := "SELECT ..."
+	row := db.QueryRow(
+		"SELECT commentID, messageUserID, messageGroupID, reaction FROM Comments WHERE commentID = ?",
+		commentID,
+	)
+	err := row.Scan(&comment.CommentID, &msgUserID, &msgGroupID, &comment.Reaction)
+	if err != nil {
+		return entity.Comment{}, fmt.Errorf("unable to return comment by id %d: %w", commentID, err)
+	}
 
-	//result = getDataByDatabase(query)
+	if msgUserID.Valid {
+		comment.MessageUserID = int(msgUserID.Int64)
+	}
+	if msgGroupID.Valid {
+		comment.MessageGroupID = int(msgGroupID.Int64)
+	}
 
-	return comment, err
+	return comment, nil
 }
-
-/*
-func GetBelongUsers(userID int) ([]map[string]interface{}, error) {
-
-	err := fmt.Errorf("Unable to return conversation belong users by userID %d from database", userID)
-
-	conversations_users := []map[string]interface{}{}
-
-	//query := "SELECT ..."
-
-	//result = getDataByDatabase(query)
-
-	return conversations_users, err
-}
-
-func GetBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) {
-
-	err := fmt.Errorf("Unable to return conversation between users and groups by userID %d from database", userID)
-
-	conversations_groups := []map[string]interface{}{}
-
-	//query := "SELECT ..."
-
-	//result = getDataByDatabase(query)
-
-	return conversations_groups, err
-}
-
-*/
