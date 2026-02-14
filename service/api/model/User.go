@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
@@ -9,8 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NewUser costruisce uno User dal database
-func NewUser(userID int) (entity.User, error) {
+func GetUser(userID int) (entity.User, error) {
+	logrus.Debug("Entered in NewUser()")
+	logrus.Infof("Creating a new user")
 
 	//Imposta i default
 	var user entity.User
@@ -35,9 +37,37 @@ func NewUser(userID int) (entity.User, error) {
 	return user, outErr
 }
 
+//Imposta un nuovo nome utente
+func SetUserName(u *entity.User, newUserName string) (error) {
+	logrus.Debug("Entered in SetUserName()")
+	var outErr error = fmt.Errorf("cannot update photo for user %d", u.UserID)
+
+	//Rimuovi eventuali spazi
+	newUserName = strings.TrimSpace(newUserName)
+
+	//Aggiorna il nome
+	err := dml.UpdateNameByUserID(u.UserID, newUserName)
+
+	//Se non ci sono errori, prosegui
+	if err == nil {
+
+		u.Name = newUserName
+		outErr = nil
+
+		logrus.WithField("userID", u.UserID).Infof("userName updated with: %s", newUserName)
+
+	} else {
+
+		outErr = fmt.Errorf("cannot update userName for user %d: %w", u.UserID, err)
+		logrus.Error(outErr)
+	}
+
+	return outErr
+}
+
 // SetPhoto aggiorna la foto dell'utente
 func SetPhoto(u *entity.User, newPhoto string) error {
-
+	logrus.Debug("Entered in SetPhoto()")
 	var outErr error = fmt.Errorf("cannot update photo for user %d", u.UserID)
 
 	//Effettua il caricamento della foto
@@ -61,35 +91,35 @@ func SetPhoto(u *entity.User, newPhoto string) error {
 }
 
 // GetUsersByName cerca utenti per nome
-func GetUsersByName(search string) { //([]entity.User, error)
+func GetUsersByName(search string) ([]entity.User, error) {
 
-	// var users []User
-	// var outErr error = fmt.Errorf("cannot search users by name '%s'", search)
+	var users []entity.User
+	var outErr error = fmt.Errorf("cannot search users by name '%s'", search)
 
-	// records, err := queries.UsersByName(search)
+	records, err := queries.GetUsersByName(search)
 
-	// //Se non ci sono errori, prosegui
-	// if err == nil {
+	//Se non ci sono errori, prosegui
+	if err == nil {
 
-	// 	users = make([]User, 0, len(records))
+		users = make([]entity.User, 0, len(records))
 
-	// 	for _, r := range records {
-	// 		users = append(users, User{
-	// 			userID: r.ID,
-	// 			Name:   r.Name,
-	// 			Photo:  r.Photo,
-	// 		})
-	// 	}
+		for _, r := range records {
+			users = append(users, entity.User{
+				UserID: r.UserID,
+				Name:   r.Name,
+				Photo:  r.Photo,
+			})
+		}
 
-	// 	outErr = nil
+		outErr = nil
 
-	// 	logrus.WithField("search", search).Info("Users retrieved")
+		logrus.WithField("search", search).Info("Users retrieved")
 
-	// } else {
+	} else {
 
-	// 	outErr = fmt.Errorf("error searching users by name '%s': %w", search, err)
-	// 	logrus.WithField("search", search).Error(outErr)
-	// }
+		outErr = fmt.Errorf("error searching users by name '%s': %w", search, err)
+		logrus.WithField("search", search).Error(outErr)
+	}
 
-	// return users, outErr
+	return users, outErr
 }
