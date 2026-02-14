@@ -168,6 +168,54 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/users/{userID}/groups:
+    parameters:
+      - $ref: "#/components/parameters/userID"
+
+    post:
+      tags:
+        - Group
+      summary: Create a new group
+      description: Allows a user to create a new group with a specified name and optional photo.
+      operationId: createGroup
+      requestBody:
+        description: The group name, optional photo, and administrator userID
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body containing group name, photo, and administrator userID
+              required:
+                - name
+              properties:
+                name:
+                  description: Group name
+                  type: string
+                  example: Awesome group
+                  pattern: ^.*?$
+                  minLength: 3
+                  maxLength: 15
+                photo:
+                  $ref: "#/components/schemas/Photo"
+      responses:
+        "201":
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response containing the created group ID
+                properties:
+                  groupID:
+                    $ref: "#/components/schemas/groupID"
+        "400":
+          description: Invalid group name or photo
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/users/{userID}/groups/{groupID}:
     parameters:
       - $ref: "#/components/parameters/userID" #userID that wants to leave
@@ -217,32 +265,35 @@ paths:
     post:
       tags:
         - Group
-      summary: Add a user to a group
-      description: Allows the user to add another user to an existing group.
+      summary: Add users to a group
+      description: Allows the user to add multiple users to an existing group.
       operationId: addToGroup
       parameters:
         - $ref: "#/components/parameters/groupID"
       requestBody:
-        description:
-          The administrator’s userID and the username to add to the group.
-          and username to add to the group.
+        description: The administrator's userID and a list of usernames to add to the group.
         required: true
         content:
           application/json:
             schema:
               type: object
-              description: Request body containing administrator userID and userName to add
+              description: Request body containing administrator userID and list of userNames to add
               required:
                 - userID
-                - userName
+                - userNames
               properties:
                 userID:
                   $ref: "#/components/schemas/userID"
-                userName:
-                  $ref: "#/components/schemas/userName"
+                userNames:
+                  type: array
+                  description: List of usernames to add to the group
+                  minItems: 1
+                  maxItems: 30
+                  items:
+                    $ref: "#/components/schemas/userName"
       responses:
         "204":
-          description: User added successfully.
+          description: Users added successfully.
         "400":
           description: Invalid groupID or insufficient permissions.
         "401":
@@ -857,6 +908,15 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Photo"
             - $ref: "#/components/schemas/Text"
+        content_type:
+          description: Type of the content message
+          type: string
+          enum:
+            - gif
+            - text
+            - photo
+          example: photo
+          pattern: "^(gif|text|photo)$"
         timestamp:
           type: string
           format: date-time
