@@ -6,15 +6,15 @@ import (
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
+// GetContentByID restituisce un contenuto dato il suo contentID
 func GetContentByID(contentID int) (entity.Content, error) {
-
-	err := fmt.Errorf("Unable to return content by id %d in the table Contents", contentID)
-
 	var content entity.Content
 
-	//query := "SELECT ..."
+	row := db.QueryRow("SELECT contentID, type, content FROM Contents WHERE contentID = ?", contentID)
+	err := row.Scan(&content.ContentID, &content.Type, &content.Content)
+	if err != nil {
+		return entity.Content{}, fmt.Errorf("unable to return content by id %d: %w", contentID, err)
+	}
 
-	//result = getDataByDatabase(query)
-
-	return content, err
+	return content, nil
 }
