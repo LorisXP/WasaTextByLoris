@@ -34,6 +34,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
+	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
 )
 
 // AppDatabase is the high level interface for the DB
@@ -65,6 +68,10 @@ func New(db *sql.DB) (AppDatabase, error) {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
 		}
 	}
+
+	// Inizializza i package queries e dml con la connessione al database
+	queries.Init(db)
+	dml.Init(db)
 
 	return &appdbimpl{
 		c: db,
