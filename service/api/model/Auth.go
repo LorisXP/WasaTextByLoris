@@ -25,9 +25,9 @@ func AuthUser(username string) (int, error) {
 		outErr = nil
 
 		if newUser {
-			logrus.Info("%s is a new user", username)
-		} else{
-			logrus.Info("%s authenticated succesfully")
+			logrus.Infof("%s is a new user", username)
+		} else {
+			logrus.Infof("%s authenticated successfully", username)
 		}
 
 	} else {
@@ -35,6 +35,6 @@ func AuthUser(username string) (int, error) {
 		logrus.Error(outErr)
 	}
 
-	//Resituisci
+	//Restituisci
 	return userID, outErr
 }

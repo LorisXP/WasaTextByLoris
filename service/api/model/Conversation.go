@@ -11,12 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-/*
-Create a new conversation between user (true) or group (false) by userID of sender and userID/groupID of receiver.
-*/
+// CreateConversation creates a new conversation between users (true) or user and group (false)
 func CreateConversation(between_users bool, sender int, receiver int) (entity.Conversation, error) {
 	logrus.Debug("Entered in CreateConversation()")
-	logrus.Infof("Creating a new conversation")
+	logrus.Info("Creating a new conversation")
 
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to create a new conversation")
@@ -25,7 +23,7 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 
 	//Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
 	if between_users {
-		logrus.Infof("Creating a new conversation between two users")
+		logrus.Info("Creating a new conversation between two users")
 		logrus.Debugf("They are '%d' and '%d'", sender, receiver)
 
 		conversation.ConversationID, err = dml.CreateConversationBetweenUsers(sender, receiver)
@@ -49,7 +47,7 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 
 		outErr = nil
 
-		logrus.Info("Conversation created succesfully")
+		logrus.Info("Conversation created successfully")
 
 	} else {
 		outErr = fmt.Errorf("error during creating conversation: %w", err)
@@ -59,9 +57,7 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 	return conversation, outErr
 }
 
-/*
-Update lastMessageID of a conversation
-*/
+// SetLastMessageID updates the lastMessageID of a conversation
 func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 	logrus.Debug("Entered in SetLastMessageID()")
 	logrus.Infof("Updating last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
@@ -87,7 +83,7 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 	if err == nil {
 		conversation.LastMessageID = messageID
 		outErr = nil
-		logrus.Info("last message ID updated succesfully")
+		logrus.Info("Last message ID updated successfully")
 	} else {
 		outErr = fmt.Errorf("error during updating last message ID (%d): %w", messageID, err)
 		logrus.Error(outErr)
@@ -96,9 +92,7 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 	return outErr
 }
 
-/*
-Return a conversation struct in WasaText by his conversationID
-*/
+// GetConversationByID returns a conversation struct by its conversationID
 func GetConversationByID(conversationID int, between_users bool) (entity.Conversation, error) {
 	logrus.Debug("Entered in GetConversationByID() in package model/Conversation")
 
@@ -121,7 +115,7 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 	//Se non ci sono errori, prosegui
 	if err == nil && conversation.ConversationID != 0 {
 		outErr = nil
-		logrus.Info("conversation obtained succesfully")
+		logrus.Info("Conversation obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining conversation by id %d: %w", conversationID, err)
 		logrus.Error(outErr)
@@ -161,7 +155,7 @@ Return a list of messages of specific conversation (belonging users or group)
 */
 func GetListMessages(conversation *entity.Conversation) (map[string]interface{}, error) {
 	logrus.Debug("Entered in GetListMessages()")
-	logrus.Infof("Getting list of messages")
+	logrus.Info("Getting list of messages")
 
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to get conversation message list")
@@ -252,7 +246,7 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 		}
 		
 		outErr = nil
-		logrus.Info("List of messages obtained succesfully")
+		logrus.Info("List of messages obtained successfully")
 
 	} else if err == nil && len(messagesList) == 0 {
 
@@ -304,20 +298,20 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 
 	//Se non ci sono errori, prosegui
 	if err == nil {
-		logrus.Info("conversation belong users obtained succesfully")
+		logrus.Info("Conversations belong users obtained successfully")
 
 		//Ora ottieni le conversazioni tra utente e gruppi
 		conversations_groups, err := queries.GetConvBetweenUsersAndGroups(userID)
 
 		//Se non ci sono errori, prosegui
 		if err == nil {
-			logrus.Info("conversation between users and groups obtained succesfully")
+			logrus.Info("Conversations between users and groups obtained successfully")
 
 			//Ora uniscile
 			conversations = append(conversations, conversations_users...)
 			conversations = append(conversations, conversations_groups...)
 
-			//Effetua l'ordinamento cronologico inverso per timestamp del messaggio
+			//Effettua l'ordinamento cronologico inverso per timestamp del messaggio
 			sort.Slice(conversations, func(i, j int) bool {
 
 				// Estrai timestamp i-esimo
@@ -332,7 +326,7 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 				return t1.After(t2)
 			})
 
-			logrus.Infof("conversation of userID %d, sorted succesfully", userID)
+			logrus.Infof("Conversations of userID %d sorted successfully", userID)
 
 		} else {
 			outErr = fmt.Errorf("error during obtaining conversation between users and groups by userID %d: %w", userID, err)

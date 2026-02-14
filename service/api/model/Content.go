@@ -13,7 +13,7 @@ import (
 
 func CreateContent(content_type string, content string) (entity.Content, error) {
 	logrus.Debug("Entered in CreateContent()")
-	logrus.Infof("Creating a new content")
+	logrus.Info("Creating a new content")
 
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to create a new content. Type: %s . Text: %s", content_type, content)
@@ -39,7 +39,7 @@ func CreateContent(content_type string, content string) (entity.Content, error) 
 		message_content.Content = content
 		
 		//Crea l'inserimento a DB
-		logrus.Infof("Creating a new content in DB")
+		logrus.Info("Creating a new content in DB")
 
 		message_content.ContentID, err = dml.CreateTextContent(message_content)
 		logrus.Debug("Passed by CreateTextContent()")
@@ -48,7 +48,7 @@ func CreateContent(content_type string, content string) (entity.Content, error) 
 		if err == nil && message_content.ContentID != 0 {
 
 			outErr = nil
-			logrus.Info("Content inserted succesfully")
+			logrus.Info("Content inserted successfully")
 
 		} else {
 			outErr = fmt.Errorf("error during inserting content: %w", err)
@@ -56,7 +56,7 @@ func CreateContent(content_type string, content string) (entity.Content, error) 
 		}
 
 	} else {
-		outErr = fmt.Errorf("error during creating content: type of content is not valid (%s). Expected 'text', 'gif', 'photo'.",content_type )
+		outErr = fmt.Errorf("error during creating content: content type is not valid (%s). Expected 'text', 'gif' or 'photo'", content_type)
 		logrus.Error(outErr)
 	}
 
@@ -78,7 +78,7 @@ func GetContentByID(contentID int) (entity.Content, error) {
 	//Se non ci sono errori, prosegui
 	if err == nil && content.ContentID != 0 {
 		outErr = nil
-		logrus.Info("content obtained succesfully")
+		logrus.Info("Content obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining content by id %d: %w", contentID, err)
 		logrus.Error(outErr)
@@ -95,8 +95,8 @@ func DeleteContentByID(contentID int) (error) {
 	outErr := fmt.Errorf("Unable to remove contentID %d", contentID)
 	err := fmt.Errorf("Unable to remove contentID %d", contentID)
 
-	//Cancella il contenuto sul DB
-	logrus.Infof("Moving to trash a content")
+	//Cancella il contenuto dal DB
+	logrus.Infof("Deleting contentID %d", contentID)
 
 	err = dml.DeleteContentByID(contentID)
 	logrus.Debug("Passed by DeleteContentByID()")
@@ -104,7 +104,7 @@ func DeleteContentByID(contentID int) (error) {
 	//Se non ci sono errori, prosegui
 	if err == nil {
 		outErr = nil
-		logrus.Infof("contentID %d SUCCESFULLY removed from DB", contentID)
+		logrus.Infof("contentID %d removed from DB successfully", contentID)
 
 	} else {
 		outErr = fmt.Errorf("error during removing contentID %d: %w",contentID, err)

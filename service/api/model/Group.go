@@ -9,9 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-/*
-Create a group in WasaText with name, photo and the ID of the admin
-*/
+// CreateGroup creates a group in WasaText with name, photo and the ID of the admin
 func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 	logrus.Debug("Entered in CreateGroup()")
 	logrus.Infof("Creating a group named %s, by admin %d ", name, admin)
@@ -35,7 +33,7 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 
 		outErr = nil
 
-		logrus.Info("Group created succesfully")
+		logrus.Info("Group created successfully")
 
 	} else {
 		outErr = fmt.Errorf("error during creating group: %w", err)
@@ -45,9 +43,7 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 	return group, outErr
 }
 
-/*
-Return a group struct in WasaText by his groupID
-*/
+// GetGroup returns a group struct by its groupID
 func GetGroup(groupID int) (entity.Group, error) {
 	logrus.Debug("Entered in GetGroup()")
 	logrus.Infof("Getting group by id %d", groupID)
@@ -62,7 +58,7 @@ func GetGroup(groupID int) (entity.Group, error) {
 	//Se non ci sono errori, prosegui
 	if err == nil && group.GroupID != 0 {
 		outErr = nil
-		logrus.Info("Group obtained succesfully")
+		logrus.Info("Group obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining group by id %d: %w", groupID, err)
 		logrus.Error(outErr)
@@ -71,9 +67,7 @@ func GetGroup(groupID int) (entity.Group, error) {
 	return group, outErr
 }
 
-/*
-Allows a user with him userID to leave from group by groupID
-*/
+// LeaveGroup allows a user with their userID to leave a group by groupID
 func LeaveGroup(userID int, group entity.Group) error {
 	logrus.Debug("Entered in LeaveGroup()")
 	logrus.Infof("userID %d leaving from groupID %d", userID, group.GroupID)
@@ -88,7 +82,7 @@ func LeaveGroup(userID int, group entity.Group) error {
 	//Se non ci sono errori, prosegui
 	if err == nil {
 		outErr = nil
-		logrus.Infof("userID %d leave succesfully from group by id %d ", userID, group.GroupID)
+		logrus.Infof("userID %d left successfully from group by id %d", userID, group.GroupID)
 	} else {
 		outErr = fmt.Errorf("error leaving groupID %d by userID %d: %w", group.GroupID, userID, err)
 		logrus.Error(outErr)
@@ -97,9 +91,7 @@ func LeaveGroup(userID int, group entity.Group) error {
 	return outErr
 }
 
-/*
-Allows an admin of group to add a list of user by his name
-*/
+// AddToGroup allows an admin of a group to add a list of users by their names
 func AddToGroup(group entity.Group, userName []string) error {
 	logrus.Debug("Entered in AddToGroup()")
 	logrus.Infof("adminID %d adding users %v, in groupID %d", group.AdminID, userName, group.GroupID)
@@ -126,7 +118,7 @@ func AddToGroup(group entity.Group, userName []string) error {
 
 			//Se non ci sono errori, prosegui
 			if err == nil {
-				logrus.Infof("adminID %d adding SUCCESFULLY users %v, in groupID %d", group.AdminID, userName, group.AdminID)
+				logrus.Infof("adminID %d added users %v to groupID %d successfully", group.AdminID, userName, group.GroupID)
 				outErr = nil
 			} else {
 				outErr = fmt.Errorf("error during add userID list in the groupID %d: %w", group.AdminID, err)
@@ -134,7 +126,7 @@ func AddToGroup(group entity.Group, userName []string) error {
 			}
 
 		} else {
-			outErr = fmt.Errorf("number of usernames different from the number of userIDs, that username probably doesn't exist")
+			outErr = fmt.Errorf("number of usernames differs from the number of userIDs: some usernames probably do not exist")
 			logrus.Error(outErr)
 		}
 
@@ -147,9 +139,7 @@ func AddToGroup(group entity.Group, userName []string) error {
 
 }
 
-/*
-Allows an admin of group to set the group name
-*/
+// SetNameGroup allows an admin of a group to set the group name
 func SetNameGroup(group *entity.Group, new_name string) error {
 	logrus.Debug("Entered in SetNameGroup()")
 	logrus.Infof("adminID %d setting the name of groupID %d", group.AdminID, group.GroupID)
@@ -165,7 +155,7 @@ func SetNameGroup(group *entity.Group, new_name string) error {
 	if err == nil {
 		group.Name = new_name
 		outErr = nil
-		logrus.Infof("adminID %d setting SUCCESFULLY the name '%s' of groupID %d", group.AdminID, new_name, group.GroupID)
+		logrus.Infof("adminID %d set the name '%s' of groupID %d successfully", group.AdminID, new_name, group.GroupID)
 	} else {
 		outErr = fmt.Errorf("error setting new group name '%s' in groupID %d: %w", new_name, group.GroupID, err)
 		logrus.Error(outErr)
@@ -174,9 +164,7 @@ func SetNameGroup(group *entity.Group, new_name string) error {
 	return outErr
 }
 
-/*
-Allows an admin of group to set the group picture
-*/
+// SetGroupPhoto allows an admin of a group to set the group picture
 func SetGroupPhoto(group *entity.Group, new_photo string) error {
 	logrus.Debug("Entered in SetGroupPhoto()")
 	logrus.Infof("adminID %d setting the photo of groupID %d", group.AdminID, group.GroupID)
@@ -192,7 +180,7 @@ func SetGroupPhoto(group *entity.Group, new_photo string) error {
 	if err == nil {
 		group.Photo = new_photo
 		outErr = nil
-		logrus.Infof("adminID %d setting SUCCESFULLY the photo of groupID %d", group.AdminID, group.GroupID)
+		logrus.Infof("adminID %d set the photo of groupID %d successfully", group.AdminID, group.GroupID)
 	} else {
 		outErr = fmt.Errorf("error setting new group photo in groupID %d: %w", group.GroupID, err)
 		logrus.Error(outErr)
@@ -201,9 +189,7 @@ func SetGroupPhoto(group *entity.Group, new_photo string) error {
 	return outErr
 }
 
-/*
-Allows an admin of group to kick out a user by his username
-*/
+// KickFromGroup allows an admin of a group to kick a user by their username
 func KickFromGroup(group *entity.Group, userName string) error {
 	//Bisogna prima ottenere lo userID corrispondente allo username e poi fare il kick
 
@@ -228,30 +214,28 @@ func KickFromGroup(group *entity.Group, userName string) error {
 		//Se il remove ha funzionato
 		if err == nil {
 			outErr = nil
-			logrus.Infof("adminID %d kick out SUCCESFULLY the userName '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+			logrus.Infof("adminID %d kicked userName '%s' from groupID %d successfully", group.AdminID, userName, group.GroupID)
 		} else {
-			outErr = fmt.Errorf("Unable to kick out the userName '%s' from groupID %d",userName, group.GroupID)
+			outErr = fmt.Errorf("unable to kick userName '%s' from groupID %d: %w", userName, group.GroupID, err)
 			logrus.Error(outErr)
 		}
 	} else {
-		outErr = fmt.Errorf("error during search userID by '%s' for kick out him in groupID %d: %w", userName, group.GroupID, err)
+		outErr = fmt.Errorf("error searching userID by '%s' to kick them from groupID %d: %w", userName, group.GroupID, err)
 		logrus.Error(outErr)
 	}
 
 	return outErr
 }
 
-/*
-Allows an admin of group to move to trash all the group
-*/
+// DeleteGroup allows an admin of a group to delete the entire group
 func DeleteGroup(group *entity.Group) error {
 	//La cancellazione del gruppo comporta la cancellazione di membri, eventi, messaggi, contenuti ecc.
 
 	logrus.Debug("Entered in DeleteGroup()")
-	logrus.Warningf("adminID %d move to trash the groupID %d", group.AdminID, group.GroupID)
+	logrus.Warningf("adminID %d is deleting groupID %d", group.AdminID, group.GroupID)
 
 	//Imposta i default
-	outErr := fmt.Errorf("Unable for adminID %d move to trash the groupID %d", group.AdminID, group.GroupID)
+	outErr := fmt.Errorf("unable for adminID %d to delete groupID %d", group.AdminID, group.GroupID)
 
 	//Effettua l'operazione al DB
 	err := dml.DeleteGroup(group.GroupID, group.AdminID)
@@ -262,9 +246,9 @@ func DeleteGroup(group *entity.Group) error {
 		//Azzeralo
 		group = &entity.Group{}
 		outErr = nil
-		logrus.Infof("adminID %d moved SUCCESFULLY to trash the groupID %d", group.AdminID, group.GroupID)
+		logrus.Infof("adminID %d deleted groupID %d successfully", group.AdminID, group.GroupID)
 	} else {
-		outErr = fmt.Errorf("error move to trash the group %d: %w", group.GroupID, err)
+		outErr = fmt.Errorf("error deleting group %d: %w", group.GroupID, err)
 		logrus.Error(outErr)
 	}
 

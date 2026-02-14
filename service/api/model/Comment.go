@@ -32,16 +32,16 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 	//Crea la struct comment da salvare nel DB
 	comment.Reaction = reaction
 
-	//Crea l'inserimento a DB in base a se il commento del messagio è tra utenti o utente->gruppo
+	//Crea l'inserimento a DB in base a se il commento del messaggio è tra utenti o utente->gruppo
 	if between_users {
 		comment.MessageUserID = messageID
-		logrus.Infof("Adding a new reaction to message belong two users")
+		logrus.Info("Adding a new reaction to message belong two users")
 		
 		comment.CommentID, err = dml.AddCommentBelongUsers(comment)
 		logrus.Debug("Passed by AddCommentBelongUsers()")
 	} else {
 		comment.MessageGroupID = messageID
-		logrus.Infof("Adding a new reaction to message between users and group")
+		logrus.Info("Adding a new reaction to message between users and group")
 
 		comment.CommentID, err = dml.AddCommentBetweenUsersAndGroups(comment)
 		logrus.Debug("Passed by AddCommentBetweenUsersAndGroups()")
@@ -50,7 +50,7 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 	//Se non ci sono errori, prosegui
 	if err == nil && comment.CommentID != 0 {
 		outErr = nil
-		logrus.Info("Added reaction to message succesfully")
+		logrus.Info("Reaction added to message successfully")
 
 	} else {
 		outErr = fmt.Errorf("error during adding reaction to message: %w", err)
@@ -75,7 +75,7 @@ func GetCommentByID(commentID int) (entity.Comment, error) {
 	//Se non ci sono errori, prosegui
 	if err == nil && comment.CommentID != 0 {
 		outErr = nil
-		logrus.Info("comment obtained succesfully")
+		logrus.Info("Comment obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining comment by id %d: %w", commentID, err)
 		logrus.Error(outErr)
@@ -92,14 +92,14 @@ func DeleteComment(userID int, commentID int, messageID int, between_users bool,
 	outErr := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
 	err := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
 
-	//Cancella il messagio sul DB nella tabella corretta in base all'utente
+	//Cancella il commento sul DB nella tabella corretta in base all'utente
 	if between_users {
-		logrus.Infof("Moving to trash a comment belong two users")
+		logrus.Info("Moving to trash a comment belong two users")
 
 		err = dml.DeleteCommentBelongUsers(userID, commentID, messageID)
 		logrus.Debug("Passed by DeleteCommentBelongUsers()")
 	} else {
-		logrus.Infof("Moving to trash comment between users and group")
+		logrus.Info("Moving to trash comment between users and group")
 
 		err = dml.DeleteCommentBetweenUsersAndGroups(userID, commentID, messageID)
 		logrus.Debug("Passed by DeleteCommentBetweenUsersAndGroups()")
@@ -108,7 +108,7 @@ func DeleteComment(userID int, commentID int, messageID int, between_users bool,
 	//Se non ci sono errori, prosegui
 	if err == nil {
 		outErr = nil
-		logrus.Infof("userID %d SUCCESFULLY delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
+		logrus.Infof("userID %d deleted commentID %d of messageID %d between users %t successfully", userID, commentID, messageID, between_users)
 
 	} else {
 		outErr = fmt.Errorf("error for userID %d during removing commentID %d of messageID %d between users %t: %w", userID, commentID, messageID, between_users,err)

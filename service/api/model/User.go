@@ -11,12 +11,12 @@ import (
 )
 
 func GetUser(userID int) (entity.User, error) {
-	logrus.Debug("Entered in NewUser()")
-	logrus.Infof("Creating a new user")
+	logrus.Debug("Entered in GetUser()")
+	logrus.Infof("Getting user %d", userID)
 
 	//Imposta i default
 	var user entity.User
-	var outErr error = fmt.Errorf("unable to create user %d", userID)
+	var outErr error = fmt.Errorf("unable to get user %d", userID)
 
 	user_found, err := queries.GetUserByID(userID)
 
@@ -37,10 +37,10 @@ func GetUser(userID int) (entity.User, error) {
 	return user, outErr
 }
 
-//Imposta un nuovo nome utente
-func SetUserName(u *entity.User, newUserName string) (error) {
+// SetUserName imposta un nuovo nome utente
+func SetUserName(u *entity.User, newUserName string) error {
 	logrus.Debug("Entered in SetUserName()")
-	var outErr error = fmt.Errorf("cannot update photo for user %d", u.UserID)
+	var outErr error = fmt.Errorf("cannot update userName for user %d", u.UserID)
 
 	//Rimuovi eventuali spazi
 	newUserName = strings.TrimSpace(newUserName)
