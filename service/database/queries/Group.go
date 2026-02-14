@@ -1,20 +1,27 @@
 package queries
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
+// GetGroupByID restituisce un gruppo dato il suo groupID
 func GetGroupByID(groupID int) (entity.Group, error) {
-
-	err := fmt.Errorf("Unable to return group by id %d", groupID)
-
 	var group entity.Group
 
-	//query := "SELECT ..."
+	row := db.QueryRow("SELECT groupID, name, photo, adminID FROM Groups WHERE groupID = ?", groupID)
 
-	//result = getDataByDatabase(query)
+	var photo sql.NullString
+	err := row.Scan(&group.GroupID, &group.Name, &photo, &group.AdminID)
+	if err != nil {
+		return entity.Group{}, fmt.Errorf("unable to return group by id %d: %w", groupID, err)
+	}
 
-	return group, err
+	if photo.Valid {
+		group.Photo = photo.String
+	}
+
+	return group, nil
 }
