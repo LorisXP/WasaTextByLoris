@@ -7,22 +7,31 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetUserId(username string) (int, error) {
-	logrus.Debug("Entered in GetUserId()")
+//Se utente esite -> restituisce userID
+//Altrimenti -> nuovo utente, nuovo userID
+func AuthUser(username string) (int, error) {
+	logrus.Debug("Entered in AuthUser()")
+	logrus.Infof("The user %s is authenticating now...", username)
 
 	//Imposta i default
-	outErr := fmt.Errorf("Unable to get userID by name of the user %s", username)
+	outErr := fmt.Errorf("Unable to return userID for username %s", username)
 
-	//Opera
-	userID, err := queries.GetUserIDByName(username)
+	//Fai una query di ricerca
+	userID, newUser, err := queries.GetOrCreateUserIDByName(username)
 	logrus.Debug("Passed by GetUserIDByName()")
 
 	//Se non ci sono errori, prosegui
 	if err == nil && userID != 0 {
 		outErr = nil
-		logrus.Info("Completed search of userID by username")
+
+		if newUser {
+			logrus.Info("%s is a new user", username)
+		} else{
+			logrus.Info("%s authenticated succesfully")
+		}
+
 	} else {
-		outErr = fmt.Errorf("userName %s not found: %w", username, err)
+		outErr = fmt.Errorf("error during authenticating userName %s: %w", username, err)
 		logrus.Error(outErr)
 	}
 
