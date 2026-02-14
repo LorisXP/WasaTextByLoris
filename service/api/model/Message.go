@@ -40,16 +40,25 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 	message.Content = content
 	message.ContentType = content_type
 
+	//Crea prima il contenuto tramite model.CreateContent
+	contentEntity, err := CreateContent(content_type, content)
+	if err != nil {
+		outErr = fmt.Errorf("error during creating content for message: %w", err)
+		logrus.Error(outErr)
+		return message, outErr
+	}
+	logrus.Debug("Passed by CreateContent()")
+
 	//Crea l'inserimento a DB in base a se il messagio è tra utenti o utente->gruppo
 	if between_users {
 		logrus.Infof("Creating a new message belong two users")
 
-		message.MessageID, message.Receiver, message.Sent_at, err = dml.CreateMessageBelongUsers(message)
+		message.MessageID, message.Receiver, message.Sent_at, err = dml.CreateMessageBelongUsers(message, contentEntity.ContentID)
 		logrus.Debug("Passed by CreateMessageBelongUsers()")
 	} else {
 		logrus.Infof("Creating a new message between users and group")
 
-		message.MessageID, message.Receiver, message.Sent_at, err = dml.CreateMessageBetweenUsersAndGroups(message)
+		message.MessageID, message.Receiver, message.Sent_at, err = dml.CreateMessageBetweenUsersAndGroups(message, contentEntity.ContentID)
 		logrus.Debug("Passed by CreateMessageBetweenUsersAndGroups()")
 	}
 
