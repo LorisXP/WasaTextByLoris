@@ -10,14 +10,19 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
 Da fare prima del front-end:
-1. Manca il content_type (gif, text, photo) nell'API 'Returns messages for the specified conversationID belong users.' 
-2. Togliere lo userID in alcune risposte, sopratutto dove non è necessario, per motivi di sicurezza.
-3. Controllare se i log usano il metodo compatibile con la formattazione.
-4. Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti
-5. Rivedere bene gli import in ogni file
-6. Controlli di sicurezza: quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN
-se necessario
+6. Controlli di sicurezza: 
+ - quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN se necessario
+ - Togliere lo userID in alcune risposte, sopratutto dove non è necessario
+8. Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
 
 Per la prossima volta:
 1. Creare un validatore in input (min e max, regex, tipo)
-2. Scrivere gli handler del controller a partire dallo swagger
+3. Scrivere gli handler del controller a partire dallo swagger
+
+Fatto in precedenza:
+- Scrivere le query e dml per il model
+- Manca il content_type (gif, text, photo) nell'API 'Returns messages for the specified conversationID belong users.' 
+- Manca un'API per creare un nuovo gruppo
+- Controllare se i log usano il metodo compatibile con la formattazione.
+- Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti e dei log
+- Rivedere bene gli import in ogni file
