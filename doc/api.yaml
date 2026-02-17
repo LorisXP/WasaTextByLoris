@@ -93,11 +93,13 @@ paths:
                 type: object
                 description: Successful userName update confirmation
         "400":
-          description: Invalid userName or userName already in use
+          description: Invalid userName
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
           description: User not found
+        "409":
+          description: userName already in use
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -165,6 +167,8 @@ paths:
           description: Invalid search query
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          description: No users found matching the search query
         "500":
           $ref: "#/components/responses/InternalServerError"
 

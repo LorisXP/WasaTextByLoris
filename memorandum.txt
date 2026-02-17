@@ -13,6 +13,8 @@ Da fare prima del front-end:
 6. Controlli di sicurezza: 
  - quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN se necessario
  - Togliere lo userID in alcune risposte, sopratutto dove non è necessario
+    - /api/users/{userID}/conversations/users/{conversationID}/messages
+    - /api/users/{userID}/conversations/groups/{conversationID}/messages
 8. Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
 
 Per la prossima volta:
