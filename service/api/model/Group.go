@@ -1,13 +1,18 @@
 package model
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
 	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
 	"github.com/sirupsen/logrus"
 )
+
+// ErrUserNotInGroup viene restituito quando l'utente non è membro né admin del gruppo
+var ErrUserNotInGroup = errors.New("user is not a member of the group")
 
 // CreateGroup creates a group in WasaText with name, photo and the ID of the admin
 func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
@@ -19,6 +24,7 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 	var group entity.Group
 
 	//Crea l'inserimento a DB
+	name = strings.TrimSpace(name)
 	groupID, err := dml.CreateGroup(name, photo, admin)
 	logrus.Debug("Passed by CreateGroup()")
 
@@ -43,28 +49,91 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 	return group, outErr
 }
 
-// GetGroup returns a group struct by its groupID
-func GetGroup(groupID int) (entity.Group, error) {
+// GetGroupBasic returns the raw entity.Group by groupID (without membership check or member list).
+func GetGroupBasic(groupID int) (entity.Group, error) {
+	logrus.Debug("Entered in GetGroupBasic()")
+	logrus.Infof("Getting basic group info by id %d", groupID)
+
+	group, err := queries.GetGroupByID(groupID)
+	if err != nil {
+		return entity.Group{}, fmt.Errorf("error getting group by id %d: %w", groupID, err)
+	}
+
+	return group, nil
+}
+
+// GetGroup returns group info by groupID, verificando che userID sia membro o admin.
+func GetGroup(groupID int, userID int) (entity.GroupInfoResponse, error) {
 	logrus.Debug("Entered in GetGroup()")
-	logrus.Infof("Getting group by id %d", groupID)
+	logrus.Infof("Getting group by id %d, requested by userID %d", groupID, userID)
 
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve group by id %d ", groupID)
+	var result entity.GroupInfoResponse
 
-	//Ottieni le info a DB
-	group, err := queries.GetGroupByID(groupID)
-	logrus.Debug("Passed by GetGroupByID()")
+	//Verifica se l'utente fa parte del gruppo
+	isMember, errCheck := queries.IsUserInGroup(userID, groupID)
 
-	//Se non ci sono errori, prosegui
-	if err == nil && group.GroupID != 0 {
-		outErr = nil
-		logrus.Info("Group obtained successfully")
-	} else {
-		outErr = fmt.Errorf("error during obtaining group by id %d: %w", groupID, err)
+	if errCheck != nil {
+		outErr = fmt.Errorf("error checking membership for userID %d in groupID %d: %w", userID, groupID, errCheck)
 		logrus.Error(outErr)
+	} else if !isMember {
+		outErr = fmt.Errorf("%w: userID %d in groupID %d", ErrUserNotInGroup, userID, groupID)
+		logrus.WithField("userID", userID).Warnf("userID %d is not a member of groupID %d", userID, groupID)
+	} else {
+		//Ottieni le info del gruppo a DB
+		group, err := queries.GetGroupByID(groupID)
+		logrus.Debug("Passed by GetGroupByID()")
+
+		//Se non ci sono errori, prosegui
+		if err == nil && group.GroupID != 0 {
+
+			//Ottieni il nome dell'admin
+			admin, errAdmin := queries.GetUserByID(group.AdminID)
+			logrus.Debug("Passed by GetUserByID() for admin")
+
+			if errAdmin == nil {
+
+				//Ottieni la lista dei membri
+				members, errMembers := queries.GetGroupMembers(groupID)
+				logrus.Debug("Passed by GetGroupMembers()")
+
+				if errMembers == nil {
+
+					//Costruisci la risposta
+					result.GroupID = group.GroupID
+					result.Name = group.Name
+					result.Photo = group.Photo
+					result.Administrator = admin.Name
+
+					result.Members = make([]entity.MemberResponse, 0, len(members))
+					for _, m := range members {
+						result.Members = append(result.Members, entity.MemberResponse{
+							UserName: m.Name,
+							Photo:    m.Photo,
+						})
+					}
+
+					outErr = nil
+					logrus.Info("Group obtained successfully")
+
+				} else {
+					outErr = fmt.Errorf("error getting members for groupID %d: %w", groupID, errMembers)
+					logrus.Error(outErr)
+				}
+
+			} else {
+				outErr = fmt.Errorf("error getting admin name for adminID %d: %w", group.AdminID, errAdmin)
+				logrus.Error(outErr)
+			}
+
+		} else {
+			outErr = fmt.Errorf("error during obtaining group by id %d: %w", groupID, err)
+			logrus.Error(outErr)
+		}
 	}
 
-	return group, outErr
+	return result, outErr
 }
 
 // LeaveGroup allows a user with their userID to leave a group by groupID
@@ -148,6 +217,7 @@ func SetNameGroup(group *entity.Group, new_name string) error {
 	outErr := fmt.Errorf("Unable for adminID %d setting the name of groupID %d", group.AdminID, group.GroupID)
 
 	//Effettua l'operazione al DB
+	new_name = strings.TrimSpace(new_name)
 	err := dml.UpdateNameGroup(group.GroupID, group.AdminID, new_name)
 	logrus.Debug("Passed by UpdateNameGroup()")
 
