@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,6 +10,12 @@ import (
 	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
 	"github.com/sirupsen/logrus"
 )
+
+// ErrUserNameAlreadyInUse viene restituito quando il nome utente richiesto è già presente nel sistema
+var ErrUserNameAlreadyInUse = errors.New("userName already in use")
+
+// ErrUserNotFound viene restituito quando la ricerca non produce risultati
+var ErrUserNotFound = errors.New("no users found")
 
 func GetUser(userID int) (entity.User, error) {
 	logrus.Debug("Entered in GetUser()")
@@ -29,7 +36,6 @@ func GetUser(userID int) (entity.User, error) {
 		logrus.WithField("userID", userID).Info("User loaded")
 
 	} else {
-
 		outErr = fmt.Errorf("cannot load user %d: %w", userID, err)
 		logrus.Error(outErr)
 	}
@@ -45,21 +51,32 @@ func SetUserName(u *entity.User, newUserName string) error {
 	//Rimuovi eventuali spazi
 	newUserName = strings.TrimSpace(newUserName)
 
-	//Aggiorna il nome
-	err := dml.UpdateNameByUserID(u.UserID, newUserName)
+	//Verifica se il nome è già in uso da un altro utente
+	existingID, errCheck := queries.GetUserIDByName(newUserName)
 
-	//Se non ci sono errori, prosegui
-	if err == nil {
-
-		u.Name = newUserName
-		outErr = nil
-
-		logrus.WithField("userID", u.UserID).Infof("userName updated with: %s", newUserName)
+	if errCheck == nil && existingID != u.UserID {
+		// Il nome è già usato da un altro utente
+		outErr = fmt.Errorf("%w: '%s'", ErrUserNameAlreadyInUse, newUserName)
+		logrus.WithField("userID", u.UserID).Warnf("userName '%s' is already in use by userID %d", newUserName, existingID)
 
 	} else {
 
-		outErr = fmt.Errorf("cannot update userName for user %d: %w", u.UserID, err)
-		logrus.Error(outErr)
+		//Aggiorna il nome
+		err := dml.UpdateNameByUserID(u.UserID, newUserName)
+
+		//Se non ci sono errori, prosegui
+		if err == nil {
+
+			u.Name = newUserName
+			outErr = nil
+
+			logrus.WithField("userID", u.UserID).Infof("userName updated with: %s", newUserName)
+
+		} else {
+
+			outErr = fmt.Errorf("cannot update userName for user %d: %w", u.UserID, err)
+			logrus.Error(outErr)
+		}
 	}
 
 	return outErr
@@ -111,9 +128,13 @@ func GetUsersByName(search string) ([]entity.User, error) {
 			})
 		}
 
-		outErr = nil
-
-		logrus.WithField("search", search).Info("Users retrieved")
+		if len(users) == 0 {
+			outErr = fmt.Errorf("%w matching '%s'", ErrUserNotFound, search)
+			logrus.WithField("search", search).Warn("No users found")
+		} else {
+			outErr = nil
+			logrus.WithField("search", search).Infof("%d users retrieved", len(users))
+		}
 
 	} else {
 
