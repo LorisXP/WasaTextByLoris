@@ -242,8 +242,10 @@ paths:
                 $ref: "#/components/schemas/Group"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          description: user is not member of the group
         "404":
-          description: Group not found or user does not have access to the group
+          description: Group not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -260,8 +262,10 @@ paths:
           description: Invalid group id
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          description: User is not member of the group
         "404":
-          description: Group not found or user is not a member of the group
+          description: Group not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -299,7 +303,7 @@ paths:
         "204":
           description: Users added successfully.
         "400":
-          description: Invalid groupID or insufficient permissions.
+          description: Invalid groupID or userID
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
@@ -348,7 +352,7 @@ paths:
                 type: object
                 description: Successful group name update confirmation
         "400":
-          description: Invalid group name or userID isn't an administrator
+          description: Invalid group name or groupID
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
@@ -415,13 +419,13 @@ paths:
         "204":
           description: User successfully kicked from the group
         "400":
-          description:
-            Invalid group id or userID isn't authorized as administrator
-            of the group.
+          description: Invalid group id, userID or userName
         "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          description: userID isn't authorized as administrator of the group.
+        "403":
+          description: userName not found in the group
         "404":
-          description: Group not found or user is not a member of the group.
+          description: Group not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -439,11 +443,9 @@ paths:
         "204":
           description: Group successfully deleted.
         "400":
-          description:
-            Invalid group id or userID isn't authorized as administrator
-            of the group.
+          description: Invalid group id, userID or userName
         "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          description: userID isn't authorized as administrator of the group.
         "404":
           description: Group not found
         "500":
