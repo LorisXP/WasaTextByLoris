@@ -16,9 +16,10 @@ Da fare prima del front-end:
     - /api/users/{userID}/conversations/users/{conversationID}/messages
     - /api/users/{userID}/conversations/groups/{conversationID}/messages
 8. Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
+9. Controllare che i return negli handler sono corretti (content_type json anche dove non serve?)
+10. Assicurarsi che ci siano tutti gli status code in api-handler e che siano coerenti con lo swagger
 
 Per la prossima volta:
-1. Creare un validatore in input (min e max, regex, tipo)
 3. Scrivere gli handler del controller a partire dallo swagger
 
 Fatto in precedenza:
@@ -28,3 +29,4 @@ Fatto in precedenza:
 - Controllare se i log usano il metodo compatibile con la formattazione.
 - Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti e dei log
 - Rivedere bene gli import in ogni file
+- Creare un validatore in input (min e max, regex, tipo)
