@@ -9,20 +9,22 @@ import (
 
 //Se utente esite -> restituisce userID
 //Altrimenti -> nuovo utente, nuovo userID
-func AuthUser(username string) (int, error) {
+func AuthUser(username string) (int, bool, error) {
 	logrus.Debug("Entered in AuthUser()")
 	logrus.Infof("The user %s is authenticating now...", username)
 
 	//Imposta i default
+	var newUser bool = false
 	outErr := fmt.Errorf("Unable to return userID for username %s", username)
 
 	//Fai una query di ricerca
-	userID, newUser, err := queries.GetOrCreateUserIDByName(username)
+	userID, isNew, err := queries.GetOrCreateUserIDByName(username)
 	logrus.Debug("Passed by GetUserIDByName()")
 
 	//Se non ci sono errori, prosegui
 	if err == nil && userID != 0 {
 		outErr = nil
+		newUser = isNew
 
 		if newUser {
 			logrus.Infof("%s is a new user", username)
@@ -36,5 +38,5 @@ func AuthUser(username string) (int, error) {
 	}
 
 	//Restituisci
-	return userID, outErr
+	return userID, newUser, outErr
 }
