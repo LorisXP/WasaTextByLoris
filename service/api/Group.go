@@ -24,7 +24,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
@@ -133,7 +133,7 @@ func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httpr
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
@@ -215,7 +215,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
@@ -696,7 +696,7 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {

@@ -24,7 +24,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
@@ -140,7 +140,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
@@ -263,7 +263,7 @@ func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httproute
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userId")
+	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
 	//Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
