@@ -14,19 +14,24 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/api/auth", rt.wrap(rt.doLogin))
 
 	// User
-	rt.router.PATCH("/api/users/:userId/me/name", rt.wrap(rt.setMyUserName))
-	rt.router.PUT("/api/users/:userId/me/photo", rt.wrap(rt.setMyPhoto))
-	rt.router.GET("/api/users/:userId/other/:userName", rt.wrap(rt.findUser))
+	rt.router.PATCH("/api/users/:userID/me/name", rt.wrap(rt.setMyUserName))
+	rt.router.PUT("/api/users/:userID/me/photo", rt.wrap(rt.setMyPhoto))
+	rt.router.GET("/api/users/:userID/other/:userName", rt.wrap(rt.findUser))
 
 	// Group
-	rt.router.POST("/api/users/:userId/groups", rt.wrap(rt.createGroup))
-	rt.router.GET("/api/users/:userId/groups/:groupId", rt.wrap(rt.getGroupInfo))
-	rt.router.DELETE("/api/users/:userId/groups/:groupId", rt.wrap(rt.leaveGroup))
+	rt.router.POST("/api/users/:userID/groups", rt.wrap(rt.createGroup))
+	rt.router.GET("/api/users/:userID/groups/:groupId", rt.wrap(rt.getGroupInfo))
+	rt.router.DELETE("/api/users/:userID/groups/:groupId", rt.wrap(rt.leaveGroup))
 	rt.router.POST("/api/groups/:groupId/users", rt.wrap(rt.addToGroup))
 	rt.router.PATCH("/api/groups/:groupId/name", rt.wrap(rt.setGroupName))
 	rt.router.PUT("/api/groups/:groupId/photo", rt.wrap(rt.setGroupPhoto))
-	rt.router.DELETE("/api/users/:userId}/groups/:groupId/member/:userName", rt.wrap(rt.kickUserFromGroup))
-	rt.router.DELETE("/api/groups/:groupId}/users/:userId", rt.wrap(rt.removeGroup))
+	rt.router.DELETE("/api/users/:userID/groups/:groupId/member/:userName", rt.wrap(rt.kickUserFromGroup))
+	rt.router.DELETE("/api/groups/:groupId/users/:userID", rt.wrap(rt.removeGroup))
+
+	//Conversation
+	rt.router.GET("/api/users/:userID/conversations", rt.wrap(rt.getMyConversations))
+	rt.router.GET(" /api/users/:userID/conversations/users/:conversationID/messages", rt.wrap(rt.getConversation))
+	rt.router.GET(" /api/users/:userID/conversations/groups/:conversationID/messages", rt.wrap(rt.getConversationGroups))
 
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
