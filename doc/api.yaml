@@ -562,7 +562,7 @@ paths:
         - Conversation
       summary: List messages in a conversation between users and groups.
       description: Returns messages for the specified conversationID between users and groups.
-      operationId: getConversation
+      operationId: getConversationGroups
       responses:
         "200":
           description: All messages of conversation
