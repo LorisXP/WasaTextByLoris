@@ -1,8 +1,7 @@
 Quando uno user invia il primo messaggio in assoluto ad un utente:
-1. Si crea la riga in ConversationUsers con lastMessageID
-2. Si crea la riga in Contents per salvare il testo del messaggio
-3. Si crea la riga in MessagesUsers per salvare il messaggio
-4. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
+1. Si crea la riga in Contents per salvare il testo del messaggio
+2. Si crea la riga in MessagesUsers per salvare il messaggio
+3. Si crea la riga in ConversationUsers con lastMessageID
 
 Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un utente invia un altro messaggio:
 1. Si crea la riga in Contents per salvare il testo del messaggio
@@ -10,6 +9,7 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
 Da fare prima del front-end:
+5. Gestire la cancellazione del messaggio in ConversationsGroup e ConversationsUser
 6. Controlli di sicurezza: 
  - quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN se necessario
  - Togliere lo userID in alcune risposte, sopratutto dove non è necessario

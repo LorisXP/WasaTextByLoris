@@ -526,12 +526,22 @@ paths:
               description: Message content (text or photo)
               required:
                 - content
+                - content_type
               properties:
                 content:
                   description: Text or photo content.
                   oneOf:
                     - $ref: "#/components/schemas/Photo"
                     - $ref: "#/components/schemas/Text"
+                content_type:
+                  description: Type of the content message
+                  type: string
+                  enum:
+                    - gif
+                    - text
+                    - photo
+                  example: photo
+                  pattern: "^(gif|text|photo)$"
       responses:
         "201":
           description: Message sent successfully
@@ -591,7 +601,7 @@ paths:
         - Message
       summary: Post a new message in the conversation between users and groups
       description: Enables the user to send a new message in a particular conversation between users and groups
-      operationId: sendMessage
+      operationId: sendMessageGroup
       requestBody:
         required: true
         content:
@@ -601,12 +611,22 @@ paths:
               description: Message content for group conversation (text or photo)
               required:
                 - content
+                - content_type
               properties:
                 content:
                   description: Text or photo content.
                   oneOf:
                     - $ref: "#/components/schemas/Photo"
                     - $ref: "#/components/schemas/Text"
+                content_type:
+                  description: Type of the content message
+                  type: string
+                  enum:
+                    - gif
+                    - text
+                    - photo
+                  example: photo
+                  pattern: "^(gif|text|photo)$"
       responses:
         "201":
           description: Message sent successfully
@@ -703,7 +723,7 @@ paths:
         - Message
       summary: Forward a message between users and groups.
       description: Forwards an existing message to a target conversation between users and groups.
-      operationId: forwardMessage
+      operationId: forwardMessageGroup
       responses:
         "201":
           description: Message forward successfully
@@ -737,7 +757,7 @@ paths:
         - Message
       summary: Remove a message from a conversation between users and groups.
       description: Enables the user to remove a specific message from a conversation between users and groups.
-      operationId: deleteMessage
+      operationId: deleteMessageGroup
       responses:
         "200":
           description: Message deleted successfully
