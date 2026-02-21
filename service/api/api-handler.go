@@ -33,6 +33,14 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET(" /api/users/:userID/conversations/users/:conversationID/messages", rt.wrap(rt.getConversation))
 	rt.router.GET(" /api/users/:userID/conversations/groups/:conversationID/messages", rt.wrap(rt.getConversationGroups))
 
+	// Messages
+	rt.router.POST("/api/users/:userID/conversations/users/:conversationID/messages", rt.wrap(rt.sendMessage))
+	rt.router.POST("/api/users/:userID/conversations/users/:conversationID/messages/:messageID", rt.wrap(rt.forwardMessage))
+	rt.router.DELETE("/api/users/:userID/conversations/users/:conversationID/messages/:messageID", rt.wrap(rt.deleteMessage))
+	rt.router.POST("/api/users/:userID/conversations/groups/:conversationID/messages", rt.wrap(rt.sendMessageGroup))
+	rt.router.POST("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID", rt.wrap(rt.forwardMessageGroup))
+	rt.router.DELETE("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID", rt.wrap(rt.deleteMessageGroup))
+
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 
