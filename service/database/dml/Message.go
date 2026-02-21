@@ -54,6 +54,42 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
 	}
 
+	// 4. Gestisci la tabella ConversationsUser:
+	// Se la conversazione non esiste, la crea. Altrimenti aggiorna lastMessageID.
+	var convCount int
+	err = db.QueryRow(
+		"SELECT COUNT(*) FROM ConversationsUser WHERE conversationID = ?",
+		message.ConversationID,
+	).Scan(&convCount)
+	if err != nil {
+		return 0, 0, "", fmt.Errorf("unable to check conversation existence %d: %w", message.ConversationID, err)
+	}
+
+	if convCount == 0 {
+		// Recupera gli userID
+		user1ID := message.Sender
+		user2ID := receiverID
+		// Crea la conversazione
+		_, err := db.Exec(
+			"INSERT INTO ConversationsUser (user1ID, user2ID, lastMessageID) VALUES (?, ?, ?)",
+			user1ID, user2ID, int(messageID),
+		)
+		if err != nil {
+			return 0, 0, "", fmt.Errorf("unable to create conversation for users %d-%d: %w", user1ID, user2ID, err)
+		}
+		// Aggiorna conversationID nel messaggio se serve (opzionale, dipende da logica)
+		// message.ConversationID = int(res.LastInsertId())
+	} else {
+		// Aggiorna lastMessageID della conversazione esistente
+		_, err = db.Exec(
+			"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
+			int(messageID), message.ConversationID,
+		)
+		if err != nil {
+			return 0, 0, "", fmt.Errorf("unable to update lastMessageID for conversation %d: %w", message.ConversationID, err)
+		}
+	}
+
 	return int(messageID), receiverID, sentAt, nil
 }
 
@@ -98,6 +134,39 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 	).Scan(&sentAt)
 	if err != nil {
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
+	}
+
+	// 4. Gestisci la tabella ConversationsGroup:
+	// Se la conversazione non esiste, la crea. Altrimenti aggiorna lastMessageID.
+	var convCount int
+	err = db.QueryRow(
+		"SELECT COUNT(*) FROM ConversationsGroup WHERE conversationID = ?",
+		message.ConversationID,
+	).Scan(&convCount)
+	if err != nil {
+		return 0, 0, "", fmt.Errorf("unable to check group conversation existence %d: %w", message.ConversationID, err)
+	}
+
+	if convCount == 0 {
+		// Crea la conversazione
+		_, err := db.Exec(
+			"INSERT INTO ConversationsGroup (userID, groupID, lastMessageID) VALUES (?, ?, ?)",
+			message.Sender, groupID, int(messageID),
+		)
+		if err != nil {
+			return 0, 0, "", fmt.Errorf("unable to create group conversation for user %d and group %d: %w", message.Sender, groupID, err)
+		}
+		// Aggiorna conversationID nel messaggio se serve (opzionale)
+		// message.ConversationID = int(res.LastInsertId())
+	} else {
+		// Aggiorna lastMessageID della conversazione esistente
+		_, err = db.Exec(
+			"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
+			int(messageID), message.ConversationID,
+		)
+		if err != nil {
+			return 0, 0, "", fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", message.ConversationID, err)
+		}
 	}
 
 	return int(messageID), groupID, sentAt, nil
