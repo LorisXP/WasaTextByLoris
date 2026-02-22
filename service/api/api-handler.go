@@ -28,10 +28,10 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/api/users/:userID/groups/:groupId/member/:userName", rt.wrap(rt.kickUserFromGroup))
 	rt.router.DELETE("/api/groups/:groupId/users/:userID", rt.wrap(rt.removeGroup))
 
-	//Conversation
+	// Conversation
 	rt.router.GET("/api/users/:userID/conversations", rt.wrap(rt.getMyConversations))
-	rt.router.GET(" /api/users/:userID/conversations/users/:conversationID/messages", rt.wrap(rt.getConversation))
-	rt.router.GET(" /api/users/:userID/conversations/groups/:conversationID/messages", rt.wrap(rt.getConversationGroups))
+	rt.router.GET("/api/users/:userID/conversations/users/:conversationID/messages", rt.wrap(rt.getConversation))
+	rt.router.GET("/api/users/:userID/conversations/groups/:conversationID/messages", rt.wrap(rt.getConversationGroups))
 
 	// Messages
 	rt.router.POST("/api/users/:userID/conversations/users/:conversationID/messages", rt.wrap(rt.sendMessage))
@@ -40,6 +40,13 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/api/users/:userID/conversations/groups/:conversationID/messages", rt.wrap(rt.sendMessageGroup))
 	rt.router.POST("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID", rt.wrap(rt.forwardMessageGroup))
 	rt.router.DELETE("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID", rt.wrap(rt.deleteMessageGroup))
+
+	// Comment (moved to avoid httprouter wildcard conflict)
+	rt.router.POST("/api/comments/users/:userID/messages/:messageID", rt.wrap(rt.commentMessage))
+	rt.router.DELETE("/api/comments/users/:userID/messages/:messageID/:commentID", rt.wrap(rt.deleteComment))
+	rt.router.POST("/api/comments/groups/:groupID/messages/:messageID", rt.wrap(rt.commentMessageGroup))
+	rt.router.DELETE("/api/comments/groups/:groupID/messages/:messageID/:commentID", rt.wrap(rt.deleteCommentGroup))
+
 
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
