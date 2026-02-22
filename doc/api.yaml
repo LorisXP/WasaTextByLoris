@@ -778,15 +778,15 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/users/{userID}/conversations/users/messages/{messageID}/comments:
+  /api/comments/users/{userID}/messages/{messageID}:
     parameters:
       - $ref: "#/components/parameters/userID" #The userID of the user performing the action
       - $ref: "#/components/parameters/messageID"
     post:
       tags:
         - Comment
-      summary: Add a reaction to a message belong users
-      description: Enables the user to react to or comment on a specific message belong users
+      summary: Add a reaction to a message (direct)
+      description: Enables the user to react to or comment on a specific direct message
       operationId: commentMessage
       requestBody:
         required: true
@@ -819,27 +819,26 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: Conversation or message not found
+          description: Message not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/users/{userID}/conversations/groups/messages/{messageID}/comments:
+  /api/comments/groups/{groupID}/messages/{messageID}:
     parameters:
-      - $ref: "#/components/parameters/userID" #The userID of the user performing the action
+      - $ref: "#/components/parameters/groupID" #The groupID of the target group
       - $ref: "#/components/parameters/messageID"
     post:
       tags:
         - Comment
-      summary: Add a reaction to a message between users and groups
-      description: Enables the user to react to or comment on a specific message between users and groups
-      operationId: commentMessage
+      summary: Add a reaction to a message (group)
+      description: Enables the user to react to or comment on a specific message inside a group conversation
+      operationId: commentMessageGroup
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              description: Request body containing the reaction emoji for group message
               required:
                 - reaction
               properties:
@@ -857,7 +856,6 @@ paths:
             application/json:
               schema:
                 type: object
-                description: Response containing the ID of the created comment on group message
                 properties:
                   commentID:
                     $ref: "#/components/schemas/commentID"
@@ -866,11 +864,11 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: Conversation or message not found
+          description: Message or group not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/users/{userID}/conversations/users/messages/{messageID}/comments/{commentID}:
+  /api/comments/users/{userID}/messages/{messageID}/{commentID}:
     parameters:
       - $ref: "#/components/parameters/userID" #The userID of the user performing the action
       - $ref: "#/components/parameters/messageID"
@@ -878,8 +876,8 @@ paths:
     delete:
       tags:
         - Comment
-      summary: Remove a comment from a message belong users
-      description: Enables the user to delete a specific comment from a message belong users
+      summary: Remove a comment from a direct message
+      description: Enables the user to delete a specific comment from a direct message
       operationId: uncommentMessage
       responses:
         "204":
@@ -889,20 +887,20 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: Conversation, message, or comment not found
+          description: Message or comment not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/users/{userID}/conversations/groups/messages/{messageID}/comments/{commentID}:
+  /api/comments/groups/{groupID}/messages/{messageID}/{commentID}:
     parameters:
-      - $ref: "#/components/parameters/userID" #The userID of the user performing the action
+      - $ref: "#/components/parameters/groupID" #The groupID of the target group
       - $ref: "#/components/parameters/messageID"
       - $ref: "#/components/parameters/commentID"
     delete:
       tags:
         - Comment
-      summary: Remove a comment from a message between users and groups
-      description: Enables the user to delete a specific comment from a message between users and groups
+      summary: Remove a comment from a group message
+      description: Enables the user to delete a specific comment from a message inside a group conversation
       operationId: uncommentMessage
       responses:
         "204":
@@ -912,7 +910,7 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: Conversation, message, or comment not found
+          description: Message, comment or group not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
