@@ -4,81 +4,162 @@ import (
 	"fmt"
 )
 
+// CreateGroup inserisce un nuovo gruppo e restituisce il groupID generato.
+// Inserisce anche l'admin come primo membro del gruppo e registra l'evento "entered".
 func CreateGroup(name string, photo string, admin int) (int, error) {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to insert the new group %s in the database", name)
-	groupID := 0
+	// Inserisci il gruppo
+	result, err := db.Exec("INSERT INTO Groups (name, photo, adminID) VALUES (?, ?, ?)", name, photo, admin)
+	if err != nil {
+		return 0, fmt.Errorf("unable to insert the new group %s in the database: %w", name, err)
+	}
 
-	//dml := "UPDATE ..."
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("unable to get last insert id for group %s: %w", name, err)
+	}
 
-	//err = UpdateDataToDatabase(query)
+	groupID := int(lastID)
 
-	return groupID, outErr
+	// Aggiungi l'admin come primo membro del gruppo
+	_, err = db.Exec("INSERT INTO Members (groupID, userID) VALUES (?, ?)", groupID, admin)
+	if err != nil {
+		return 0, fmt.Errorf("unable to add admin %d as member of group %d: %w", admin, groupID, err)
+	}
+
+	// Registra l'evento di ingresso dell'admin
+	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'entered', ?)", groupID, admin)
+	if err != nil {
+		return 0, fmt.Errorf("unable to register entered event for admin %d in group %d: %w", admin, groupID, err)
+	}
+
+	return groupID, nil
 }
 
+// LeaveGroup rimuove un utente dal gruppo e registra l'evento "leave"
 func LeaveGroup(userID int, groupID int) error {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to remove row in Members table for groupID %d performing by userID %d", groupID, userID)
+	// Rimuovi l'utente dalla tabella Members
+	result, err := db.Exec("DELETE FROM Members WHERE groupID = ? AND userID = ?", groupID, userID)
+	if err != nil {
+		return fmt.Errorf("unable to remove row in Members table for groupID %d performing by userID %d: %w", groupID, userID, err)
+	}
 
-	//dml := "DELETE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for leave group %d: %w", groupID, err)
+	}
 
-	//err = DeleteDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("user %d is not a member of group %d", userID, groupID)
+	}
 
-	return outErr
+	// Registra l'evento di uscita
+	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'leave', ?)", groupID, userID)
+	if err != nil {
+		return fmt.Errorf("unable to register leave event for userID %d in group %d: %w", userID, groupID, err)
+	}
+
+	return nil
 }
 
+// AddToGroup aggiunge una lista di utenti al gruppo e registra gli eventi "entered"
 func AddToGroup(adminID int, userID []int, groupID int) error {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to insert row in Members table for groupID %d performing by adminID %d", groupID, adminID)
+	for _, uid := range userID {
+		// Inserisci il membro
+		_, err := db.Exec("INSERT INTO Members (groupID, userID) VALUES (?, ?)", groupID, uid)
+		if err != nil {
+			return fmt.Errorf("unable to add userID %d to group %d: %w", uid, groupID, err)
+		}
 
-	//dml := "INSERT ..."
+		// Registra l'evento di ingresso
+		_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'entered', ?)", groupID, uid)
+		if err != nil {
+			return fmt.Errorf("unable to register entered event for userID %d in group %d: %w", uid, groupID, err)
+		}
+	}
 
-	//err = InsertDataToDatabase(query)
-
-	return outErr
+	return nil
 }
 
+// UpdateNameGroup aggiorna il nome del gruppo, verificando che l'utente sia l'admin
 func UpdateNameGroup(groupID int, adminID int, new_name string) error {
-	//Imposta i default
-	outErr := fmt.Errorf("For UpdateNameGroup(), unable to update the row of groupID %d in the database", groupID)
+	result, err := db.Exec("UPDATE Groups SET name = ? WHERE groupID = ? AND adminID = ?", new_name, groupID, adminID)
+	if err != nil {
+		return fmt.Errorf("unable to update the name of groupID %d: %w", groupID, err)
+	}
 
-	//dml := "UPDATE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for group %d: %w", groupID, err)
+	}
 
-	//err = UpdateDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("group %d not found or user %d is not the admin", groupID, adminID)
+	}
 
-	return outErr
+	return nil
 }
 
+// UpdatePhotoGroup aggiorna la foto del gruppo, verificando che l'utente sia l'admin
 func UpdatePhotoGroup(groupID int, adminID int, new_photo string) error {
-	//Imposta i default
-	outErr := fmt.Errorf("For UpdatePhotoGroup(),unable to update the row of groupID %d in the database", groupID)
+	result, err := db.Exec("UPDATE Groups SET photo = ? WHERE groupID = ? AND adminID = ?", new_photo, groupID, adminID)
+	if err != nil {
+		return fmt.Errorf("unable to update the photo of groupID %d: %w", groupID, err)
+	}
 
-	//dml := "UPDATE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for group %d: %w", groupID, err)
+	}
 
-	//err = UpdateDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("group %d not found or user %d is not the admin", groupID, adminID)
+	}
 
-	return outErr
+	return nil
 }
 
+// DeleteGroup cancella il gruppo. Grazie al CASCADE, vengono eliminati anche Members, Events, ecc.
+// Verifica che l'utente sia l'admin del gruppo.
 func DeleteGroup(groupID int, userID int) error {
-	//La cancellazione del gruppo comporta la cancellazione di membri, eventi, messaggi, contenuti ecc.
-	//Imposta i default
-	outErr := fmt.Errorf("For DeleteGroup(), unable to remove row in Groups table for groupID %d performing by userID %d", groupID, userID)
+	result, err := db.Exec("DELETE FROM Groups WHERE groupID = ? AND adminID = ?", groupID, userID)
+	if err != nil {
+		return fmt.Errorf("unable to remove group %d from database: %w", groupID, err)
+	}
 
-	//dml := "DELETE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for group %d: %w", groupID, err)
+	}
 
-	//err = DeleteDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("group %d not found or user %d is not the admin", groupID, userID)
+	}
 
-	return outErr
+	return nil
 }
 
+// KickFromGroup rimuove un utente dal gruppo e registra l'evento "kick"
 func KickFromGroup(groupID int, adminID int, userID int) error {
-	//Imposta i default
-	outErr := fmt.Errorf("For KickFromGroup(), unable to remove row in Members table for groupID %d to kick out the userID %d", groupID, userID)
+	// Rimuovi l'utente dalla tabella Members
+	result, err := db.Exec("DELETE FROM Members WHERE groupID = ? AND userID = ?", groupID, userID)
+	if err != nil {
+		return fmt.Errorf("unable to kick userID %d from group %d: %w", userID, groupID, err)
+	}
 
-	//dml := "DELETE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for kick in group %d: %w", groupID, err)
+	}
 
-	//err = DeleteDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("user %d is not a member of group %d", userID, groupID)
+	}
 
-	return outErr
+	// Registra l'evento di kick
+	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'kick', ?)", groupID, userID)
+	if err != nil {
+		return fmt.Errorf("unable to register kick event for userID %d in group %d: %w", userID, groupID, err)
+	}
+
+	return nil
 }

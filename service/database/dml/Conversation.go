@@ -4,48 +4,84 @@ import (
 	"fmt"
 )
 
+// CreateConversationBetweenUsers crea una nuova conversazione tra due utenti
+// e restituisce il conversationID generato
 func CreateConversationBetweenUsers(sender int, receiver int) (int, error) {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to insert the new conversation between users in the database")
-	conversationID := 0
+	result, err := db.Exec(
+		"INSERT INTO ConversationsUser (user1ID, user2ID) VALUES (?, ?)",
+		sender, receiver,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("unable to insert conversation between users %d and %d: %w", sender, receiver, err)
+	}
 
-	//dml := "INSERT ..."
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("unable to get last insert id for conversation: %w", err)
+	}
 
-	//err = InsertDataToDatabase(query)
-
-	return conversationID, outErr
+	return int(lastID), nil
 }
 
+// CreateConversationBetweenGroups crea una nuova conversazione tra un utente e un gruppo
+// e restituisce il conversationID generato
 func CreateConversationBetweenGroups(userID int, groupID int) (int, error) {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to insert the new conversation between a user and group in the database")
-	conversationID := 0
+	result, err := db.Exec(
+		"INSERT INTO ConversationsGroup (userID, groupID) VALUES (?, ?)",
+		userID, groupID,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("unable to insert conversation between user %d and group %d: %w", userID, groupID, err)
+	}
 
-	//dml := "INSERT ..."
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("unable to get last insert id for group conversation: %w", err)
+	}
 
-	//err = InsertDataToDatabase(query)
-
-	return conversationID, outErr
+	return int(lastID), nil
 }
 
+// UpdateLastMessageIDforUser aggiorna il lastMessageID di una conversazione tra utenti
 func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to update lastMessageID %d value in the table ConversationsUser by conversationID %d")
+	result, err := db.Exec(
+		"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
+		messageID, conversationID,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to update lastMessageID %d for conversationID %d in ConversationsUser: %w", messageID, conversationID, err)
+	}
 
-	//dml := "UPDATE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for conversationID %d: %w", conversationID, err)
+	}
 
-	//err = UpdateDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("conversation %d not found in ConversationsUser", conversationID)
+	}
 
-	return outErr
+	return nil
 }
 
+// UpdateLastMessageIDforGroup aggiorna il lastMessageID di una conversazione utente-gruppo
 func UpdateLastMessageIDforGroup(conversationID int, messageID int) error {
-	//Imposta i default
-	outErr := fmt.Errorf("Unable to update lastMessageID %d value in the table ConversationsGroup by conversationID %d")
+	result, err := db.Exec(
+		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
+		messageID, conversationID,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to update lastMessageID %d for conversationID %d in ConversationsGroup: %w", messageID, conversationID, err)
+	}
 
-	//dml := "UPDATE ..."
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("unable to get rows affected for conversationID %d: %w", conversationID, err)
+	}
 
-	//err = UpdateDataToDatabase(query)
+	if rowsAffected == 0 {
+		return fmt.Errorf("conversation %d not found in ConversationsGroup", conversationID)
+	}
 
-	return outErr
+	return nil
 }

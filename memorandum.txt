@@ -1,13 +1,32 @@
 Quando uno user invia il primo messaggio in assoluto ad un utente:
-1. Si crea la riga in ConversationUsers con lastMessageID
-2. Si crea la riga in Contents per salvare il testo del messaggio
-3. Si crea la riga in MessagesUsers per salvare il messaggio
-4. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
+1. Si crea la riga in Contents per salvare il testo del messaggio
+2. Si crea la riga in MessagesUsers per salvare il messaggio
+3. Si crea la riga in ConversationUsers con lastMessageID
 
 Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un utente invia un altro messaggio:
 1. Si crea la riga in Contents per salvare il testo del messaggio
 2. Si crea la riga in MessagesUsers per salvare il messaggio
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
-In ogni model:
-1. Andrebbe controllato se la struct è stata istanziata correttamente prima di chiamare i metodi interessati
+Da fare prima del front-end:
+5. Gestire la cancellazione del messaggio in ConversationsGroup e ConversationsUser
+6. Controlli di sicurezza: 
+ - quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN se necessario
+ - Togliere lo userID in alcune risposte, sopratutto dove non è necessario
+    - /api/users/{userID}/conversations/users/{conversationID}/messages
+    - /api/users/{userID}/conversations/groups/{conversationID}/messages
+8. Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
+9. Controllare che i return negli handler sono corretti (content_type json anche dove non serve?)
+10. Assicurarsi che ci siano tutti gli status code in api-handler e che siano coerenti con lo swagger
+11. Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti e dei log
+
+Per la prossima volta:
+3. Scrivere gli handler del controller a partire dallo swagger
+
+Fatto in precedenza:
+- Scrivere le query e dml per il model
+- Manca il content_type (gif, text, photo) nell'API 'Returns messages for the specified conversationID belong users.' 
+- Manca un'API per creare un nuovo gruppo
+- Controllare se i log usano il metodo compatibile con la formattazione.
+- Rivedere bene gli import in ogni file
+- Creare un validatore in input (min e max, regex, tipo)
