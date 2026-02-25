@@ -11,7 +11,7 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 Da fare prima del front-end:
 5. Gestire la cancellazione del messaggio in ConversationsGroup e ConversationsUser
 6. Controlli di sicurezza: 
- - quello userID è abilitato a cancellare/ottenere/creare quella risorsa? Fare sempre se le JOIN se necessario
+ - quello userID è abilitato a cancellare/ottenere/creare quella risorsa?
  - Togliere lo userID in alcune risposte, sopratutto dove non è necessario
     - /api/users/{userID}/conversations/users/{conversationID}/messages
     - /api/users/{userID}/conversations/groups/{conversationID}/messages
@@ -21,7 +21,7 @@ Da fare prima del front-end:
 11. Leggere e correggere tutta la sintassi, ortografia e ecc. dei commenti e dei log
 
 Per la prossima volta:
-3. Scrivere gli handler del controller a partire dallo swagger
+
 
 Fatto in precedenza:
 - Scrivere le query e dml per il model
@@ -30,3 +30,4 @@ Fatto in precedenza:
 - Controllare se i log usano il metodo compatibile con la formattazione.
 - Rivedere bene gli import in ogni file
 - Creare un validatore in input (min e max, regex, tipo)
+- Scrivere gli handler del controller a partire dallo swagger
