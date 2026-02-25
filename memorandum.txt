@@ -12,9 +12,6 @@ Da fare prima del front-end:
 5. Gestire la cancellazione del messaggio in ConversationsGroup e ConversationsUser
 6. Controlli di sicurezza: 
  - quello userID è abilitato a cancellare/ottenere/creare quella risorsa?
- - Togliere lo userID in alcune risposte, sopratutto dove non è necessario
-    - /api/users/{userID}/conversations/users/{conversationID}/messages
-    - /api/users/{userID}/conversations/groups/{conversationID}/messages
 8. Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
 9. Controllare che i return negli handler sono corretti (content_type json anche dove non serve?)
 10. Assicurarsi che ci siano tutti gli status code in api-handler e che siano coerenti con lo swagger
@@ -31,3 +28,6 @@ Fatto in precedenza:
 - Rivedere bene gli import in ogni file
 - Creare un validatore in input (min e max, regex, tipo)
 - Scrivere gli handler del controller a partire dallo swagger
+- Togliere lo userID in alcune risposte, sopratutto dove non è necessario
+    - /api/users/{userID}/conversations/users/{conversationID}/messages
+    - /api/users/{userID}/conversations/groups/{conversationID}/messages
