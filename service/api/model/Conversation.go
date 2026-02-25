@@ -132,8 +132,7 @@ Return a list of messages of specific conversation (belonging users or group)
       "content": "aGVsbG8=",
       "timestamp": "2025-10-25T17:40:11Z",
       "sender": {
-        "userName": "loris2155519",
-        "userID": 1
+        "userName": "loris2155519"
       },
       "status": "received",
       "type": "standard",
@@ -141,8 +140,7 @@ Return a list of messages of specific conversation (belonging users or group)
         {
           "content": "👍",
           "sender": {
-            "userName": "loris2155519",
-            "userID": 1
+            "userName": "loris2155519"
           },
           "commentID": 1
         }
@@ -196,7 +194,6 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 			//Crea la struttura del sender
 			sender := map[string]interface{}{
 				"userName": msg["userNameSenderID"],
-				"userID":   msg["senderID"],
 			}
 			
 			//Prepara la lista dei commenti
@@ -208,7 +205,6 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 						if comment, ok := c.(map[string]interface{}); ok {
 							commentSender := map[string]interface{}{
 								"userName": comment["userNameSenderID"],
-								"userID":   comment["senderID"],
 							}
 							formattedComment := map[string]interface{}{
 								"content":   comment["content"],
