@@ -327,64 +327,72 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 			if errUsr == nil || userId > 0 {
 				ctx.Logger.Info("userId parsed successfully")
 
-				// Valida tutti gli userNames
-				var validationErr error
-				for _, uName := range reqBody.UserNames {
-					validationErr = model.ValidateInput(uName, 3, 15, `^[a-z]+[0-9]*$`, "string")
-					if validationErr != nil {
-						ctx.Logger.WithError(validationErr).Errorf("invalid userName: %s", uName)
-						break
+				// Verifica che il Bearer token corrisponda al userID nel body
+				if userId != ctx.BearerUserID {
+					statusCode = http.StatusForbidden
+					outErr = fmt.Errorf("Bearer token does not match userID in the request body")
+					ctx.Logger.WithError(outErr).Warn("authorization mismatch")
+				} else {
+
+					// Valida tutti gli userNames
+					var validationErr error
+					for _, uName := range reqBody.UserNames {
+						validationErr = model.ValidateInput(uName, 3, 15, `^[a-z]+[0-9]*$`, "string")
+						if validationErr != nil {
+							ctx.Logger.WithError(validationErr).Errorf("invalid userName: %s", uName)
+							break
+						}
 					}
-				}
 
-				if validationErr == nil {
-					ctx.Logger.Info("all userNames are valid")
+					if validationErr == nil {
+						ctx.Logger.Info("all userNames are valid")
 
-					// Ottieni il gruppo
-					group, errGetGrp := model.GetGroupBasic(groupId)
-					ctx.Logger.Debug("passed by GetGroupBasic()")
+						// Ottieni il gruppo
+						group, errGetGrp := model.GetGroupBasic(groupId)
+						ctx.Logger.Debug("passed by GetGroupBasic()")
 
-					// Se il gruppo è ottenuto correttamente
-					if errGetGrp == nil {
-						ctx.Logger.Info("group obtained successfully")
+						// Se il gruppo è ottenuto correttamente
+						if errGetGrp == nil {
+							ctx.Logger.Info("group obtained successfully")
 
-						// Verifica che lo userID sia admin del gruppo
-						if group.AdminID == userId {
-							ctx.Logger.Infof("userID is admin of groupID %d", groupId)
+							// Verifica che lo userID sia admin del gruppo
+							if group.AdminID == userId {
+								ctx.Logger.Infof("userID is admin of groupID %d", groupId)
 
-							errAddToGroup := model.AddToGroup(group, reqBody.UserNames)
-							ctx.Logger.Debug("passed by AddToGroup()")
+								errAddToGroup := model.AddToGroup(group, reqBody.UserNames)
+								ctx.Logger.Debug("passed by AddToGroup()")
 
-							// Se l'operazione va a buon fine
-							if errAddToGroup == nil {
+								// Se l'operazione va a buon fine
+								if errAddToGroup == nil {
 
-								// Tutto ok
-								outErr = nil
-								statusCode = http.StatusNoContent
-								ctx.Logger.Infof("users successfully added to groupID %d", groupId)
+									// Tutto ok
+									outErr = nil
+									statusCode = http.StatusNoContent
+									ctx.Logger.Infof("users successfully added to groupID %d", groupId)
+
+								} else {
+									statusCode = http.StatusInternalServerError
+									outErr = errAddToGroup
+									ctx.Logger.WithError(errAddToGroup).Errorf("impossible to add users in groupID %d", groupId)
+								}
 
 							} else {
-								statusCode = http.StatusInternalServerError
-								outErr = errAddToGroup
-								ctx.Logger.WithError(errAddToGroup).Errorf("impossible to add users in groupID %d", groupId)
+								statusCode = http.StatusUnauthorized
+								outErr = fmt.Errorf("userID %d is not admin of groupID %d", userId, groupId)
+								ctx.Logger.WithError(outErr).Warn("user is not admin")
 							}
 
 						} else {
-							statusCode = http.StatusUnauthorized
-							outErr = fmt.Errorf("userID %d is not admin of groupID %d", userId, groupId)
-							ctx.Logger.WithError(outErr).Warn("user is not admin")
+							statusCode = http.StatusNotFound
+							outErr = errGetGrp
+							ctx.Logger.WithError(errGetGrp).Error("group not found")
 						}
 
 					} else {
-						statusCode = http.StatusNotFound
-						outErr = errGetGrp
-						ctx.Logger.WithError(errGetGrp).Error("group not found")
+						statusCode = http.StatusBadRequest
+						outErr = validationErr
+						ctx.Logger.WithError(validationErr).Error("invalid userName in list")
 					}
-
-				} else {
-					statusCode = http.StatusBadRequest
-					outErr = validationErr
-					ctx.Logger.WithError(validationErr).Error("invalid userName in list")
 				}
 			} else {
 				statusCode = http.StatusBadRequest
@@ -440,77 +448,86 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		if decodeErr == nil {
 			ctx.Logger.Info("request decoded successfully")
 
-			// Valida l'input del nuovo groupName con il Validator
-			validationErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
+			// Verifica che il Bearer token corrisponda al userID nel body
+			if reqBody.UserId != ctx.BearerUserID {
+				statusCode = http.StatusForbidden
+				outErr = fmt.Errorf("Bearer token does not match userID in the request body")
+				ctx.Logger.WithError(outErr).Warn("authorization mismatch")
+			} else {
 
-			//Se il campo inserito è valido
-			if validationErr == nil {
-				ctx.Logger.Info("request data is valid")
+				// Valida l'input del nuovo groupName con il Validator
+				validationErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
 
-				// Ottieni il gruppo
-				group, errGetGrp := model.GetGroupBasic(groupId)
-				ctx.Logger.Debug("passed by GetGroupBasic()")
+				//Se il campo inserito è valido
+				if validationErr == nil {
+					ctx.Logger.Info("request data is valid")
 
-				// Se il gruppo è ottenuto correttamente
-				if errGetGrp == nil {
-					ctx.Logger.Info("group obtained successfully")
+					// Ottieni il gruppo
+					group, errGetGrp := model.GetGroupBasic(groupId)
+					ctx.Logger.Debug("passed by GetGroupBasic()")
 
-					// Verifica che lo userID sia admin del gruppo
-					if group.AdminID == reqBody.UserId {
-						ctx.Logger.Infof("userID is admin of groupID %d", groupId)
+					// Se il gruppo è ottenuto correttamente
+					if errGetGrp == nil {
+						ctx.Logger.Info("group obtained successfully")
 
-						//Prova ad impostare il nome
-						errSetNameGroup := model.SetNameGroup(&group, reqBody.Name)
-						ctx.Logger.Debug("passed by SetNameGroup()")
+						// Verifica che lo userID sia admin del gruppo
+						if group.AdminID == reqBody.UserId {
+							ctx.Logger.Infof("userID is admin of groupID %d", groupId)
 
-						//Se va a buon fine
-						if errSetNameGroup == nil {
-							ctx.Logger.Info("groupName updated successfully")
+							//Prova ad impostare il nome
+							errSetNameGroup := model.SetNameGroup(&group, reqBody.Name)
+							ctx.Logger.Debug("passed by SetNameGroup()")
 
-							// Costruisci la risposta JSON
-							respData := struct{}{}
-							jsonBytes, marshalErr := json.Marshal(respData)
+							//Se va a buon fine
+							if errSetNameGroup == nil {
+								ctx.Logger.Info("groupName updated successfully")
 
-							//Se il JSON viene creato correttamente
-							if marshalErr == nil {
+								// Costruisci la risposta JSON
+								respData := struct{}{}
+								jsonBytes, marshalErr := json.Marshal(respData)
 
-								// Tutto ok
-								responseBody = jsonBytes
-								outErr = nil
+								//Se il JSON viene creato correttamente
+								if marshalErr == nil {
 
-								statusCode = http.StatusOK // 200
-								ctx.Logger.Debugf("groupName update successfully: %s (ID: %d)", reqBody.Name, groupId)
-								ctx.Logger.Infof("groupName update successfully: %s", reqBody.Name)
+									// Tutto ok
+									responseBody = jsonBytes
+									outErr = nil
+
+									statusCode = http.StatusOK // 200
+									ctx.Logger.Debugf("groupName update successfully: %s (ID: %d)", reqBody.Name, groupId)
+									ctx.Logger.Infof("groupName update successfully: %s", reqBody.Name)
+
+								} else {
+									statusCode = http.StatusInternalServerError
+									outErr = marshalErr
+									ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+								}
 
 							} else {
 								statusCode = http.StatusInternalServerError
-								outErr = marshalErr
-								ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+								outErr = errSetNameGroup
+								ctx.Logger.WithError(outErr).Errorf("error during set a new name '%s' to groupID %d", reqBody.Name, groupId)
 							}
 
 						} else {
-							statusCode = http.StatusInternalServerError
-							outErr = errSetNameGroup
-							ctx.Logger.WithError(outErr).Errorf("error during set a new name '%s' to groupID %d", reqBody.Name, groupId)
+							statusCode = http.StatusUnauthorized
+							outErr = fmt.Errorf("userID %d is not admin of groupID %d", reqBody.UserId, groupId)
+							ctx.Logger.WithError(outErr).Warn("user is not admin")
 						}
 
 					} else {
-						statusCode = http.StatusUnauthorized
-						outErr = fmt.Errorf("userID %d is not admin of groupID %d", reqBody.UserId, groupId)
-						ctx.Logger.WithError(outErr).Warn("user is not admin")
+						statusCode = http.StatusNotFound
+						outErr = errGetGrp
+						ctx.Logger.WithError(errGetGrp).Error("group not found")
 					}
 
 				} else {
-					statusCode = http.StatusNotFound
-					outErr = errGetGrp
-					ctx.Logger.WithError(errGetGrp).Error("group not found")
+					statusCode = http.StatusBadRequest
+					outErr = validationErr
+					ctx.Logger.WithError(validationErr).Error("invalid groupName. Check limits on doc")
 				}
 
-			} else {
-				statusCode = http.StatusBadRequest
-				outErr = validationErr
-				ctx.Logger.WithError(validationErr).Error("invalid groupName. Check limits on doc")
-			}
+			} // chiude else del controllo Bearer
 
 		} else {
 			statusCode = http.StatusBadRequest
@@ -565,91 +582,100 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 			if errUsr == nil && userId > 0 {
 				ctx.Logger.Info("userId parsed successfully from form")
 
-				// Estrai il file "photo" dal form
-				file, _, fileErr := r.FormFile("photo")
+				// Verifica che il Bearer token corrisponda al userID nel form
+				if userId != ctx.BearerUserID {
+					statusCode = http.StatusForbidden
+					outErr = fmt.Errorf("Bearer token does not match userID in the form")
+					ctx.Logger.WithError(outErr).Warn("authorization mismatch")
+				} else {
 
-				if fileErr == nil {
-					defer file.Close()
+					// Estrai il file "photo" dal form
+					file, _, fileErr := r.FormFile("photo")
 
-					// Leggi il contenuto del file
-					fileBytes, readErr := io.ReadAll(file)
+					if fileErr == nil {
+						defer file.Close()
 
-					if readErr == nil {
-						ctx.Logger.Info("photo file read successfully")
+						// Leggi il contenuto del file
+						fileBytes, readErr := io.ReadAll(file)
 
-						// Codifica in base64
-						photoBase64 := base64.StdEncoding.EncodeToString(fileBytes)
+						if readErr == nil {
+							ctx.Logger.Info("photo file read successfully")
 
-						// Ottieni il gruppo
-						group, errGetGrp := model.GetGroupBasic(groupId)
-						ctx.Logger.Debug("passed by GetGroupBasic()")
+							// Codifica in base64
+							photoBase64 := base64.StdEncoding.EncodeToString(fileBytes)
 
-						// Se il gruppo è ottenuto correttamente
-						if errGetGrp == nil {
-							ctx.Logger.Info("group obtained successfully")
+							// Ottieni il gruppo
+							group, errGetGrp := model.GetGroupBasic(groupId)
+							ctx.Logger.Debug("passed by GetGroupBasic()")
 
-							// Verifica che lo userID sia admin del gruppo
-							if group.AdminID == userId {
-								ctx.Logger.Infof("userID %d is admin of groupID %d", userId, groupId)
+							// Se il gruppo è ottenuto correttamente
+							if errGetGrp == nil {
+								ctx.Logger.Info("group obtained successfully")
 
-								// Aggiorna la foto del gruppo
-								errUpdatePhoto := model.SetGroupPhoto(&group, photoBase64)
-								ctx.Logger.Debug("passed by SetGroupPhoto()")
+								// Verifica che lo userID sia admin del gruppo
+								if group.AdminID == userId {
+									ctx.Logger.Infof("userID %d is admin of groupID %d", userId, groupId)
 
-								// Se la foto viene aggiornata correttamente
-								if errUpdatePhoto == nil {
-									ctx.Logger.Info("group photo updated successfully")
+									// Aggiorna la foto del gruppo
+									errUpdatePhoto := model.SetGroupPhoto(&group, photoBase64)
+									ctx.Logger.Debug("passed by SetGroupPhoto()")
 
-									// Costruisci la risposta JSON
-									respData := struct{}{}
-									jsonBytes, marshalErr := json.Marshal(respData)
+									// Se la foto viene aggiornata correttamente
+									if errUpdatePhoto == nil {
+										ctx.Logger.Info("group photo updated successfully")
 
-									// Se il JSON viene creato correttamente
-									if marshalErr == nil {
+										// Costruisci la risposta JSON
+										respData := struct{}{}
+										jsonBytes, marshalErr := json.Marshal(respData)
 
-										// Tutto ok
-										responseBody = jsonBytes
-										outErr = nil
+										// Se il JSON viene creato correttamente
+										if marshalErr == nil {
 
-										statusCode = http.StatusOK // 200
-										ctx.Logger.Debugf("group photo updated successfully (groupID: %d) by userID %d", groupId, userId)
-										ctx.Logger.Infof("group photo updated successfully")
+											// Tutto ok
+											responseBody = jsonBytes
+											outErr = nil
+
+											statusCode = http.StatusOK // 200
+											ctx.Logger.Debugf("group photo updated successfully (groupID: %d) by userID %d", groupId, userId)
+											ctx.Logger.Infof("group photo updated successfully")
+
+										} else {
+											statusCode = http.StatusInternalServerError
+											outErr = marshalErr
+											ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+										}
 
 									} else {
 										statusCode = http.StatusInternalServerError
-										outErr = marshalErr
-										ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+										outErr = errUpdatePhoto
+										ctx.Logger.WithError(errUpdatePhoto).Error("error updating group photo")
 									}
 
 								} else {
-									statusCode = http.StatusInternalServerError
-									outErr = errUpdatePhoto
-									ctx.Logger.WithError(errUpdatePhoto).Error("error updating group photo")
+									statusCode = http.StatusUnauthorized
+									outErr = fmt.Errorf("userID %d is not admin of groupID %d", userId, groupId)
+									ctx.Logger.WithError(outErr).Warn("user is not admin")
 								}
 
 							} else {
-								statusCode = http.StatusUnauthorized
-								outErr = fmt.Errorf("userID %d is not admin of groupID %d", userId, groupId)
-								ctx.Logger.WithError(outErr).Warn("user is not admin")
+								statusCode = http.StatusNotFound
+								outErr = errGetGrp
+								ctx.Logger.WithError(errGetGrp).Error("group not found")
 							}
 
 						} else {
-							statusCode = http.StatusNotFound
-							outErr = errGetGrp
-							ctx.Logger.WithError(errGetGrp).Error("group not found")
+							statusCode = http.StatusBadRequest
+							outErr = readErr
+							ctx.Logger.WithError(readErr).Error("error reading photo file")
 						}
 
 					} else {
 						statusCode = http.StatusBadRequest
-						outErr = readErr
-						ctx.Logger.WithError(readErr).Error("error reading photo file")
+						outErr = fileErr
+						ctx.Logger.WithError(fileErr).Error("missing or invalid 'photo' field in form")
 					}
 
-				} else {
-					statusCode = http.StatusBadRequest
-					outErr = fileErr
-					ctx.Logger.WithError(fileErr).Error("missing or invalid 'photo' field in form")
-				}
+				} // chiude else del controllo Bearer
 
 			} else {
 				statusCode = http.StatusBadRequest

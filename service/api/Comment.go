@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -129,11 +130,9 @@ func (rt *_router) commentMessageGroup(w http.ResponseWriter, r *http.Request, p
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
-	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userID")
-	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
-	if errUsr == nil || userId > 0 {
+	// Usa il userID dal Bearer token
+	userId := ctx.BearerUserID
+	if userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		messageIdStr := ps.ByName("messageID")
@@ -216,8 +215,8 @@ func (rt *_router) commentMessageGroup(w http.ResponseWriter, r *http.Request, p
 
 	} else {
 		statusCode = http.StatusUnauthorized
-		outErr = errUsr
-		ctx.Logger.WithError(errUsr).Error("invalid userId")
+		outErr = fmt.Errorf("invalid Bearer userID")
+		ctx.Logger.Error("invalid Bearer userID")
 	}
 
 	// Unico punto di uscita
@@ -312,11 +311,9 @@ func (rt *_router) deleteCommentGroup(w http.ResponseWriter, r *http.Request, ps
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
-	// Estrai userId dai parameters
-	userIdStr := ps.ByName("userID")
-	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
-	if errUsr == nil || userId > 0 {
+	// Usa il userID dal Bearer token
+	userId := ctx.BearerUserID
+	if userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		commentIdStr := ps.ByName("commentID")
@@ -366,8 +363,8 @@ func (rt *_router) deleteCommentGroup(w http.ResponseWriter, r *http.Request, ps
 
 	} else {
 		statusCode = http.StatusUnauthorized
-		outErr = errUsr
-		ctx.Logger.WithError(errUsr).Error("invalid userId")
+		outErr = fmt.Errorf("invalid Bearer userID")
+		ctx.Logger.Error("invalid Bearer userID")
 	}
 
 	// Unico punto di uscita (204 No Content: nessun body)

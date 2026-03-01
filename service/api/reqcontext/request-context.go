@@ -18,4 +18,8 @@ type RequestContext struct {
 
 	// Logger is a custom field logger for the request
 	Logger logrus.FieldLogger
+
+	// BearerUserID è lo userID estratto dall'header Authorization: Bearer <id>.
+	// Vale 0 per le rotte non autenticate.
+	BearerUserID int
 }
