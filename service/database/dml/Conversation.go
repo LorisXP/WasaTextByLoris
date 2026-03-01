@@ -5,7 +5,7 @@ import (
 )
 
 // CreateConversationBetweenUsers crea una nuova conversazione tra due utenti
-// e restituisce il conversationID generato
+// e restituisce il conversationID generato.
 func CreateConversationBetweenUsers(sender int, receiver int) (int, error) {
 	result, err := db.Exec(
 		"INSERT INTO ConversationsUser (user1ID, user2ID) VALUES (?, ?)",
@@ -24,7 +24,7 @@ func CreateConversationBetweenUsers(sender int, receiver int) (int, error) {
 }
 
 // CreateConversationBetweenGroups crea una nuova conversazione tra un utente e un gruppo
-// e restituisce il conversationID generato
+// e restituisce il conversationID generato.
 func CreateConversationBetweenGroups(userID int, groupID int) (int, error) {
 	result, err := db.Exec(
 		"INSERT INTO ConversationsGroup (userID, groupID) VALUES (?, ?)",
@@ -42,7 +42,7 @@ func CreateConversationBetweenGroups(userID int, groupID int) (int, error) {
 	return int(lastID), nil
 }
 
-// UpdateLastMessageIDforUser aggiorna il lastMessageID di una conversazione tra utenti
+// UpdateLastMessageIDforUser aggiorna il campo lastMessageID di una conversazione tra utenti
 func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
 	result, err := db.Exec(
 		"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
@@ -64,7 +64,7 @@ func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
 	return nil
 }
 
-// UpdateLastMessageIDforGroup aggiorna il lastMessageID di una conversazione utente-gruppo
+// UpdateLastMessageIDforGroup aggiorna il campo lastMessageID di una conversazione utente-gruppo
 func UpdateLastMessageIDforGroup(conversationID int, messageID int) error {
 	result, err := db.Exec(
 		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",

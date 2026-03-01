@@ -9,13 +9,13 @@ import (
 /*
 CreateMessageBelongUsers inserisce un nuovo messaggio in una conversazione tra utenti.
 Il contenuto deve essere già stato creato tramite CreateTextContent.
-Passi:
-1. Determina il receiver dalla conversazione (l'altro utente)
+Passaggi:
+1. Determina il destinatario dalla conversazione (l'altro utente)
 2. Inserisce il messaggio nella tabella MessagesUser
 3. Restituisce messageID, receiverID, sent_at
 */
 func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, string, error) {
-	// 1. Determina il receiver dalla conversazione
+	// 1. Determina il destinatario dalla conversazione
 	var user1ID, user2ID int
 	err := db.QueryRow(
 		"SELECT user1ID, user2ID FROM ConversationsUser WHERE conversationID = ?",
@@ -30,7 +30,7 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 		receiverID = user2ID
 	}
 
-	// 2. Inserisci il messaggio in MessagesUser
+	// 2. Inserisce il messaggio in MessagesUser
 	msgResult, err := db.Exec(
 		"INSERT INTO MessagesUser (conversationID, senderID, receiverID, status, type, contentID) VALUES (?, ?, ?, ?, ?, ?)",
 		message.ConversationID, message.Sender, receiverID, "received", "standard", contentID,
@@ -44,7 +44,7 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 		return 0, 0, "", fmt.Errorf("unable to get messageID: %w", err)
 	}
 
-	// 3. Recupera il sent_at generato dal DEFAULT
+	// 3. Recupera il campo sent_at generato dal DEFAULT
 	var sentAt string
 	err = db.QueryRow(
 		"SELECT sent_at FROM MessagesUser WHERE messageID = ?",
@@ -54,7 +54,7 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
 	}
 
-	// 4. Gestisci la tabella ConversationsUser:
+	// 4. Gestione della tabella ConversationsUser:
 	// Se la conversazione non esiste, la crea. Altrimenti aggiorna lastMessageID.
 	var convCount int
 	err = db.QueryRow(
@@ -77,7 +77,7 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 		if err != nil {
 			return 0, 0, "", fmt.Errorf("unable to create conversation for users %d-%d: %w", user1ID, user2ID, err)
 		}
-		// Aggiorna conversationID nel messaggio se serve (opzionale, dipende da logica)
+		// Aggiorna conversationID nel messaggio se necessario (opzionale, dipende dalla logica)
 		// message.ConversationID = int(res.LastInsertId())
 	} else {
 		// Aggiorna lastMessageID della conversazione esistente
@@ -96,10 +96,10 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 /*
 CreateMessageBetweenUsersAndGroups inserisce un nuovo messaggio in una conversazione utente-gruppo.
 Il contenuto deve essere già stato creato tramite CreateTextContent.
-Passi:
-1. Determina il groupID (receiver) dalla conversazione
+Passaggi:
+1. Determina il groupID (destinatario) dalla conversazione
 2. Inserisce il messaggio nella tabella MessagesGroup
-3. Restituisce messageID, groupID (receiver), sent_at
+3. Restituisce messageID, groupID (destinatario), sent_at
 */
 func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (int, int, string, error) {
 	// 1. Determina il groupID dalla conversazione
@@ -112,7 +112,7 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 		return 0, 0, "", fmt.Errorf("unable to find group conversation %d: %w", message.ConversationID, err)
 	}
 
-	// 2. Inserisci il messaggio in MessagesGroup
+	// 2. Inserisce il messaggio in MessagesGroup
 	msgResult, err := db.Exec(
 		"INSERT INTO MessagesGroup (conversationID, senderID, status, type, contentID) VALUES (?, ?, ?, ?, ?)",
 		message.ConversationID, message.Sender, "received", "standard", contentID,
@@ -126,7 +126,7 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 		return 0, 0, "", fmt.Errorf("unable to get messageID: %w", err)
 	}
 
-	// 3. Recupera il sent_at generato dal DEFAULT
+	// 3. Recupera il campo sent_at generato dal DEFAULT
 	var sentAt string
 	err = db.QueryRow(
 		"SELECT sent_at FROM MessagesGroup WHERE messageID = ?",
@@ -136,7 +136,7 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
 	}
 
-	// 4. Gestisci la tabella ConversationsGroup:
+	// 4. Gestione della tabella ConversationsGroup:
 	// Se la conversazione non esiste, la crea. Altrimenti aggiorna lastMessageID.
 	var convCount int
 	err = db.QueryRow(
@@ -156,7 +156,7 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 		if err != nil {
 			return 0, 0, "", fmt.Errorf("unable to create group conversation for user %d and group %d: %w", message.Sender, groupID, err)
 		}
-		// Aggiorna conversationID nel messaggio se serve (opzionale)
+		// Aggiorna conversationID nel messaggio se necessario (opzionale)
 		// message.ConversationID = int(res.LastInsertId())
 	} else {
 		// Aggiorna lastMessageID della conversazione esistente
@@ -174,7 +174,7 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 
 /*
 DeleteMessageBelongUsers cancella un messaggio tra utenti.
-Verifica che l'utente sia il sender del messaggio.
+Verifica che l'utente sia il mittente del messaggio.
 Cancella anche il contenuto associato tramite DeleteContentByID.
 */
 func DeleteMessageBelongUsers(messageID int, userID int, conversationID int) error {
@@ -212,12 +212,38 @@ func DeleteMessageBelongUsers(messageID int, userID int, conversationID int) err
 		return fmt.Errorf("unable to delete content for messageID %d: %w", messageID, err)
 	}
 
+	// Aggiorna lastMessageID se il messaggio cancellato era l'ultimo della conversazione
+	var currentLastMessageID *int
+	err = db.QueryRow(
+		"SELECT lastMessageID FROM ConversationsUser WHERE conversationID = ?",
+		conversationID,
+	).Scan(&currentLastMessageID)
+	if err == nil && currentLastMessageID != nil && *currentLastMessageID == messageID {
+		// Trova il nuovo ultimo messaggio (il più recente rimasto)
+		var newLastMessageID *int
+		err = db.QueryRow(
+			"SELECT MAX(messageID) FROM MessagesUser WHERE conversationID = ?",
+			conversationID,
+		).Scan(&newLastMessageID)
+		if err != nil {
+			return fmt.Errorf("unable to find new lastMessageID for conversation %d: %w", conversationID, err)
+		}
+		// newLastMessageID sarà NULL se non ci sono più messaggi
+		_, err = db.Exec(
+			"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
+			newLastMessageID, conversationID,
+		)
+		if err != nil {
+			return fmt.Errorf("unable to update lastMessageID for conversation %d: %w", conversationID, err)
+		}
+	}
+
 	return nil
 }
 
 /*
 DeleteMessageBetweenUsersAndGroups cancella un messaggio in una conversazione utente-gruppo.
-Verifica che l'utente sia il sender del messaggio.
+Verifica che l'utente sia il mittente del messaggio.
 Cancella anche il contenuto associato tramite DeleteContentByID.
 */
 func DeleteMessageBetweenUsersAndGroups(messageID int, userID int, conversationID int) error {
@@ -255,15 +281,41 @@ func DeleteMessageBetweenUsersAndGroups(messageID int, userID int, conversationI
 		return fmt.Errorf("unable to delete content for messageID %d: %w", messageID, err)
 	}
 
+	// Aggiorna lastMessageID se il messaggio cancellato era l'ultimo della conversazione
+	var currentLastMessageID *int
+	err = db.QueryRow(
+		"SELECT lastMessageID FROM ConversationsGroup WHERE conversationID = ?",
+		conversationID,
+	).Scan(&currentLastMessageID)
+	if err == nil && currentLastMessageID != nil && *currentLastMessageID == messageID {
+		// Trova il nuovo ultimo messaggio (il più recente rimasto)
+		var newLastMessageID *int
+		err = db.QueryRow(
+			"SELECT MAX(messageID) FROM MessagesGroup WHERE conversationID = ?",
+			conversationID,
+		).Scan(&newLastMessageID)
+		if err != nil {
+			return fmt.Errorf("unable to find new lastMessageID for group conversation %d: %w", conversationID, err)
+		}
+		// newLastMessageID sarà NULL se non ci sono più messaggi
+		_, err = db.Exec(
+			"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
+			newLastMessageID, conversationID,
+		)
+		if err != nil {
+			return fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", conversationID, err)
+		}
+	}
+
 	return nil
 }
 
 /*
 ForwardMessageBelongUsers inoltra un messaggio in una conversazione tra utenti.
-Passi:
+Passaggi:
 1. Recupera il contenuto del messaggio originale (message.MessageID)
 2. Copia il contenuto tramite CreateTextContent
-3. Determina il receiver dalla conversazione di destinazione
+3. Determina il destinatario dalla conversazione di destinazione
 4. Inserisce il nuovo messaggio con type='forward'
 5. Restituisce messageID, receiver, sent_at, content, contentType
 */
@@ -294,7 +346,7 @@ func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string
 		return 0, 0, "", "", "", fmt.Errorf("unable to copy content for forwarded message: %w", err)
 	}
 
-	// 3. Determina il receiver dalla conversazione di destinazione
+	// 3. Determina il destinatario dalla conversazione di destinazione
 	var user1ID, user2ID int
 	err = db.QueryRow(
 		"SELECT user1ID, user2ID FROM ConversationsUser WHERE conversationID = ?",
@@ -309,7 +361,7 @@ func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string
 		receiverID = user2ID
 	}
 
-	// 4. Inserisci il messaggio con type='forward'
+	// 4. Inserisce il messaggio con type='forward'
 	msgResult, err := db.Exec(
 		"INSERT INTO MessagesUser (conversationID, senderID, receiverID, status, type, contentID) VALUES (?, ?, ?, ?, ?, ?)",
 		message.ConversationID, message.Sender, receiverID, "received", "forward", newContentID,
@@ -323,7 +375,7 @@ func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string
 		return 0, 0, "", "", "", fmt.Errorf("unable to get new messageID: %w", err)
 	}
 
-	// 5. Recupera il sent_at
+	// 5. Recupera il campo sent_at
 	var sentAt string
 	err = db.QueryRow(
 		"SELECT sent_at FROM MessagesUser WHERE messageID = ?",
@@ -376,7 +428,7 @@ func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, stri
 		return 0, 0, "", "", "", fmt.Errorf("unable to find group conversation %d: %w", message.ConversationID, err)
 	}
 
-	// 4. Inserisci il messaggio con type='forward'
+	// 4. Inserisce il messaggio con type='forward'
 	msgResult, err := db.Exec(
 		"INSERT INTO MessagesGroup (conversationID, senderID, status, type, contentID) VALUES (?, ?, ?, ?, ?)",
 		message.ConversationID, message.Sender, "received", "forward", newContentID,
@@ -390,7 +442,7 @@ func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, stri
 		return 0, 0, "", "", "", fmt.Errorf("unable to get new messageID: %w", err)
 	}
 
-	// 5. Recupera il sent_at
+	// 5. Recupera il campo sent_at
 	var sentAt string
 	err = db.QueryRow(
 		"SELECT sent_at FROM MessagesGroup WHERE messageID = ?",
@@ -402,4 +454,3 @@ func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, stri
 
 	return int(newMessageID), groupID, sentAt, content, contentType, nil
 }
-

@@ -32,7 +32,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 		// Decodifica il body JSON { "userName": "..." }
 		var reqBody struct {
-			Name string `json:"name"`
+			Name  string `json:"name"`
 			Photo string `json:"photo"`
 		}
 		decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
@@ -44,11 +44,11 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 			// Valida l'input
 			validationNameErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
 			validationPhotoErr := model.ValidateInput(reqBody.Photo, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
-			
+
 			//Se il campo name inserito è valido
 			if validationNameErr == nil {
 				ctx.Logger.Info("'name' in request is valid")
-				
+
 				//Se il campo photo inserito è valido
 				if validationPhotoErr == nil {
 					ctx.Logger.Info("'photo' in request is valid")
@@ -56,7 +56,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 					//Crea il grupppo
 					group, errGrp := model.CreateGroup(reqBody.Name, reqBody.Photo, userId)
 					ctx.Logger.Debug("passed by CreateGroup()")
-					
+
 					//Se il gruppo è creato correttamente
 					if errGrp == nil {
 						ctx.Logger.Info("created group")
@@ -67,7 +67,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 						}{GroupID: group.GroupID}
 
 						jsonBytes, marshalErr := json.Marshal(respData)
-						
+
 						//Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
@@ -96,7 +96,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 				}
 
 			} else {
-				statusCode = http.StatusBadRequest 
+				statusCode = http.StatusBadRequest
 				outErr = validationNameErr
 				ctx.Logger.WithError(validationNameErr).Error("invalid name. Check limits on doc")
 			}
@@ -145,7 +145,7 @@ func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httpr
 		//Se non ci sono errori nell'estrazione
 		if errGrp == nil || groupId > 0 {
 			ctx.Logger.Info("groupId parsed successfully")
-			
+
 			//Ottieni il gruppo (verifica che lo userID sia membro o admin)
 			group, errGetGrp := model.GetGroup(groupId, userId)
 			ctx.Logger.Debug("passed by GetGroup()")
@@ -210,7 +210,6 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
-	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -227,8 +226,8 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		//Se non ci sono errori nell'estrazione
 		if errGrp == nil || groupId > 0 {
 			ctx.Logger.Info("groupId parsed successfully")
-			
-			//Ottieni il gruppo 
+
+			//Ottieni il gruppo
 			group, errGetGrp := model.GetGroupBasic(groupId)
 			ctx.Logger.Debug("passed by GetGroupBasic()")
 
@@ -245,16 +244,16 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 					//Fai uscire l'utente
 					errLeaveGroup := model.LeaveGroup(userId, group)
 					ctx.Logger.Debug("passed by LeaveGroup()")
-					
+
 					//Se l'operazione va a buon fine
 					if errLeaveGroup == nil {
-						
+
 						//Tutto ok
 						outErr = nil
 
 						statusCode = http.StatusNoContent
 						ctx.Logger.Infof("userID %d successfully left groupID %d", userId, groupId)
-						
+
 					} else {
 						statusCode = http.StatusInternalServerError
 						outErr = errLeaveGroup
@@ -289,13 +288,11 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		ctx.Logger.WithError(errUsr).Error("invalid userId")
 	}
 
-	// Unico punto di uscita
+	// Unico punto di uscita (204 No Content: nessun body)
 	if outErr != nil {
 		http.Error(w, outErr.Error(), statusCode)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		_, _ = w.Write(responseBody)
 	}
 }
 
@@ -304,7 +301,6 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
-	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -317,7 +313,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 		// Decodifica il body JSON { "userName": "..." }
 		var reqBody struct {
-			UserId string `json:"userID"`
+			UserId    string   `json:"userID"`
 			UserNames []string `json:"userNames"`
 		}
 		decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
@@ -328,8 +324,8 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 			// Valida l'input
 			userId, errUsr := strconv.Atoi(reqBody.UserId)
-			if errUsr == nil || userId > 0 {	
-				ctx.Logger.Info("userId parsed successfully")		
+			if errUsr == nil || userId > 0 {
+				ctx.Logger.Info("userId parsed successfully")
 
 				// Valida tutti gli userNames
 				var validationErr error
@@ -408,14 +404,11 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		ctx.Logger.WithError(errGrp).Error("invalid groupId")
 	}
 
-
-	// Unico punto di uscita
+	// Unico punto di uscita (204 No Content: nessun body)
 	if outErr != nil {
 		http.Error(w, outErr.Error(), statusCode)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		_, _ = w.Write(responseBody)
 	}
 }
 
@@ -438,8 +431,8 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 
 		// Decodifica il body JSON
 		var reqBody struct {
-			UserId int `json:"userID"`
-			Name string `json:"name"`
+			UserId int    `json:"userID"`
+			Name   string `json:"name"`
 		}
 		decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
 
@@ -449,7 +442,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 
 			// Valida l'input del nuovo groupName con il Validator
 			validationErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
-			
+
 			//Se il campo inserito è valido
 			if validationErr == nil {
 				ctx.Logger.Info("request data is valid")
@@ -465,19 +458,19 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 					// Verifica che lo userID sia admin del gruppo
 					if group.AdminID == reqBody.UserId {
 						ctx.Logger.Infof("userID is admin of groupID %d", groupId)
-						
+
 						//Prova ad impostare il nome
 						errSetNameGroup := model.SetNameGroup(&group, reqBody.Name)
 						ctx.Logger.Debug("passed by SetNameGroup()")
-						
+
 						//Se va a buon fine
 						if errSetNameGroup == nil {
-							ctx.Logger.Info("groupName udpated successfully")
+							ctx.Logger.Info("groupName updated successfully")
 
 							// Costruisci la risposta JSON
-							respData := struct {}{}
+							respData := struct{}{}
 							jsonBytes, marshalErr := json.Marshal(respData)
-							
+
 							//Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
@@ -486,8 +479,8 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 								outErr = nil
 
 								statusCode = http.StatusOK // 200
-								ctx.Logger.Debugf("groupName update successfully: %s (ID: %d)",  reqBody.Name, groupId)
-								ctx.Logger.Infof("groupName update successfully: %s",  reqBody.Name)
+								ctx.Logger.Debugf("groupName update successfully: %s (ID: %d)", reqBody.Name, groupId)
+								ctx.Logger.Infof("groupName update successfully: %s", reqBody.Name)
 
 							} else {
 								statusCode = http.StatusInternalServerError
@@ -691,7 +684,6 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
-	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -717,7 +709,7 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 			if validationErr == nil {
 				ctx.Logger.Info("userName parsed successfully")
 
-				//Ottieni il gruppo 
+				//Ottieni il gruppo
 				group, errGetGrp := model.GetGroupBasic(groupId)
 				ctx.Logger.Debug("passed by GetGroupBasic()")
 
@@ -738,20 +730,20 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 							// Verifica che lo userName da kickare non sia l'admin stesso
 							if admin.Name != userName {
 								ctx.Logger.Infof("userName '%s' is not the admin, proceeding with kick", userName)
-						
+
 								//Fai uscire l'utente
 								errKickGroup := model.KickFromGroup(&group, userName)
 								ctx.Logger.Debug("passed by KickFromGroup()")
-								
+
 								//Se l'operazione va a buon fine
 								if errKickGroup == nil {
-									
+
 									//Tutto ok
 									outErr = nil
 
 									statusCode = http.StatusNoContent
 									ctx.Logger.Infof("user %s successfully kicked from groupID %d", userName, groupId)
-									
+
 								} else {
 									statusCode = http.StatusInternalServerError
 									outErr = errKickGroup
@@ -800,13 +792,11 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 		ctx.Logger.WithError(errUsr).Error("invalid userId")
 	}
 
-	// Unico punto di uscita
+	// Unico punto di uscita (204 No Content: nessun body)
 	if outErr != nil {
 		http.Error(w, outErr.Error(), statusCode)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		_, _ = w.Write(responseBody)
 	}
 }
 
@@ -815,7 +805,6 @@ func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
-	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -889,13 +878,10 @@ func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		ctx.Logger.WithError(errGrp).Error("invalid groupId")
 	}
 
-	// Unico punto di uscita
+	// Unico punto di uscita (204 No Content: nessun body)
 	if outErr != nil {
 		http.Error(w, outErr.Error(), statusCode)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		_, _ = w.Write(responseBody)
 	}
 }
-

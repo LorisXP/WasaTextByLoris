@@ -6,15 +6,15 @@ import (
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
 
-// AddCommentBelongUsers inserisce una reaction (commento) a un messaggio tra utenti.
-// Il campo messageUserID dell'entity deve essere valorizzato.
+// AddCommentBelongUsers inserisce una reazione (commento) a un messaggio tra utenti.
+// Il campo MessageUserID dell'entity deve essere valorizzato.
 func AddCommentBelongUsers(comment entity.Comment) (int, error) {
 	result, err := db.Exec(
 		"INSERT INTO Comments (messageUserID, reaction) VALUES (?, ?)",
 		comment.MessageUserID, comment.Reaction,
 	)
 	if err != nil {
-		return 0, fmt.Errorf("unable to insert reaction to message %d belong users: %w", comment.MessageUserID, err)
+		return 0, fmt.Errorf("unable to insert reaction to user message %d: %w", comment.MessageUserID, err)
 	}
 
 	lastID, err := result.LastInsertId()
@@ -25,15 +25,15 @@ func AddCommentBelongUsers(comment entity.Comment) (int, error) {
 	return int(lastID), nil
 }
 
-// AddCommentBetweenUsersAndGroups inserisce una reaction (commento) a un messaggio di gruppo.
-// Il campo messageGroupID dell'entity deve essere valorizzato.
+// AddCommentBetweenUsersAndGroups inserisce una reazione (commento) a un messaggio di gruppo.
+// Il campo MessageGroupID dell'entity deve essere valorizzato.
 func AddCommentBetweenUsersAndGroups(comment entity.Comment) (int, error) {
 	result, err := db.Exec(
 		"INSERT INTO Comments (messageGroupID, reaction) VALUES (?, ?)",
 		comment.MessageGroupID, comment.Reaction,
 	)
 	if err != nil {
-		return 0, fmt.Errorf("unable to insert reaction to message %d between user and group: %w", comment.MessageGroupID, err)
+		return 0, fmt.Errorf("unable to insert reaction to group message %d: %w", comment.MessageGroupID, err)
 	}
 
 	lastID, err := result.LastInsertId()
@@ -46,7 +46,7 @@ func AddCommentBetweenUsersAndGroups(comment entity.Comment) (int, error) {
 
 /*
 DeleteCommentBelongUsers cancella un commento su un messaggio tra utenti.
-Verifica che l'utente sia il sender del messaggio a cui appartiene il commento
+Verifica che l'utente sia il mittente del messaggio a cui appartiene il commento
 tramite una JOIN tra Comments e MessagesUser.
 */
 func DeleteCommentBelongUsers(userID int, commentID int, messageID int) error {
@@ -58,7 +58,7 @@ func DeleteCommentBelongUsers(userID int, commentID int, messageID int) error {
 		WHERE co.commentID = ? AND co.messageUserID = ? AND mu.senderID = ?
 	`, commentID, messageID, userID).Scan(&exists)
 	if err != nil {
-		return fmt.Errorf("commentID %d not found on messageID %d for user %d, or user not authorized: %w", commentID, messageID, userID, err)
+		return fmt.Errorf("commentID %d not found for messageID %d or user %d not authorized: %w", commentID, messageID, userID, err)
 	}
 
 	// Cancella il commento
@@ -81,8 +81,8 @@ func DeleteCommentBelongUsers(userID int, commentID int, messageID int) error {
 
 /*
 DeleteCommentBetweenUsersAndGroups cancella un commento su un messaggio di gruppo.
-Verifica che l'utente sia il sender del messaggio a cui appartiene il commento
-tramite una JOIN tra Comments, MessagesGroup e ConversationsGroup.
+Verifica che l'utente sia il mittente del messaggio a cui appartiene il commento
+tramite una JOIN tra Comments e MessagesGroup.
 */
 func DeleteCommentBetweenUsersAndGroups(userID int, commentID int, messageID int) error {
 	// Verifica che il commento appartenga al messaggio e che l'utente sia il sender del messaggio
@@ -93,7 +93,7 @@ func DeleteCommentBetweenUsersAndGroups(userID int, commentID int, messageID int
 		WHERE co.commentID = ? AND co.messageGroupID = ? AND mg.senderID = ?
 	`, commentID, messageID, userID).Scan(&exists)
 	if err != nil {
-		return fmt.Errorf("commentID %d not found on messageID %d for user %d, or user not authorized: %w", commentID, messageID, userID, err)
+		return fmt.Errorf("commentID %d not found for messageID %d or user %d not authorized: %w", commentID, messageID, userID, err)
 	}
 
 	// Cancella il commento

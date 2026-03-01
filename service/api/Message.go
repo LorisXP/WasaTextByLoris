@@ -33,10 +33,10 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		//Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
-			
+
 			// Decodifica il body JSON
 			var reqBody struct {
-				Content string `json:"content"`
+				Content     string `json:"content"`
 				ContentType string `json:"content_type"`
 			}
 			decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
@@ -47,11 +47,11 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 				//Valida l'input di content_type
 				validationContentTypeErr := model.ValidateInput(reqBody.ContentType, 3, 5, `^(gif|text|photo)$`, "string")
-				
+
 				//Se è corretto
 				if validationContentTypeErr == nil {
 					ctx.Logger.Info("valid content_type for new message")
-					
+
 					validationContentErr := fmt.Errorf("enum not recognized: %s", reqBody.ContentType)
 
 					//Valida anche content
@@ -77,8 +77,8 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 					if validationContentErr == nil {
 						ctx.Logger.Info("request validated successfully")
 
-						createdMessage, errCreateMessage:= model.CreateMessage(userId, conversationId, true, reqBody.Content, reqBody.ContentType )
-						
+						createdMessage, errCreateMessage := model.CreateMessage(userId, conversationId, true, reqBody.Content, reqBody.ContentType)
+
 						//Se ci sei riuscito
 						if errCreateMessage == nil {
 							ctx.Logger.Info("new message created successfully")
@@ -89,7 +89,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 							}{MessageID: createdMessage.MessageID}
 
 							jsonBytes, marshalErr := json.Marshal(respData)
-							
+
 							//Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
@@ -97,7 +97,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 								responseBody = jsonBytes
 								outErr = nil
 
-								statusCode = http.StatusOK // 200
+								statusCode = http.StatusCreated // 201
 								ctx.Logger.Debugf("new message created successfully %s (ID: %d)", reqBody.Content, userId)
 								ctx.Logger.Info("new message created successfully")
 
@@ -112,7 +112,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 							outErr = errCreateMessage
 							ctx.Logger.WithError(errCreateMessage).Error("error during creating message")
 						}
-					} else  {
+					} else {
 						statusCode = http.StatusBadRequest
 						outErr = validationContentTypeErr
 						ctx.Logger.WithError(validationContentTypeErr).Error("invalid message content")
@@ -123,7 +123,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 					outErr = validationContentTypeErr
 					ctx.Logger.WithError(validationContentTypeErr).Error("invalid enum in content_type")
 				}
-				
 
 			} else {
 				statusCode = http.StatusBadRequest
@@ -175,10 +174,10 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 		//Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
-			
+
 			// Decodifica il body JSON
 			var reqBody struct {
-				Content string `json:"content"`
+				Content     string `json:"content"`
 				ContentType string `json:"content_type"`
 			}
 			decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
@@ -189,11 +188,11 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 
 				//Valida l'input di content_type
 				validationContentTypeErr := model.ValidateInput(reqBody.ContentType, 3, 5, `^(gif|text|photo)$`, "string")
-				
+
 				//Se è corretto
 				if validationContentTypeErr == nil {
 					ctx.Logger.Info("valid content_type for new message")
-					
+
 					validationContentErr := fmt.Errorf("enum not recognized: %s", reqBody.ContentType)
 
 					//Valida anche content
@@ -219,8 +218,8 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 					if validationContentErr == nil {
 						ctx.Logger.Info("request validated successfully")
 
-						createdMessage, errCreateMessage:= model.CreateMessage(userId, conversationId, false, reqBody.Content, reqBody.ContentType )
-						
+						createdMessage, errCreateMessage := model.CreateMessage(userId, conversationId, false, reqBody.Content, reqBody.ContentType)
+
 						//Se ci sei riuscito
 						if errCreateMessage == nil {
 							ctx.Logger.Info("new message to group created successfully")
@@ -231,7 +230,7 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 							}{MessageID: createdMessage.MessageID}
 
 							jsonBytes, marshalErr := json.Marshal(respData)
-							
+
 							//Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
@@ -239,7 +238,7 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 								responseBody = jsonBytes
 								outErr = nil
 
-								statusCode = http.StatusOK // 200
+								statusCode = http.StatusCreated // 201
 								ctx.Logger.Debugf("new message to group created successfully %s (ID: %d)", reqBody.Content, userId)
 								ctx.Logger.Info("new message to group created successfully")
 
@@ -254,7 +253,7 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 							outErr = errCreateMessage
 							ctx.Logger.WithError(errCreateMessage).Error("error during creating message to group")
 						}
-					} else  {
+					} else {
 						statusCode = http.StatusBadRequest
 						outErr = validationContentTypeErr
 						ctx.Logger.WithError(validationContentTypeErr).Error("invalid message content")
@@ -265,7 +264,6 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 					outErr = validationContentTypeErr
 					ctx.Logger.WithError(validationContentTypeErr).Error("invalid enum in content_type")
 				}
-				
 
 			} else {
 				statusCode = http.StatusBadRequest
@@ -324,22 +322,22 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			// Se il JSON è valido, prosegui.
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
-				
+
 				//Inoltra il messaggio
 				forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, true, messageId)
-				
+
 				//Se ci sei riuscito
 				if errForwardedMessage == nil {
 					ctx.Logger.Info("message forwarded successfully")
 
 					// Costruisci la risposta JSON
 					respData := struct {
-						MessageID int `json:"messageID"`
+						MessageID        int `json:"messageID"`
 						ReplyToMessageID int `json:"replyToMessageID"`
 					}{MessageID: forwardedMessage.MessageID, ReplyToMessageID: messageId}
 
 					jsonBytes, marshalErr := json.Marshal(respData)
-					
+
 					//Se il JSON viene creato correttamente
 					if marshalErr == nil {
 
@@ -347,7 +345,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 						responseBody = jsonBytes
 						outErr = nil
 
-						statusCode = http.StatusOK // 200
+						statusCode = http.StatusCreated // 201
 						ctx.Logger.Infof("new message (%d) forwarded successfully (%d)", forwardedMessage.MessageID, messageId)
 
 					} else {
@@ -361,7 +359,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 					outErr = errForwardedMessage
 					ctx.Logger.WithError(errForwardedMessage).Error("error during forwarding message")
 				}
-				
+
 			} else {
 				statusCode = http.StatusBadRequest
 				outErr = errMess
@@ -419,22 +417,22 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 			// Se il JSON è valido, prosegui.
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
-				
+
 				//Inoltra il messaggio
 				forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, false, messageId)
-				
+
 				//Se ci sei riuscito
 				if errForwardedMessage == nil {
 					ctx.Logger.Info("message forwarded successfully to group")
 
 					// Costruisci la risposta JSON
 					respData := struct {
-						MessageID int `json:"messageID"`
+						MessageID        int `json:"messageID"`
 						ReplyToMessageID int `json:"replyToMessageID"`
 					}{MessageID: forwardedMessage.MessageID, ReplyToMessageID: messageId}
 
 					jsonBytes, marshalErr := json.Marshal(respData)
-					
+
 					//Se il JSON viene creato correttamente
 					if marshalErr == nil {
 
@@ -442,7 +440,7 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 						responseBody = jsonBytes
 						outErr = nil
 
-						statusCode = http.StatusOK // 200
+						statusCode = http.StatusCreated // 201
 						ctx.Logger.Infof("new message (%d) forwarded successfully (%d) to group", forwardedMessage.MessageID, messageId)
 
 					} else {
@@ -456,7 +454,7 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 					outErr = errForwardedMessage
 					ctx.Logger.WithError(errForwardedMessage).Error("error during forwarding message to group")
 				}
-				
+
 			} else {
 				statusCode = http.StatusBadRequest
 				outErr = errMess
@@ -514,10 +512,10 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 			// Se il JSON è valido, prosegui.
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
-				
+
 				//Cancella il messaggio
 				errDeleteMessage := model.DeleteMessage(userId, conversationId, true, messageId)
-				
+
 				//Se ci sei riuscito
 				if errDeleteMessage == nil {
 					ctx.Logger.Info("message deleted successfully")
@@ -528,7 +526,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 					}{MessageID: messageId}
 
 					jsonBytes, marshalErr := json.Marshal(respData)
-					
+
 					//Se il JSON viene creato correttamente
 					if marshalErr == nil {
 
@@ -550,7 +548,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 					outErr = errDeleteMessage
 					ctx.Logger.WithError(errDeleteMessage).Error("error during deleting message")
 				}
-				
+
 			} else {
 				statusCode = http.StatusBadRequest
 				outErr = errMess
@@ -608,10 +606,10 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 			// Se il JSON è valido, prosegui.
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
-				
+
 				//Cancella il messaggio
 				errDeleteMessage := model.DeleteMessage(userId, conversationId, false, messageId)
-				
+
 				//Se ci sei riuscito
 				if errDeleteMessage == nil {
 					ctx.Logger.Info("message of group deleted successfully")
@@ -622,7 +620,7 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 					}{MessageID: messageId}
 
 					jsonBytes, marshalErr := json.Marshal(respData)
-					
+
 					//Se il JSON viene creato correttamente
 					if marshalErr == nil {
 
@@ -644,7 +642,7 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 					outErr = errDeleteMessage
 					ctx.Logger.WithError(errDeleteMessage).Error("error during deleting message of group")
 				}
-				
+
 			} else {
 				statusCode = http.StatusBadRequest
 				outErr = errMess
@@ -672,5 +670,3 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 		_, _ = w.Write(responseBody)
 	}
 }
-
-

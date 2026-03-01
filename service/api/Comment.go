@@ -32,7 +32,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		//Se non ci sono errori nell'estrazione
 		if errConv == nil || messageId > 0 {
 			ctx.Logger.Info("messageId parsed successfully")
-			
+
 			// Decodifica il body JSON
 			var reqBody struct {
 				Reaction string `json:"reaction"`
@@ -45,13 +45,13 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 				//Valida l'input di content_type
 				validationEmojiErr := model.ValidateInput(reqBody.Reaction, 1, 2, `^.*?$`, "string")
-				
+
 				//Se è corretto
 				if validationEmojiErr == nil {
 					ctx.Logger.Info("request validated successfully")
 
 					comment, errComment := model.CreateComment(userId, messageId, true, reqBody.Reaction)
-					
+
 					//Se ci sei riuscito
 					if errComment == nil {
 						ctx.Logger.Info("new reaction added successfully")
@@ -62,7 +62,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 						}{CommentID: comment.CommentID}
 
 						jsonBytes, marshalErr := json.Marshal(respData)
-						
+
 						//Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
@@ -142,7 +142,7 @@ func (rt *_router) commentMessageGroup(w http.ResponseWriter, r *http.Request, p
 		//Se non ci sono errori nell'estrazione
 		if errConv == nil || messageId > 0 {
 			ctx.Logger.Info("messageId parsed successfully")
-			
+
 			// Decodifica il body JSON
 			var reqBody struct {
 				Reaction string `json:"reaction"`
@@ -155,13 +155,13 @@ func (rt *_router) commentMessageGroup(w http.ResponseWriter, r *http.Request, p
 
 				//Valida l'input di content_type
 				validationEmojiErr := model.ValidateInput(reqBody.Reaction, 1, 2, `^.*?$`, "string")
-				
+
 				//Se è corretto
 				if validationEmojiErr == nil {
 					ctx.Logger.Info("request validated successfully")
 
 					comment, errComment := model.CreateComment(userId, messageId, false, reqBody.Reaction)
-					
+
 					//Se ci sei riuscito
 					if errComment == nil {
 						ctx.Logger.Info("new reaction added successfully to message in group")
@@ -172,7 +172,7 @@ func (rt *_router) commentMessageGroup(w http.ResponseWriter, r *http.Request, p
 						}{CommentID: comment.CommentID}
 
 						jsonBytes, marshalErr := json.Marshal(respData)
-						
+
 						//Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
@@ -235,7 +235,6 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
-	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -259,10 +258,10 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 			// Se il JSON è valido, prosegui.
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
-				
+
 				//Cancella il messaggio
 				errDeleteComment := model.DeleteComment(userId, commentId, messageId, true)
-				
+
 				//Se ci sei riuscito
 				if errDeleteComment == nil {
 					ctx.Logger.Info("comment deleted successfully")
@@ -273,13 +272,12 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 					statusCode = http.StatusNoContent // 200
 					ctx.Logger.Infof(" message (%d) deleted successfully", messageId)
 
-
 				} else {
 					statusCode = http.StatusInternalServerError
 					outErr = errDeleteComment
 					ctx.Logger.WithError(errDeleteComment).Error("error during deleting comment")
 				}
-				
+
 			} else {
 				statusCode = http.StatusBadRequest
 				outErr = errMess
@@ -298,13 +296,11 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 		ctx.Logger.WithError(errUsr).Error("invalid userId")
 	}
 
-	// Unico punto di uscita
+	// Unico punto di uscita (204 No Content: nessun body)
 	if outErr != nil {
 		http.Error(w, outErr.Error(), statusCode)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		_, _ = w.Write(responseBody)
 	}
 }
 
@@ -313,7 +309,6 @@ func (rt *_router) deleteCommentGroup(w http.ResponseWriter, r *http.Request, ps
 
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
-	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -337,10 +332,10 @@ func (rt *_router) deleteCommentGroup(w http.ResponseWriter, r *http.Request, ps
 			// Se il JSON è valido, prosegui.
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
-				
+
 				//Cancella il commento
 				errDeleteComment := model.DeleteComment(userId, commentId, messageId, false)
-				
+
 				//Se ci sei riuscito
 				if errDeleteComment == nil {
 					ctx.Logger.Info("comment deleted successfully in group")
@@ -351,13 +346,12 @@ func (rt *_router) deleteCommentGroup(w http.ResponseWriter, r *http.Request, ps
 					statusCode = http.StatusNoContent // 200
 					ctx.Logger.Infof(" message (%d) deleted successfully", messageId)
 
-
 				} else {
 					statusCode = http.StatusInternalServerError
 					outErr = errDeleteComment
 					ctx.Logger.WithError(errDeleteComment).Error("error during deleting comment in group")
 				}
-				
+
 			} else {
 				statusCode = http.StatusBadRequest
 				outErr = errMess
@@ -376,13 +370,10 @@ func (rt *_router) deleteCommentGroup(w http.ResponseWriter, r *http.Request, ps
 		ctx.Logger.WithError(errUsr).Error("invalid userId")
 	}
 
-	// Unico punto di uscita
+	// Unico punto di uscita (204 No Content: nessun body)
 	if outErr != nil {
 		http.Error(w, outErr.Error(), statusCode)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		_, _ = w.Write(responseBody)
 	}
 }
-

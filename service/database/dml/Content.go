@@ -7,7 +7,7 @@ import (
 )
 
 // CreateTextContent inserisce un nuovo contenuto nella tabella Contents
-// e restituisce il contentID generato
+// e restituisce il contentID generato.
 func CreateTextContent(message_content entity.Content) (int, error) {
 	result, err := db.Exec(
 		"INSERT INTO Contents (type, content) VALUES (?, ?)",
@@ -25,7 +25,7 @@ func CreateTextContent(message_content entity.Content) (int, error) {
 	return int(lastID), nil
 }
 
-// DeleteContentByID cancella un contenuto dalla tabella Contents dato il contentID
+// DeleteContentByID cancella un contenuto dalla tabella Contents dato il contentID.
 func DeleteContentByID(contentID int) error {
 	result, err := db.Exec("DELETE FROM Contents WHERE contentID = ?", contentID)
 	if err != nil {

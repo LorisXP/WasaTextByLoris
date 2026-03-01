@@ -42,7 +42,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 			// Valida l'input del nuovo userName con il Validator
 			validationErr := model.ValidateInput(reqBody.UserName, 3, 15, `^[a-z]+[0-9]*$`, "string")
-			
+
 			//Se il campo inserito è valido
 			if validationErr == nil {
 				ctx.Logger.Info("request data is valid")
@@ -50,7 +50,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 				//Ottieni prima l'utente
 				user, errUsr := model.GetUser(userId)
 				ctx.Logger.Debug("passed by GetUser()")
-				
+
 				//Se l'utente è ottenuto correttamente
 				if errUsr == nil {
 					ctx.Logger.Info("found user")
@@ -61,13 +61,13 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 					//Se il nome viene aggiornato correttamente
 					if errUpdateName == nil {
-						ctx.Logger.Info("userName udpated successfully")
+						ctx.Logger.Info("userName updated successfully")
 
 						// Costruisci la risposta JSON
-						respData := struct {}{}
+						respData := struct{}{}
 
 						jsonBytes, marshalErr := json.Marshal(respData)
-						
+
 						//Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
@@ -94,7 +94,6 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 						outErr = errUpdateName
 						ctx.Logger.WithError(errUpdateName).Error("error updating userName")
 					}
-
 
 				} else {
 					statusCode = http.StatusNotFound
@@ -183,7 +182,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 						//Se la foto viene aggiornata correttamente
 						if errUpdatePhoto == nil {
-							ctx.Logger.Info("user profile picture udpated successfully")
+							ctx.Logger.Info("user profile picture updated successfully")
 
 							// Costruisci la risposta JSON
 							respData := struct{}{}
@@ -255,7 +254,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 // findUser gestisce GET /api/users/{userID}/other/{userName}
 func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	
+
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
 	var responseBody []byte = nil
