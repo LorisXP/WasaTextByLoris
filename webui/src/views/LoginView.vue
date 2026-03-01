@@ -1,4 +1,55 @@
-<script></script>
+<script>
+export default {
+	data: function () {
+		return {
+			userName: null,
+			errormsg: null,
+		};
+	},
+	methods: {
+		async doAuth() {
+			this.errormsg = null;
+			try {
+				this.errormsg = await this.$services.login.doLogin(this.userName);
+				if (!this.errormsg) {
+					// Login riuscito, reindirizza alle chat
+					this.$router.push("/chats");
+				}
+				// Se errormsg è valorizzato, verrà mostrato all'utente
+			} catch (e) {
+				this.errormsg = e.toString();
+				console.error("Login error:", e);
+			}
+		},
+
+		setUserName(insertedName) {
+			if (this.$validator.validate(
+				insertedName,
+				/^[a-zA-Z0-9_]+$/,
+				3,
+				15,
+				"string"
+			).success) {
+				this.userName = insertedName;
+			} else {
+				this.errormsg = "Inserisci uno username valido";
+			}
+		},
+
+		setError(errormsg) {
+			this.errormsg = errormsg || null;
+			this.$nextTick(() => {
+				if (this.errormsg && this.$refs && this.$refs.username) {
+					try { this.$refs.username.focus(); } catch (e) {}
+				}
+			});
+		},
+	},
+	mounted() {
+		this.refresh();
+	},
+};
+</script>
 
 <template>
 	<head>
@@ -7,10 +58,6 @@
 		<meta name="description" content="" />
 		<meta name="generator" content="Astro v5.13.2" />
 		<title>Login</title>
-		<link
-			rel="canonical"
-			href="https://getbootstrap.com/docs/5.3/examples/sign-in/"
-		/>
 		<script src="../assets/js/color-modes.js"></script>
 		<link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet" />
 		<meta name="theme-color" content="#712cf9" />
@@ -128,13 +175,21 @@
 				<h1 class="h3 text-center mb-3 fw-normal">Login</h1>
 				<div class="form-floating">
 					<input
-						type="name"
+						type="text"
 						class="form-control"
+						:class="{ 'is-invalid': errormsg }"
 						id="floatingInput"
+						ref="username"
+						v-model="userName"
 					/>
+					<div class="invalid-feedback" v-if="errormsg">{{ errormsg }}</div>
 					<label for="floatingInput">Username</label>
 				</div>
-				<button class="mt-3 btn btn-primary w-100 py-2" type="submit">
+				<button
+					@click.prevent="setUserName(userName); doAuth()"
+					class="mt-3 btn btn-primary w-100 py-2"
+					type="button"
+				>
 					Accedi
 				</button>
 			</form>
