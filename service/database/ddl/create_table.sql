@@ -131,6 +131,3 @@ CREATE TABLE Comments (
 
 CREATE INDEX idx_comments_user ON Comments(messageUserID);
 CREATE INDEX idx_comments_group ON Comments(messageGroupID);
-
-
-
