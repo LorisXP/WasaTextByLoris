@@ -288,15 +288,19 @@ func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httproute
 
 				// Costruisci la risposta JSON come array di { userName, photo }
 				type UserAndPhoto struct {
-					UserName string `json:"userName"`
-					Photo    string `json:"photo,omitempty"`
+					UserName string  `json:"userName"`
+					Photo    *string `json:"photo"`
 				}
 
 				result := make([]UserAndPhoto, 0, len(users))
 				for _, u := range users {
+					var photo *string
+					if u.Photo != "" {
+						photo = &u.Photo
+					}
 					result = append(result, UserAndPhoto{
 						UserName: u.Name,
-						Photo:    u.Photo,
+						Photo:    photo,
 					})
 				}
 
