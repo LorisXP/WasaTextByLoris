@@ -7,8 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//Se utente esite -> restituisce userID
-//Altrimenti -> nuovo utente, nuovo userID
+// Se utente esite -> restituisce userID
+// Altrimenti -> nuovo utente, nuovo userID
 func AuthUser(username string) (int, bool, error) {
 	logrus.Debug("Entered in AuthUser()")
 	logrus.Infof("The user %s is authenticating now...", username)
@@ -19,7 +19,7 @@ func AuthUser(username string) (int, bool, error) {
 
 	//Fai una query di ricerca
 	userID, isNew, err := queries.GetOrCreateUserIDByName(username)
-	logrus.Debug("Passed by GetUserIDByName()")
+	logrus.Debug("Passed by GetOrCreateUserIDByName()")
 
 	//Se non ci sono errori, prosegui
 	if err == nil && userID != 0 {
