@@ -20,13 +20,13 @@ func (rt *_router) Handler() http.Handler {
 
 	// Group
 	rt.router.POST("/api/users/:userID/groups", rt.wrapAuth(rt.createGroup))
-	rt.router.GET("/api/users/:userID/groups/:groupId", rt.wrapAuth(rt.getGroupInfo))
-	rt.router.DELETE("/api/users/:userID/groups/:groupId", rt.wrapAuth(rt.leaveGroup))
-	rt.router.POST("/api/groups/:groupId/users", rt.wrapAuth(rt.addToGroup))
-	rt.router.PATCH("/api/groups/:groupId/name", rt.wrapAuth(rt.setGroupName))
-	rt.router.PUT("/api/groups/:groupId/photo", rt.wrapAuth(rt.setGroupPhoto))
-	rt.router.DELETE("/api/users/:userID/groups/:groupId/member/:userName", rt.wrapAuth(rt.kickUserFromGroup))
-	rt.router.DELETE("/api/groups/:groupId/users/:userID", rt.wrapAuth(rt.removeGroup))
+	rt.router.GET("/api/users/:userID/groups/:groupID", rt.wrapAuth(rt.getGroupInfo))
+	rt.router.DELETE("/api/users/:userID/groups/:groupID", rt.wrapAuth(rt.leaveGroup))
+	rt.router.POST("/api/groups/:groupID/users", rt.wrapAuth(rt.addToGroup))
+	rt.router.PATCH("/api/groups/:groupID/name", rt.wrapAuth(rt.setGroupName))
+	rt.router.PUT("/api/groups/:groupID/photo", rt.wrapAuth(rt.setGroupPhoto))
+	rt.router.DELETE("/api/users/:userID/groups/:groupID/member/:userName", rt.wrapAuth(rt.kickUserFromGroup))
+	rt.router.DELETE("/api/groups/:groupID/users/:userID", rt.wrapAuth(rt.removeGroup))
 
 	// Conversation
 	rt.router.GET("/api/users/:userID/conversations", rt.wrapAuth(rt.getMyConversations))
