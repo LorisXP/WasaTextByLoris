@@ -30,6 +30,7 @@ func (rt *_router) Handler() http.Handler {
 
 	// Conversation
 	rt.router.GET("/api/users/:userID/conversations", rt.wrapAuth(rt.getMyConversations))
+	rt.router.POST("/api/users/:userID/conversations/users", rt.wrapAuth(rt.createConversationUsers))
 	rt.router.GET("/api/users/:userID/conversations/users/:conversationID/messages", rt.wrapAuth(rt.getConversation))
 	rt.router.GET("/api/users/:userID/conversations/groups/:conversationID/messages", rt.wrapAuth(rt.getConversationGroups))
 

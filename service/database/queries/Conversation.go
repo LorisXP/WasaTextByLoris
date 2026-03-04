@@ -384,9 +384,9 @@ func getCommentsForUserMessage(messageID int) ([]interface{}, error) {
 		}
 
 		comment := map[string]interface{}{
-			"commentID":       commentID,
-			"content":         reaction,
-			"senderID":        senderID,
+			"commentID":        commentID,
+			"content":          reaction,
+			"senderID":         senderID,
 			"userNameSenderID": userName,
 		}
 		comments = append(comments, comment)
@@ -425,9 +425,9 @@ func getCommentsForGroupMessage(messageID int) ([]interface{}, error) {
 		}
 
 		comment := map[string]interface{}{
-			"commentID":       commentID,
-			"content":         reaction,
-			"senderID":        senderID,
+			"commentID":        commentID,
+			"content":          reaction,
+			"senderID":         senderID,
 			"userNameSenderID": userName,
 		}
 		comments = append(comments, comment)
@@ -435,4 +435,3 @@ func getCommentsForGroupMessage(messageID int) ([]interface{}, error) {
 
 	return comments, rows.Err()
 }
-
