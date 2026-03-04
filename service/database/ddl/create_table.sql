@@ -50,7 +50,9 @@ CREATE TABLE ConversationsUser (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     lastMessageID INTEGER,
-    CHECK (user1ID <> user2ID)
+    CHECK (user1ID <> user2ID),
+    -- user1ID è sempre il minore dei due ID (normalizzato lato applicazione)
+    UNIQUE (user1ID, user2ID)
 );
 CREATE INDEX idx_conversation_user1 ON ConversationsUser(user1ID);
 CREATE INDEX idx_conversation_user2 ON ConversationsUser(user2ID);
@@ -84,7 +86,8 @@ CREATE TABLE ConversationsGroup (
     groupID INTEGER NOT NULL REFERENCES Groups(groupID)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    lastMessageID INTEGER
+    lastMessageID INTEGER,
+    UNIQUE (userID, groupID)
 );
 CREATE INDEX idx_conversation_group ON ConversationsGroup(userID, groupID);
 
