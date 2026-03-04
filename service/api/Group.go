@@ -313,7 +313,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 		// Decodifica il body JSON { "userName": "..." }
 		var reqBody struct {
-			UserId    string   `json:"userID"`
+			UserId    int      `json:"userID"`
 			UserNames []string `json:"userNames"`
 		}
 		decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
@@ -322,9 +322,11 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		if decodeErr == nil {
 			ctx.Logger.Info("request decoded successfully")
 
+			//Preleva lo userId
+			userId := reqBody.UserId
+
 			// Valida l'input
-			userId, errUsr := strconv.Atoi(reqBody.UserId)
-			if errUsr == nil || userId > 0 {
+			if userId > 0 {
 				ctx.Logger.Info("userId parsed successfully")
 
 				// Verifica che il Bearer token corrisponda al userID nel body
@@ -396,8 +398,8 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 				}
 			} else {
 				statusCode = http.StatusBadRequest
-				outErr = errUsr
-				ctx.Logger.WithError(errUsr).Error("invalid userId")
+				outErr = fmt.Errorf("invalid userId. must be > 0")
+				ctx.Logger.WithError(outErr).Error("invalid userId")
 			}
 
 		} else {
