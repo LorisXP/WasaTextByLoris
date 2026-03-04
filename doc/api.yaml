@@ -478,6 +478,52 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/users/{userID}/conversations/users:
+    parameters:
+      - $ref: "#/components/parameters/userID"
+
+    post:
+      tags:
+        - Conversation
+      summary: Create a new conversation with another user
+      description: Allows the calling user to create a new conversation with a target user identified by userName. If a conversation already exists between the two users, the existing conversationID is returned.
+      operationId: createConversationUsers
+      requestBody:
+        description: The userName of the target user to start a conversation with.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body containing the target userName
+              required:
+                - userName
+              properties:
+                userName:
+                  $ref: "#/components/schemas/userName"
+      responses:
+        "201":
+          description: Conversation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response containing the new conversation ID
+                properties:
+                  conversationID:
+                    description: Distinct identifier for the conversation.
+                    type: integer
+                    example: 1
+                    readOnly: true
+        "400":
+          description: Invalid userName or userID
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          description: Target user not found
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/users/{userID}/conversations/users/{conversationID}/messages:
     parameters:
       - $ref: "#/components/parameters/userID"

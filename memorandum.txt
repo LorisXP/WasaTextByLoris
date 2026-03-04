@@ -11,11 +11,16 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 Da fare prima del front-end:
 6. Controlli di sicurezza: 
  - quello userID è abilitato a cancellare/ottenere/creare quella risorsa?
+7. Fixare/testare le segunti rotte:
+ Conversation
+ Message
+ Group
+8. Tutto il problema della conversation. Tra utenti "Inizia conversazione". Tra utente e gruppo (magari automatico?)
 
 Per la prossima volta:
 1. Aggiungere ora d'invio nei messaggi;
 2. Aggiunere la data all'inzio di una conversazione. Se si supera la 00:00, bisogna mostrare "Oggi" e la label precedente diventa "Ieri" e poi direttamente la data (Lunedì 27 Settembre 2025)
-3. Creare il db e posizionarlo in /service/database/WasaText.db
+3. Aggiunere gli eventi di Events nelle conversazione dei gruppi (GET /api/users/{userID}/conversations/groups/{conversationID}/messages)
 4. I messaggi mostrano le reazioni?
 5. Il front-end passa per validator prima delle chiamate REST?
 6. Creare le view
