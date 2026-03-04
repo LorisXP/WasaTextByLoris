@@ -144,3 +144,27 @@ func GetUsersByName(search string) ([]entity.User, error) {
 
 	return users, outErr
 }
+
+func GetUserIdByName(userName string) (int, error) {
+	logrus.Debug("Entered in GetUserIdByName()")
+	var outErr error = fmt.Errorf("cannot get userID for user %s", userName)
+
+	//Rimuovi eventuali spazi
+	userName = strings.TrimSpace(userName)
+
+	//Ottieni lo userID
+	userID, errUserID := queries.GetUserIDByName(userName)
+
+	//Se la ricerca è stata eseguita
+	if errUserID == nil {
+
+		outErr = nil
+		logrus.Infof("Obtained userID by userName %s", userName)
+
+	} else {
+		outErr = fmt.Errorf("error during retrieving userID for userName %s: %w", userName, errUserID)
+		logrus.Error(outErr)
+	}
+
+	return userID, outErr
+}
