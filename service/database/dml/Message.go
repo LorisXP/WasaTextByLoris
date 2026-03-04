@@ -54,40 +54,13 @@ func CreateMessageBelongUsers(message entity.Message, contentID int) (int, int, 
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
 	}
 
-	// 4. Gestione della tabella ConversationsUser:
-	// Se la conversazione non esiste, la crea. Altrimenti aggiorna lastMessageID.
-	var convCount int
-	err = db.QueryRow(
-		"SELECT COUNT(*) FROM ConversationsUser WHERE conversationID = ?",
-		message.ConversationID,
-	).Scan(&convCount)
+	// 4. Aggiorna lastMessageID della conversazione esistente
+	_, err = db.Exec(
+		"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
+		int(messageID), message.ConversationID,
+	)
 	if err != nil {
-		return 0, 0, "", fmt.Errorf("unable to check conversation existence %d: %w", message.ConversationID, err)
-	}
-
-	if convCount == 0 {
-		// Recupera gli userID
-		user1ID := message.Sender
-		user2ID := receiverID
-		// Crea la conversazione
-		_, err := db.Exec(
-			"INSERT INTO ConversationsUser (user1ID, user2ID, lastMessageID) VALUES (?, ?, ?)",
-			user1ID, user2ID, int(messageID),
-		)
-		if err != nil {
-			return 0, 0, "", fmt.Errorf("unable to create conversation for users %d-%d: %w", user1ID, user2ID, err)
-		}
-		// Aggiorna conversationID nel messaggio se necessario (opzionale, dipende dalla logica)
-		// message.ConversationID = int(res.LastInsertId())
-	} else {
-		// Aggiorna lastMessageID della conversazione esistente
-		_, err = db.Exec(
-			"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
-			int(messageID), message.ConversationID,
-		)
-		if err != nil {
-			return 0, 0, "", fmt.Errorf("unable to update lastMessageID for conversation %d: %w", message.ConversationID, err)
-		}
+		return 0, 0, "", fmt.Errorf("unable to update lastMessageID for conversation %d: %w", message.ConversationID, err)
 	}
 
 	return int(messageID), receiverID, sentAt, nil
@@ -136,37 +109,13 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
 	}
 
-	// 4. Gestione della tabella ConversationsGroup:
-	// Se la conversazione non esiste, la crea. Altrimenti aggiorna lastMessageID.
-	var convCount int
-	err = db.QueryRow(
-		"SELECT COUNT(*) FROM ConversationsGroup WHERE conversationID = ?",
-		message.ConversationID,
-	).Scan(&convCount)
+	// 4. Aggiorna lastMessageID della conversazione esistente
+	_, err = db.Exec(
+		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
+		int(messageID), message.ConversationID,
+	)
 	if err != nil {
-		return 0, 0, "", fmt.Errorf("unable to check group conversation existence %d: %w", message.ConversationID, err)
-	}
-
-	if convCount == 0 {
-		// Crea la conversazione
-		_, err := db.Exec(
-			"INSERT INTO ConversationsGroup (userID, groupID, lastMessageID) VALUES (?, ?, ?)",
-			message.Sender, groupID, int(messageID),
-		)
-		if err != nil {
-			return 0, 0, "", fmt.Errorf("unable to create group conversation for user %d and group %d: %w", message.Sender, groupID, err)
-		}
-		// Aggiorna conversationID nel messaggio se necessario (opzionale)
-		// message.ConversationID = int(res.LastInsertId())
-	} else {
-		// Aggiorna lastMessageID della conversazione esistente
-		_, err = db.Exec(
-			"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
-			int(messageID), message.ConversationID,
-		)
-		if err != nil {
-			return 0, 0, "", fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", message.ConversationID, err)
-		}
+		return 0, 0, "", fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", message.ConversationID, err)
 	}
 
 	return int(messageID), groupID, sentAt, nil
@@ -320,23 +269,23 @@ Passaggi:
 5. Restituisce messageID, receiver, sent_at, content, contentType
 */
 func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string, string, error) {
-	// 1. Recupera il contenuto del messaggio originale
+	// 1. Recupera il contenuto del messaggio originale dalla tabella corretta
 	var content, contentType string
+	var err error
 
-	// Cerca prima in MessagesUser, poi in MessagesGroup
-	err := db.QueryRow(
-		"SELECT c.content, c.type FROM MessagesUser mu JOIN Contents c ON mu.contentID = c.contentID WHERE mu.messageID = ?",
-		message.MessageID,
-	).Scan(&content, &contentType)
-	if err != nil {
-		// Prova in MessagesGroup
+	if message.SourceBetweenUsers {
+		err = db.QueryRow(
+			"SELECT c.content, c.type FROM MessagesUser mu JOIN Contents c ON mu.contentID = c.contentID WHERE mu.messageID = ?",
+			message.MessageID,
+		).Scan(&content, &contentType)
+	} else {
 		err = db.QueryRow(
 			"SELECT c.content, c.type FROM MessagesGroup mg JOIN Contents c ON mg.contentID = c.contentID WHERE mg.messageID = ?",
 			message.MessageID,
 		).Scan(&content, &contentType)
-		if err != nil {
-			return 0, 0, "", "", "", fmt.Errorf("unable to find original message %d to forward: %w", message.MessageID, err)
-		}
+	}
+	if err != nil {
+		return 0, 0, "", "", "", fmt.Errorf("unable to find original message %d to forward: %w", message.MessageID, err)
 	}
 
 	// 2. Copia il contenuto tramite CreateTextContent
@@ -385,6 +334,15 @@ func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string
 		return 0, 0, "", "", "", fmt.Errorf("unable to get sent_at for messageID %d: %w", newMessageID, err)
 	}
 
+	// 6. Aggiorna lastMessageID della conversazione
+	_, err = db.Exec(
+		"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
+		int(newMessageID), message.ConversationID,
+	)
+	if err != nil {
+		return 0, 0, "", "", "", fmt.Errorf("unable to update lastMessageID for conversation %d: %w", message.ConversationID, err)
+	}
+
 	return int(newMessageID), receiverID, sentAt, content, contentType, nil
 }
 
@@ -393,22 +351,23 @@ ForwardMessageBetweenUsersAndGroups inoltra un messaggio in una conversazione ut
 Stessa logica di ForwardMessageBelongUsers ma per MessagesGroup.
 */
 func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, string, string, string, error) {
-	// 1. Recupera il contenuto del messaggio originale
+	// 1. Recupera il contenuto del messaggio originale dalla tabella corretta
 	var content, contentType string
+	var err error
 
-	// Cerca prima in MessagesUser, poi in MessagesGroup
-	err := db.QueryRow(
-		"SELECT c.content, c.type FROM MessagesUser mu JOIN Contents c ON mu.contentID = c.contentID WHERE mu.messageID = ?",
-		message.MessageID,
-	).Scan(&content, &contentType)
-	if err != nil {
+	if message.SourceBetweenUsers {
+		err = db.QueryRow(
+			"SELECT c.content, c.type FROM MessagesUser mu JOIN Contents c ON mu.contentID = c.contentID WHERE mu.messageID = ?",
+			message.MessageID,
+		).Scan(&content, &contentType)
+	} else {
 		err = db.QueryRow(
 			"SELECT c.content, c.type FROM MessagesGroup mg JOIN Contents c ON mg.contentID = c.contentID WHERE mg.messageID = ?",
 			message.MessageID,
 		).Scan(&content, &contentType)
-		if err != nil {
-			return 0, 0, "", "", "", fmt.Errorf("unable to find original message %d to forward: %w", message.MessageID, err)
-		}
+	}
+	if err != nil {
+		return 0, 0, "", "", "", fmt.Errorf("unable to find original message %d to forward: %w", message.MessageID, err)
 	}
 
 	// 2. Copia il contenuto tramite CreateTextContent
@@ -450,6 +409,15 @@ func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, stri
 	).Scan(&sentAt)
 	if err != nil {
 		return 0, 0, "", "", "", fmt.Errorf("unable to get sent_at for messageID %d: %w", newMessageID, err)
+	}
+
+	// 6. Aggiorna lastMessageID della conversazione
+	_, err = db.Exec(
+		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
+		int(newMessageID), message.ConversationID,
+	)
+	if err != nil {
+		return 0, 0, "", "", "", fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", message.ConversationID, err)
 	}
 
 	return int(newMessageID), groupID, sentAt, content, contentType, nil

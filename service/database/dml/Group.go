@@ -52,6 +52,12 @@ func LeaveGroup(userID int, groupID int) error {
 		return fmt.Errorf("user %d is not a member of group %d", userID, groupID)
 	}
 
+	// Cancella la conversazione (e i messaggi via CASCADE)
+	_, err = db.Exec("DELETE FROM ConversationsGroup WHERE userID = ? AND groupID = ?", userID, groupID)
+	if err != nil {
+		return fmt.Errorf("unable to delete conversation for userID %d in group %d: %w", userID, groupID, err)
+	}
+
 	// Registra l'evento di uscita
 	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'leave', ?)", groupID, userID)
 	if err != nil {
@@ -153,6 +159,12 @@ func KickFromGroup(groupID int, adminID int, userID int) error {
 
 	if rowsAffected == 0 {
 		return fmt.Errorf("user %d is not a member of group %d", userID, groupID)
+	}
+
+	// Cancella la conversazione (e i messaggi via CASCADE)
+	_, err = db.Exec("DELETE FROM ConversationsGroup WHERE userID = ? AND groupID = ?", userID, groupID)
+	if err != nil {
+		return fmt.Errorf("unable to delete conversation for userID %d in group %d: %w", userID, groupID, err)
 	}
 
 	// Registra l'evento di kick

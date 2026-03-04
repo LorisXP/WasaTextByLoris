@@ -61,27 +61,39 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 					if errGrp == nil {
 						ctx.Logger.Info("created group")
 
-						// Costruisci la risposta JSON
-						respData := struct {
-							GroupID int `json:"groupID"`
-						}{GroupID: group.GroupID}
+						//Crea la prima conversation tra admin e gruppo
+						_, errConversation := model.CreateConversation(false, userId, group.GroupID)
+						ctx.Logger.Debug("passed by CreateConversation()")
 
-						jsonBytes, marshalErr := json.Marshal(respData)
+						//Se la conversazione è stata creata
+						if errConversation == nil {
+							// Costruisci la risposta JSON
+							respData := struct {
+								GroupID int `json:"groupID"`
+							}{GroupID: group.GroupID}
 
-						//Se il JSON viene creato correttamente
-						if marshalErr == nil {
+							jsonBytes, marshalErr := json.Marshal(respData)
 
-							// Tutto ok
-							responseBody = jsonBytes
-							outErr = nil
+							//Se il JSON viene creato correttamente
+							if marshalErr == nil {
 
-							statusCode = http.StatusCreated // 201
-							ctx.Logger.Infof("group created successfully: %s (ID: %d) by userID %d", reqBody.Name, group.GroupID, userId)
+								// Tutto ok
+								responseBody = jsonBytes
+								outErr = nil
+
+								statusCode = http.StatusCreated // 201
+								ctx.Logger.Infof("group created successfully: %s (ID: %d) by userID %d", reqBody.Name, group.GroupID, userId)
+
+							} else {
+								statusCode = http.StatusInternalServerError
+								outErr = marshalErr
+								ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+							}
 
 						} else {
 							statusCode = http.StatusInternalServerError
-							outErr = marshalErr
-							ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+							outErr = errConversation
+							ctx.Logger.WithError(errConversation).Errorf("impossible to create a conversation in groupID %d", group.GroupID)
 						}
 
 					} else {
@@ -89,6 +101,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 						outErr = errGrp
 						ctx.Logger.WithError(errGrp).Errorf("impossible for userID %d to create group", userId)
 					}
+
 				} else {
 					statusCode = http.StatusBadRequest
 					outErr = validationPhotoErr
@@ -302,6 +315,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	// Imposta i default
 	var statusCode int = http.StatusInternalServerError
 	var outErr error = nil
+	var usersIdLists []int
 	ctx.Logger.Debug("default init ok")
 
 	groupIdStr := ps.ByName("groupID")
@@ -335,12 +349,25 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 					outErr = fmt.Errorf("Bearer token does not match userID in the request body")
 					ctx.Logger.WithError(outErr).Warn("authorization mismatch")
 				} else {
-
+					ctx.Logger.Debug("starting validation and retrieving userID")
 					// Valida tutti gli userNames
 					var validationErr error
 					for _, uName := range reqBody.UserNames {
 						validationErr = model.ValidateInput(uName, 3, 15, `^[a-z]+[0-9]*$`, "string")
-						if validationErr != nil {
+						if validationErr == nil {
+							//Recupera lo userID per creare le conversation
+							thisUserId, errUserId := model.GetUserIdByName(uName)
+
+							//Se esiste aggiungilo
+							if errUserId == nil && thisUserId > 0 {
+								usersIdLists = append(usersIdLists, thisUserId)
+							} else {
+								//Imposta l'errore per il blocco successivo
+								validationErr = errUserId
+								ctx.Logger.WithError(errUserId).Errorf("invalid userName: %s . userId doesn't exists", uName)
+								break
+							}
+						} else {
 							ctx.Logger.WithError(validationErr).Errorf("invalid userName: %s", uName)
 							break
 						}
@@ -366,11 +393,29 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 								// Se l'operazione va a buon fine
 								if errAddToGroup == nil {
+									var errConversation error
 
-									// Tutto ok
-									outErr = nil
-									statusCode = http.StatusNoContent
-									ctx.Logger.Infof("users successfully added to groupID %d", groupId)
+									//Crea le conversation per tutti
+									for _, uID := range usersIdLists {
+										_, errConversation = model.CreateConversation(false, uID, group.GroupID)
+										ctx.Logger.Debug("passed by CreateConversation() for userID %d")
+
+										if errConversation != nil {
+											ctx.Logger.WithError(errConversation).Error("unable to create conversation for an userID")
+											break
+										}
+									}
+
+									//Gruppo creato e conversazioni create per ogni u
+									if errConversation == nil {
+										outErr = nil
+										statusCode = http.StatusNoContent
+										ctx.Logger.Infof("users successfully added to groupID %d", groupId)
+									} else {
+										statusCode = http.StatusInternalServerError
+										outErr = errConversation
+										ctx.Logger.WithError(errConversation).Errorf("impossible to create conversation for all users of groupID %d", groupId)
+									}
 
 								} else {
 									statusCode = http.StatusInternalServerError

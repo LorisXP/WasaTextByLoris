@@ -310,14 +310,40 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 
 			//Effettua l'ordinamento cronologico inverso per timestamp del messaggio
 			sort.Slice(conversations, func(i, j int) bool {
+				// Helper: estrae il timestamp dalla conversazione, restituisce "" se assente
+				getTS := func(c map[string]interface{}) string {
+					lm, ok := c["lastMessage"]
+					if !ok || lm == nil {
+						return ""
+					}
+					lmMap, ok := lm.(map[string]interface{})
+					if !ok || lmMap == nil {
+						return ""
+					}
+					ts, ok := lmMap["timestamp"].(string)
+					if !ok {
+						return ""
+					}
+					return ts
+				}
 
-				// Estrai timestamp i-esimo
-				ts1 := conversations[i]["lastMessage"].(map[string]interface{})["timestamp"].(string)
-				ts2 := conversations[j]["lastMessage"].(map[string]interface{})["timestamp"].(string)
+				ts1 := getTS(conversations[i])
+				ts2 := getTS(conversations[j])
+
+				// Conversazioni senza messaggi vanno in fondo
+				if ts1 == "" && ts2 == "" {
+					return false
+				}
+				if ts1 == "" {
+					return false
+				}
+				if ts2 == "" {
+					return true
+				}
 
 				// Converti in time.Time
-				t1, _ := time.Parse(time.RFC3339, ts1)
-				t2, _ := time.Parse(time.RFC3339, ts2)
+				t1, _ := time.Parse("2006-01-02 15:04:05", ts1)
+				t2, _ := time.Parse("2006-01-02 15:04:05", ts2)
 
 				// Ordine cronologico inverso → più recente prima
 				return t1.After(t2)
