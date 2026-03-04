@@ -705,6 +705,20 @@ paths:
       summary: Forward a message belong users
       description: Forwards an existing message to a target conversation belong users.
       operationId: forwardMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - source_type
+              properties:
+                source_type:
+                  type: string
+                  enum: ["users", "groups"]
+                  description: Whether the original message comes from a user-user (users) or user-group (groups) conversation.
+                  example: "users"
       responses:
         "201":
           description: Message forward successfully
@@ -770,6 +784,20 @@ paths:
       summary: Forward a message between users and groups.
       description: Forwards an existing message to a target conversation between users and groups.
       operationId: forwardMessageGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - source_type
+              properties:
+                source_type:
+                  type: string
+                  enum: ["users", "groups"]
+                  description: Whether the original message comes from a user-user (users) or user-group (groups) conversation.
+                  example: "users"
       responses:
         "201":
           description: Message forward successfully

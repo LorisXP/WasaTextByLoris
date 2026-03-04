@@ -323,42 +323,55 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
 
-				//Inoltra il messaggio
-				forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, true, messageId)
+				// Decodifica il body JSON per source_type
+				var reqBody struct {
+					SourceType string `json:"source_type"`
+				}
+				decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
+				if decodeErr != nil || (reqBody.SourceType != "users" && reqBody.SourceType != "groups") {
+					statusCode = http.StatusBadRequest
+					outErr = fmt.Errorf("invalid or missing source_type: must be 'users' or 'groups'")
+					ctx.Logger.WithError(outErr).Error("invalid source_type")
+				} else {
+					sourceBetweenUsers := reqBody.SourceType == "users"
 
-				//Se ci sei riuscito
-				if errForwardedMessage == nil {
-					ctx.Logger.Info("message forwarded successfully")
+					//Inoltra il messaggio
+					forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, true, sourceBetweenUsers, messageId)
 
-					// Costruisci la risposta JSON
-					respData := struct {
-						MessageID        int `json:"messageID"`
-						ReplyToMessageID int `json:"replyToMessageID"`
-					}{MessageID: forwardedMessage.MessageID, ReplyToMessageID: messageId}
+					//Se ci sei riuscito
+					if errForwardedMessage == nil {
+						ctx.Logger.Info("message forwarded successfully")
 
-					jsonBytes, marshalErr := json.Marshal(respData)
+						// Costruisci la risposta JSON
+						respData := struct {
+							MessageID        int `json:"messageID"`
+							ReplyToMessageID int `json:"replyToMessageID"`
+						}{MessageID: forwardedMessage.MessageID, ReplyToMessageID: messageId}
 
-					//Se il JSON viene creato correttamente
-					if marshalErr == nil {
+						jsonBytes, marshalErr := json.Marshal(respData)
 
-						// Tutto ok
-						responseBody = jsonBytes
-						outErr = nil
+						//Se il JSON viene creato correttamente
+						if marshalErr == nil {
 
-						statusCode = http.StatusCreated // 201
-						ctx.Logger.Infof("new message (%d) forwarded successfully (%d)", forwardedMessage.MessageID, messageId)
+							// Tutto ok
+							responseBody = jsonBytes
+							outErr = nil
+
+							statusCode = http.StatusCreated // 201
+							ctx.Logger.Infof("new message (%d) forwarded successfully (%d)", forwardedMessage.MessageID, messageId)
+
+						} else {
+							statusCode = http.StatusInternalServerError
+							outErr = marshalErr
+							ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+						}
 
 					} else {
 						statusCode = http.StatusInternalServerError
-						outErr = marshalErr
-						ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+						outErr = errForwardedMessage
+						ctx.Logger.WithError(errForwardedMessage).Error("error during forwarding message")
 					}
-
-				} else {
-					statusCode = http.StatusInternalServerError
-					outErr = errForwardedMessage
-					ctx.Logger.WithError(errForwardedMessage).Error("error during forwarding message")
-				}
+				} // chiude else source_type
 
 			} else {
 				statusCode = http.StatusBadRequest
@@ -418,42 +431,55 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
 
-				//Inoltra il messaggio
-				forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, false, messageId)
+				// Decodifica il body JSON per source_type
+				var reqBody struct {
+					SourceType string `json:"source_type"`
+				}
+				decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
+				if decodeErr != nil || (reqBody.SourceType != "users" && reqBody.SourceType != "groups") {
+					statusCode = http.StatusBadRequest
+					outErr = fmt.Errorf("invalid or missing source_type: must be 'users' or 'groups'")
+					ctx.Logger.WithError(outErr).Error("invalid source_type")
+				} else {
+					sourceBetweenUsers := reqBody.SourceType == "users"
 
-				//Se ci sei riuscito
-				if errForwardedMessage == nil {
-					ctx.Logger.Info("message forwarded successfully to group")
+					//Inoltra il messaggio
+					forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, false, sourceBetweenUsers, messageId)
 
-					// Costruisci la risposta JSON
-					respData := struct {
-						MessageID        int `json:"messageID"`
-						ReplyToMessageID int `json:"replyToMessageID"`
-					}{MessageID: forwardedMessage.MessageID, ReplyToMessageID: messageId}
+					//Se ci sei riuscito
+					if errForwardedMessage == nil {
+						ctx.Logger.Info("message forwarded successfully to group")
 
-					jsonBytes, marshalErr := json.Marshal(respData)
+						// Costruisci la risposta JSON
+						respData := struct {
+							MessageID        int `json:"messageID"`
+							ReplyToMessageID int `json:"replyToMessageID"`
+						}{MessageID: forwardedMessage.MessageID, ReplyToMessageID: messageId}
 
-					//Se il JSON viene creato correttamente
-					if marshalErr == nil {
+						jsonBytes, marshalErr := json.Marshal(respData)
 
-						// Tutto ok
-						responseBody = jsonBytes
-						outErr = nil
+						//Se il JSON viene creato correttamente
+						if marshalErr == nil {
 
-						statusCode = http.StatusCreated // 201
-						ctx.Logger.Infof("new message (%d) forwarded successfully (%d) to group", forwardedMessage.MessageID, messageId)
+							// Tutto ok
+							responseBody = jsonBytes
+							outErr = nil
+
+							statusCode = http.StatusCreated // 201
+							ctx.Logger.Infof("new message (%d) forwarded successfully (%d) to group", forwardedMessage.MessageID, messageId)
+
+						} else {
+							statusCode = http.StatusInternalServerError
+							outErr = marshalErr
+							ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+						}
 
 					} else {
 						statusCode = http.StatusInternalServerError
-						outErr = marshalErr
-						ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+						outErr = errForwardedMessage
+						ctx.Logger.WithError(errForwardedMessage).Error("error during forwarding message to group")
 					}
-
-				} else {
-					statusCode = http.StatusInternalServerError
-					outErr = errForwardedMessage
-					ctx.Logger.WithError(errForwardedMessage).Error("error during forwarding message to group")
-				}
+				} // chiude else source_type
 
 			} else {
 				statusCode = http.StatusBadRequest

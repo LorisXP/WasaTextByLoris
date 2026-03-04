@@ -107,9 +107,9 @@ func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 	return message, outErr
 }
 
-func ForwardMessage(userID int, conversationID int, between_users bool, messageID int) (entity.Message, error){
+func ForwardMessage(userID int, conversationID int, between_users bool, sourceBetweenUsers bool, messageID int) (entity.Message, error) {
 	logrus.Debug("Entered in ForwardMessage()")
-	logrus.Infof("Forwarding a new message in conversationID %d, between users: %t", conversationID, between_users)
+	logrus.Infof("Forwarding messageID %d → conversationID %d (dest between_users: %t, src between_users: %t)", messageID, conversationID, between_users, sourceBetweenUsers)
 
 	//Imposta i default
 	outErr := fmt.Errorf("Unable to forward a new message in conversationID %d, between users: %t", conversationID, between_users)
@@ -117,8 +117,10 @@ func ForwardMessage(userID int, conversationID int, between_users bool, messageI
 	var message entity.Message
 
 	//Crea la struct message da salvare nel DB
+	message.MessageID = messageID
 	message.ConversationID = conversationID
 	message.Between_users = between_users
+	message.SourceBetweenUsers = sourceBetweenUsers
 	message.Sender = userID
 	message.Type = "forward"
 	message.Status = "received"
@@ -150,7 +152,7 @@ func ForwardMessage(userID int, conversationID int, between_users bool, messageI
 	return message, outErr
 }
 
-func DeleteMessage(userID int, conversationID int, between_users bool, messageID int) (error) {
+func DeleteMessage(userID int, conversationID int, between_users bool, messageID int) error {
 	logrus.Debug("Entered in DeleteMessage()")
 	logrus.Warningf("userID %d wants delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
 
@@ -177,7 +179,7 @@ func DeleteMessage(userID int, conversationID int, between_users bool, messageID
 		logrus.Infof("userID %d deleted messageID %d in conversationID %d between users %t successfully", userID, messageID, conversationID, between_users)
 
 	} else {
-		outErr = fmt.Errorf("error for userID %d during removing messageID %d in conversationID %d between users %t: %w", userID, messageID, conversationID, between_users,err)
+		outErr = fmt.Errorf("error for userID %d during removing messageID %d in conversationID %d between users %t: %w", userID, messageID, conversationID, between_users, err)
 		logrus.Error(outErr)
 	}
 
