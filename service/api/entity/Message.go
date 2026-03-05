@@ -6,7 +6,7 @@ type Message struct {
 	Between_users      bool // destinazione: true=utente-utente, false=utente-gruppo
 	SourceBetweenUsers bool // sorgente del messaggio originale da inoltrare
 	Sender             int
-	Receiver           int //groupID if between_users is false
+	Receiver           int // groupID if between_users is false
 	Type               string
 	Sent_at            string
 	Status             string

@@ -23,14 +23,14 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		conversationIdStr := ps.ByName("conversationID")
 		conversationId, errConv := strconv.Atoi(conversationIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
 
@@ -45,26 +45,26 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 			if decodeErr == nil {
 				ctx.Logger.Info("request decoded successfully")
 
-				//Valida l'input di content_type
+				// Valida l'input di content_type
 				validationContentTypeErr := model.ValidateInput(reqBody.ContentType, 3, 5, `^(gif|text|photo)$`, "string")
 
-				//Se è corretto
+				// Se è corretto
 				if validationContentTypeErr == nil {
 					ctx.Logger.Info("valid content_type for new message")
 
 					validationContentErr := fmt.Errorf("enum not recognized: %s", reqBody.ContentType)
 
-					//Valida anche content
+					// Valida anche content
 					if reqBody.ContentType == "text" {
 						ctx.Logger.Info("validating text...")
 
-						//Valida l'input di content
+						// Valida l'input di content
 						validationContentErr = model.ValidateInput(reqBody.Content, 0, 4095, `^.*?$`, "string")
 
 					} else if reqBody.ContentType == "gif" || reqBody.ContentType == "photo" {
 						ctx.Logger.Info("validating media...")
 
-						//Valida l'input di content
+						// Valida l'input di content
 						validationContentErr = model.ValidateInput(reqBody.Content, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
 
 					} else {
@@ -73,13 +73,13 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 						ctx.Logger.WithError(validationContentErr).Error("invalid enum in content_type")
 					}
 
-					//Se è corretto
+					// Se è corretto
 					if validationContentErr == nil {
 						ctx.Logger.Info("request validated successfully")
 
 						createdMessage, errCreateMessage := model.CreateMessage(userId, conversationId, true, reqBody.Content, reqBody.ContentType)
 
-						//Se ci sei riuscito
+						// Se ci sei riuscito
 						if errCreateMessage == nil {
 							ctx.Logger.Info("new message created successfully")
 
@@ -90,7 +90,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 							jsonBytes, marshalErr := json.Marshal(respData)
 
-							//Se il JSON viene creato correttamente
+							// Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
 								// Tutto ok
@@ -164,14 +164,14 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		conversationIdStr := ps.ByName("conversationID")
 		conversationId, errConv := strconv.Atoi(conversationIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
 
@@ -186,26 +186,26 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 			if decodeErr == nil {
 				ctx.Logger.Info("request decoded successfully")
 
-				//Valida l'input di content_type
+				// Valida l'input di content_type
 				validationContentTypeErr := model.ValidateInput(reqBody.ContentType, 3, 5, `^(gif|text|photo)$`, "string")
 
-				//Se è corretto
+				// Se è corretto
 				if validationContentTypeErr == nil {
 					ctx.Logger.Info("valid content_type for new message")
 
 					validationContentErr := fmt.Errorf("enum not recognized: %s", reqBody.ContentType)
 
-					//Valida anche content
+					// Valida anche content
 					if reqBody.ContentType == "text" {
 						ctx.Logger.Info("validating text...")
 
-						//Valida l'input di content
+						// Valida l'input di content
 						validationContentErr = model.ValidateInput(reqBody.Content, 0, 4095, `^.*?$`, "string")
 
 					} else if reqBody.ContentType == "gif" || reqBody.ContentType == "photo" {
 						ctx.Logger.Info("validating media...")
 
-						//Valida l'input di content
+						// Valida l'input di content
 						validationContentErr = model.ValidateInput(reqBody.Content, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
 
 					} else {
@@ -214,13 +214,13 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 						ctx.Logger.WithError(validationContentErr).Error("invalid enum in content_type")
 					}
 
-					//Se è corretto
+					// Se è corretto
 					if validationContentErr == nil {
 						ctx.Logger.Info("request validated successfully")
 
 						createdMessage, errCreateMessage := model.CreateMessage(userId, conversationId, false, reqBody.Content, reqBody.ContentType)
 
-						//Se ci sei riuscito
+						// Se ci sei riuscito
 						if errCreateMessage == nil {
 							ctx.Logger.Info("new message to group created successfully")
 
@@ -231,7 +231,7 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 
 							jsonBytes, marshalErr := json.Marshal(respData)
 
-							//Se il JSON viene creato correttamente
+							// Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
 								// Tutto ok
@@ -305,14 +305,14 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		conversationIdStr := ps.ByName("conversationID")
 		conversationId, errConv := strconv.Atoi(conversationIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
 
@@ -335,10 +335,10 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 				} else {
 					sourceBetweenUsers := reqBody.SourceType == "users"
 
-					//Inoltra il messaggio
+					// Inoltra il messaggio
 					forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, true, sourceBetweenUsers, messageId)
 
-					//Se ci sei riuscito
+					// Se ci sei riuscito
 					if errForwardedMessage == nil {
 						ctx.Logger.Info("message forwarded successfully")
 
@@ -350,7 +350,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 						jsonBytes, marshalErr := json.Marshal(respData)
 
-						//Se il JSON viene creato correttamente
+						// Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
 							// Tutto ok
@@ -413,14 +413,14 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		conversationIdStr := ps.ByName("conversationID")
 		conversationId, errConv := strconv.Atoi(conversationIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
 
@@ -443,10 +443,10 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 				} else {
 					sourceBetweenUsers := reqBody.SourceType == "users"
 
-					//Inoltra il messaggio
+					// Inoltra il messaggio
 					forwardedMessage, errForwardedMessage := model.ForwardMessage(userId, conversationId, false, sourceBetweenUsers, messageId)
 
-					//Se ci sei riuscito
+					// Se ci sei riuscito
 					if errForwardedMessage == nil {
 						ctx.Logger.Info("message forwarded successfully to group")
 
@@ -458,7 +458,7 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 
 						jsonBytes, marshalErr := json.Marshal(respData)
 
-						//Se il JSON viene creato correttamente
+						// Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
 							// Tutto ok
@@ -521,14 +521,14 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		conversationIdStr := ps.ByName("conversationID")
 		conversationId, errConv := strconv.Atoi(conversationIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
 
@@ -539,10 +539,10 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
 
-				//Cancella il messaggio
+				// Cancella il messaggio
 				errDeleteMessage := model.DeleteMessage(userId, conversationId, true, messageId)
 
-				//Se ci sei riuscito
+				// Se ci sei riuscito
 				if errDeleteMessage == nil {
 					ctx.Logger.Info("message deleted successfully")
 
@@ -553,7 +553,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 					jsonBytes, marshalErr := json.Marshal(respData)
 
-					//Se il JSON viene creato correttamente
+					// Se il JSON viene creato correttamente
 					if marshalErr == nil {
 
 						// Tutto ok
@@ -615,14 +615,14 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		conversationIdStr := ps.ByName("conversationID")
 		conversationId, errConv := strconv.Atoi(conversationIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errConv == nil || conversationId > 0 {
 			ctx.Logger.Info("conversationID parsed successfully")
 
@@ -633,10 +633,10 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 			if errMess == nil || messageId > 0 {
 				ctx.Logger.Info("params validated successfully")
 
-				//Cancella il messaggio
+				// Cancella il messaggio
 				errDeleteMessage := model.DeleteMessage(userId, conversationId, false, messageId)
 
-				//Se ci sei riuscito
+				// Se ci sei riuscito
 				if errDeleteMessage == nil {
 					ctx.Logger.Info("message of group deleted successfully")
 
@@ -647,7 +647,7 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 
 					jsonBytes, marshalErr := json.Marshal(respData)
 
-					//Se il JSON viene creato correttamente
+					// Se il JSON viene creato correttamente
 					if marshalErr == nil {
 
 						// Tutto ok

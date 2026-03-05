@@ -26,7 +26,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
@@ -45,27 +45,27 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 			validationNameErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
 			validationPhotoErr := model.ValidateInput(reqBody.Photo, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
 
-			//Se il campo name inserito è valido
+			// Se il campo name inserito è valido
 			if validationNameErr == nil {
 				ctx.Logger.Info("'name' in request is valid")
 
-				//Se il campo photo inserito è valido
+				// Se il campo photo inserito è valido
 				if validationPhotoErr == nil {
 					ctx.Logger.Info("'photo' in request is valid")
 
-					//Crea il grupppo
+					// Crea il grupppo
 					group, errGrp := model.CreateGroup(reqBody.Name, reqBody.Photo, userId)
 					ctx.Logger.Debug("passed by CreateGroup()")
 
-					//Se il gruppo è creato correttamente
+					// Se il gruppo è creato correttamente
 					if errGrp == nil {
 						ctx.Logger.Info("created group")
 
-						//Crea la prima conversation tra admin e gruppo
+						// Crea la prima conversation tra admin e gruppo
 						_, errConversation := model.CreateConversation(false, userId, group.GroupID)
 						ctx.Logger.Debug("passed by CreateConversation()")
 
-						//Se la conversazione è stata creata
+						// Se la conversazione è stata creata
 						if errConversation == nil {
 							// Costruisci la risposta JSON
 							respData := struct {
@@ -74,7 +74,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 							jsonBytes, marshalErr := json.Marshal(respData)
 
-							//Se il JSON viene creato correttamente
+							// Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
 								// Tutto ok
@@ -148,29 +148,29 @@ func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httpr
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		groupIdStr := ps.ByName("groupID")
 		groupId, errGrp := strconv.Atoi(groupIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errGrp == nil || groupId > 0 {
 			ctx.Logger.Info("groupId parsed successfully")
 
-			//Ottieni il gruppo (verifica che lo userID sia membro o admin)
+			// Ottieni il gruppo (verifica che lo userID sia membro o admin)
 			group, errGetGrp := model.GetGroup(groupId, userId)
 			ctx.Logger.Debug("passed by GetGroup()")
 
-			//Se il gruppo è ottenuto correttamente
+			// Se il gruppo è ottenuto correttamente
 			if errGetGrp == nil {
 				ctx.Logger.Info("group obtained successfully")
 
 				// Costruisci la risposta JSON
 				jsonBytes, marshalErr := json.Marshal(group)
 
-				//Se il JSON viene creato correttamente
+				// Se il JSON viene creato correttamente
 				if marshalErr == nil {
 
 					// Tutto ok
@@ -229,39 +229,39 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		groupIdStr := ps.ByName("groupID")
 		groupId, errGrp := strconv.Atoi(groupIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errGrp == nil || groupId > 0 {
 			ctx.Logger.Info("groupId parsed successfully")
 
-			//Ottieni il gruppo
+			// Ottieni il gruppo
 			group, errGetGrp := model.GetGroupBasic(groupId)
 			ctx.Logger.Debug("passed by GetGroupBasic()")
 
-			//Se il gruppo è ottenuto correttamente
+			// Se il gruppo è ottenuto correttamente
 			if errGetGrp == nil {
 				ctx.Logger.Info("group obtained successfully")
 
-				//Verifica che lo userID sia membro o admin del gruppo
+				// Verifica che lo userID sia membro o admin del gruppo
 				_, errMember := model.GetGroup(groupId, userId)
 				ctx.Logger.Debug("passed by GetGroup() for membership check")
 
 				if errMember == nil {
 
-					//Fai uscire l'utente
+					// Fai uscire l'utente
 					errLeaveGroup := model.LeaveGroup(userId, group)
 					ctx.Logger.Debug("passed by LeaveGroup()")
 
-					//Se l'operazione va a buon fine
+					// Se l'operazione va a buon fine
 					if errLeaveGroup == nil {
 
-						//Tutto ok
+						// Tutto ok
 						outErr = nil
 
 						statusCode = http.StatusNoContent
@@ -321,7 +321,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	groupIdStr := ps.ByName("groupID")
 	groupId, errGrp := strconv.Atoi(groupIdStr)
 
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errGrp == nil || groupId > 0 {
 		ctx.Logger.Info("groupId parsed successfully")
 
@@ -332,11 +332,11 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		}
 		decodeErr := json.NewDecoder(r.Body).Decode(&reqBody)
 
-		//Se il decode va a buon fie
+		// Se il decode va a buon fie
 		if decodeErr == nil {
 			ctx.Logger.Info("request decoded successfully")
 
-			//Preleva lo userId
+			// Preleva lo userId
 			userId := reqBody.UserId
 
 			// Valida l'input
@@ -355,14 +355,14 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 					for _, uName := range reqBody.UserNames {
 						validationErr = model.ValidateInput(uName, 3, 15, `^[a-z]+[0-9]*$`, "string")
 						if validationErr == nil {
-							//Recupera lo userID per creare le conversation
+							// Recupera lo userID per creare le conversation
 							thisUserId, errUserId := model.GetUserIdByName(uName)
 
-							//Se esiste aggiungilo
+							// Se esiste aggiungilo
 							if errUserId == nil && thisUserId > 0 {
 								usersIdLists = append(usersIdLists, thisUserId)
 							} else {
-								//Imposta l'errore per il blocco successivo
+								// Imposta l'errore per il blocco successivo
 								validationErr = errUserId
 								ctx.Logger.WithError(errUserId).Errorf("invalid userName: %s . userId doesn't exists", uName)
 								break
@@ -395,7 +395,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 								if errAddToGroup == nil {
 									var errConversation error
 
-									//Crea le conversation per tutti
+									// Crea le conversation per tutti
 									for _, uID := range usersIdLists {
 										_, errConversation = model.CreateConversation(false, uID, group.GroupID)
 										ctx.Logger.Debug("passed by CreateConversation() for userID %d")
@@ -406,7 +406,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 										}
 									}
 
-									//Gruppo creato e conversazioni create per ogni u
+									// Gruppo creato e conversazioni create per ogni u
 									if errConversation == nil {
 										outErr = nil
 										statusCode = http.StatusNoContent
@@ -480,7 +480,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 	groupIdStr := ps.ByName("groupID")
 	groupId, errGrp := strconv.Atoi(groupIdStr)
 
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errGrp == nil || groupId > 0 {
 		ctx.Logger.Info("groupId parsed successfully")
 
@@ -505,7 +505,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 				// Valida l'input del nuovo groupName con il Validator
 				validationErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
 
-				//Se il campo inserito è valido
+				// Se il campo inserito è valido
 				if validationErr == nil {
 					ctx.Logger.Info("request data is valid")
 
@@ -521,11 +521,11 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 						if group.AdminID == reqBody.UserId {
 							ctx.Logger.Infof("userID is admin of groupID %d", groupId)
 
-							//Prova ad impostare il nome
+							// Prova ad impostare il nome
 							errSetNameGroup := model.SetNameGroup(&group, reqBody.Name)
 							ctx.Logger.Debug("passed by SetNameGroup()")
 
-							//Se va a buon fine
+							// Se va a buon fine
 							if errSetNameGroup == nil {
 								ctx.Logger.Info("groupName updated successfully")
 
@@ -533,7 +533,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 								respData := struct{}{}
 								jsonBytes, marshalErr := json.Marshal(respData)
 
-								//Se il JSON viene creato correttamente
+								// Se il JSON viene creato correttamente
 								if marshalErr == nil {
 
 									// Tutto ok
@@ -610,7 +610,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	// Estrai groupId dai parameters
 	groupIdStr := ps.ByName("groupID")
 	groupId, errGrp := strconv.Atoi(groupIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errGrp == nil || groupId > 0 {
 		ctx.Logger.Info("groupId parsed successfully")
 
@@ -763,30 +763,30 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
 		groupIdStr := ps.ByName("groupID")
 		groupId, errGrp := strconv.Atoi(groupIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errGrp == nil || groupId > 0 {
 			ctx.Logger.Info("groupId parsed successfully")
 
-			//Verifica se lo userName è valido
+			// Verifica se lo userName è valido
 			userName := ps.ByName("userName")
 			validationErr := model.ValidateInput(userName, 3, 15, `^[a-z]+[0-9]*$`, "string")
 
-			//Se la validazione dello userName è andata a buon fine
+			// Se la validazione dello userName è andata a buon fine
 			if validationErr == nil {
 				ctx.Logger.Info("userName parsed successfully")
 
-				//Ottieni il gruppo
+				// Ottieni il gruppo
 				group, errGetGrp := model.GetGroupBasic(groupId)
 				ctx.Logger.Debug("passed by GetGroupBasic()")
 
-				//Se il gruppo è ottenuto correttamente
+				// Se il gruppo è ottenuto correttamente
 				if errGetGrp == nil {
 					ctx.Logger.Info("group obtained successfully")
 
@@ -804,14 +804,14 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 							if admin.Name != userName {
 								ctx.Logger.Infof("userName '%s' is not the admin, proceeding with kick", userName)
 
-								//Fai uscire l'utente
+								// Fai uscire l'utente
 								errKickGroup := model.KickFromGroup(&group, userName)
 								ctx.Logger.Debug("passed by KickFromGroup()")
 
-								//Se l'operazione va a buon fine
+								// Se l'operazione va a buon fine
 								if errKickGroup == nil {
 
-									//Tutto ok
+									// Tutto ok
 									outErr = nil
 
 									statusCode = http.StatusNoContent
@@ -885,7 +885,7 @@ func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	groupIdStr := ps.ByName("groupID")
 	groupId, errGrp := strconv.Atoi(groupIdStr)
 
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errGrp == nil || groupId > 0 {
 		ctx.Logger.Info("groupId parsed successfully")
 
@@ -893,7 +893,7 @@ func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		userIdStr := ps.ByName("userID")
 		userId, errUsr := strconv.Atoi(userIdStr)
 
-		//Se non ci sono errori nell'estrazione
+		// Se non ci sono errori nell'estrazione
 		if errUsr == nil || userId > 0 {
 			ctx.Logger.Info("userId parsed successfully")
 

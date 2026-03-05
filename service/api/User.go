@@ -26,7 +26,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
@@ -43,23 +43,23 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 			// Valida l'input del nuovo userName con il Validator
 			validationErr := model.ValidateInput(reqBody.UserName, 3, 15, `^[a-z]+[0-9]*$`, "string")
 
-			//Se il campo inserito è valido
+			// Se il campo inserito è valido
 			if validationErr == nil {
 				ctx.Logger.Info("request data is valid")
 
-				//Ottieni prima l'utente
+				// Ottieni prima l'utente
 				user, errUsr := model.GetUser(userId)
 				ctx.Logger.Debug("passed by GetUser()")
 
-				//Se l'utente è ottenuto correttamente
+				// Se l'utente è ottenuto correttamente
 				if errUsr == nil {
 					ctx.Logger.Info("found user")
 
-					//Aggiorna il nome
+					// Aggiorna il nome
 					errUpdateName := model.SetUserName(&user, reqBody.UserName)
 					ctx.Logger.Debug("passed by SetUserName()")
 
-					//Se il nome viene aggiornato correttamente
+					// Se il nome viene aggiornato correttamente
 					if errUpdateName == nil {
 						ctx.Logger.Info("userName updated successfully")
 
@@ -68,7 +68,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 						jsonBytes, marshalErr := json.Marshal(respData)
 
-						//Se il JSON viene creato correttamente
+						// Se il JSON viene creato correttamente
 						if marshalErr == nil {
 
 							// Tutto ok
@@ -141,7 +141,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
@@ -168,19 +168,19 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 					// Codifica in base64
 					photoBase64 := base64.StdEncoding.EncodeToString(fileBytes)
 
-					//Ottieni prima l'utente
+					// Ottieni prima l'utente
 					user, errUsr := model.GetUser(userId)
 					ctx.Logger.Debug("passed by GetUser()")
 
-					//Se l'utente è ottenuto correttamente
+					// Se l'utente è ottenuto correttamente
 					if errUsr == nil {
 						ctx.Logger.Info("found user")
 
-						//Aggiorna la foto
+						// Aggiorna la foto
 						errUpdatePhoto := model.SetPhoto(&user, photoBase64)
 						ctx.Logger.Debug("passed by SetPhoto()")
 
-						//Se la foto viene aggiornata correttamente
+						// Se la foto viene aggiornata correttamente
 						if errUpdatePhoto == nil {
 							ctx.Logger.Info("user profile picture updated successfully")
 
@@ -189,7 +189,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 							jsonBytes, marshalErr := json.Marshal(respData)
 
-							//Se il JSON viene creato correttamente
+							// Se il JSON viene creato correttamente
 							if marshalErr == nil {
 
 								// Tutto ok
@@ -264,22 +264,22 @@ func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httproute
 	// Estrai userId dai parameters
 	userIdStr := ps.ByName("userID")
 	userId, errUsr := strconv.Atoi(userIdStr)
-	//Se non ci sono errori nell'estrazione
+	// Se non ci sono errori nell'estrazione
 	if errUsr == nil || userId > 0 {
 		ctx.Logger.Info("userId parsed successfully")
 
-		//Estrai lo userName e validalo
+		// Estrai lo userName e validalo
 		userNameStr := ps.ByName("userName")
 		userNameToSearch := strings.TrimSpace(userNameStr)
 
 		// Valida l'input dello userName con il Validator
 		validationErr := model.ValidateInput(userNameToSearch, 3, 15, `^[a-z]+[0-9]*$`, "string")
 
-		//Se il campo inserito è valido
+		// Se il campo inserito è valido
 		if validationErr == nil {
 			ctx.Logger.Info("request data is valid")
 
-			//Ricevi i risultati
+			// Ricevi i risultati
 			users, errGetUsers := model.GetUsersByName(userNameToSearch)
 			ctx.Logger.Debug("passed by GetUsersByName()")
 
@@ -306,7 +306,7 @@ func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httproute
 
 				jsonBytes, marshalErr := json.Marshal(result)
 
-				//Se il JSON viene creato correttamente
+				// Se il JSON viene creato correttamente
 				if marshalErr == nil {
 
 					// Tutto ok
