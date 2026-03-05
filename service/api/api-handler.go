@@ -42,11 +42,11 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID", rt.wrapAuth(rt.forwardMessageGroup))
 	rt.router.DELETE("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID", rt.wrapAuth(rt.deleteMessageGroup))
 
-	// Comment (moved to avoid httprouter wildcard conflict)
-	rt.router.POST("/api/comments/users/:userID/messages/:messageID", rt.wrapAuth(rt.commentMessage))
-	rt.router.DELETE("/api/comments/users/:userID/messages/:messageID/:commentID", rt.wrapAuth(rt.deleteComment))
-	rt.router.POST("/api/comments/groups/:groupID/messages/:messageID", rt.wrapAuth(rt.commentMessageGroup))
-	rt.router.DELETE("/api/comments/groups/:groupID/messages/:messageID/:commentID", rt.wrapAuth(rt.deleteCommentGroup))
+	// Comment
+	rt.router.POST("/api/users/:userID/conversations/users/:conversationID/messages/:messageID/comments", rt.wrapAuth(rt.commentMessage))
+	rt.router.POST("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID/comments", rt.wrapAuth(rt.commentMessage))
+	rt.router.DELETE("/api/users/:userID/conversations/users/:conversationID/messages/:messageID/comments/:commentID", rt.wrapAuth(rt.deleteComment))
+	rt.router.DELETE("/api/users/:userID/conversations/groups/:conversationID/messages/:messageID/comments/:commentID", rt.wrapAuth(rt.deleteComment))
 
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
