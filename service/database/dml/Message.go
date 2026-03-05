@@ -269,23 +269,34 @@ Passaggi:
 5. Restituisce messageID, receiver, sent_at, content, contentType
 */
 func ForwardMessageBelongUsers(message entity.Message) (int, int, string, string, string, error) {
-	// 1. Recupera il contenuto del messaggio originale dalla tabella corretta
+	// 1. Recupera il contenuto del messaggio originale verificando che il sender abbia accesso
 	var content, contentType string
 	var err error
 
 	if message.SourceBetweenUsers {
+		// Il sender deve essere uno dei due partecipanti della conversazione originale
 		err = db.QueryRow(
-			"SELECT c.content, c.type FROM MessagesUser mu JOIN Contents c ON mu.contentID = c.contentID WHERE mu.messageID = ?",
-			message.MessageID,
+			`SELECT c.content, c.type
+			FROM MessagesUser mu
+			JOIN Contents c ON mu.contentID = c.contentID
+			JOIN ConversationsUser cu ON mu.conversationID = cu.conversationID
+			WHERE mu.messageID = ? AND (cu.user1ID = ? OR cu.user2ID = ?)`,
+			message.MessageID, message.Sender, message.Sender,
 		).Scan(&content, &contentType)
 	} else {
+		// Il sender deve essere membro del gruppo a cui appartiene la conversazione originale
 		err = db.QueryRow(
-			"SELECT c.content, c.type FROM MessagesGroup mg JOIN Contents c ON mg.contentID = c.contentID WHERE mg.messageID = ?",
-			message.MessageID,
+			`SELECT c.content, c.type
+			FROM MessagesGroup mg
+			JOIN Contents c ON mg.contentID = c.contentID
+			JOIN ConversationsGroup cg ON mg.conversationID = cg.conversationID
+			JOIN Members m ON cg.groupID = m.groupID AND m.userID = ?
+			WHERE mg.messageID = ?`,
+			message.Sender, message.MessageID,
 		).Scan(&content, &contentType)
 	}
 	if err != nil {
-		return 0, 0, "", "", "", fmt.Errorf("unable to find original message %d to forward: %w", message.MessageID, err)
+		return 0, 0, "", "", "", fmt.Errorf("message %d not found or user %d has no access: %w", message.MessageID, message.Sender, err)
 	}
 
 	// 2. Copia il contenuto tramite CreateTextContent
@@ -351,23 +362,34 @@ ForwardMessageBetweenUsersAndGroups inoltra un messaggio in una conversazione ut
 Stessa logica di ForwardMessageBelongUsers ma per MessagesGroup.
 */
 func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, string, string, string, error) {
-	// 1. Recupera il contenuto del messaggio originale dalla tabella corretta
+	// 1. Recupera il contenuto del messaggio originale verificando che il sender abbia accesso
 	var content, contentType string
 	var err error
 
 	if message.SourceBetweenUsers {
+		// Il sender deve essere uno dei due partecipanti della conversazione originale
 		err = db.QueryRow(
-			"SELECT c.content, c.type FROM MessagesUser mu JOIN Contents c ON mu.contentID = c.contentID WHERE mu.messageID = ?",
-			message.MessageID,
+			`SELECT c.content, c.type
+			FROM MessagesUser mu
+			JOIN Contents c ON mu.contentID = c.contentID
+			JOIN ConversationsUser cu ON mu.conversationID = cu.conversationID
+			WHERE mu.messageID = ? AND (cu.user1ID = ? OR cu.user2ID = ?)`,
+			message.MessageID, message.Sender, message.Sender,
 		).Scan(&content, &contentType)
 	} else {
+		// Il sender deve essere membro del gruppo a cui appartiene la conversazione originale
 		err = db.QueryRow(
-			"SELECT c.content, c.type FROM MessagesGroup mg JOIN Contents c ON mg.contentID = c.contentID WHERE mg.messageID = ?",
-			message.MessageID,
+			`SELECT c.content, c.type
+			FROM MessagesGroup mg
+			JOIN Contents c ON mg.contentID = c.contentID
+			JOIN ConversationsGroup cg ON mg.conversationID = cg.conversationID
+			JOIN Members m ON cg.groupID = m.groupID AND m.userID = ?
+			WHERE mg.messageID = ?`,
+			message.Sender, message.MessageID,
 		).Scan(&content, &contentType)
 	}
 	if err != nil {
-		return 0, 0, "", "", "", fmt.Errorf("unable to find original message %d to forward: %w", message.MessageID, err)
+		return 0, 0, "", "", "", fmt.Errorf("message %d not found or user %d has no access: %w", message.MessageID, message.Sender, err)
 	}
 
 	// 2. Copia il contenuto tramite CreateTextContent
