@@ -32,12 +32,16 @@ package database
 
 import (
 	"database/sql"
+	_ "embed"
 	"errors"
 	"fmt"
 
 	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
 	"github.com/LorisXP/WasaTextByLoris/service/database/queries"
 )
+
+//go:embed ddl/create_table.sql
+var createTableSQL string
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
@@ -50,20 +54,22 @@ type appdbimpl struct {
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
+// If the database is new (no tables found), the DDL script is executed to create the schema.
 func New(db *sql.DB) (AppDatabase, error) {
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
 
-	// Check if table exists. If not, the database is empty, and we need to create the structure
+	// Check if the Users table exists. If not, the database is new and we need to create the schema.
 	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='Users';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
+		_, err = db.Exec(createTableSQL)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
 		}
+	} else if err != nil {
+		return nil, fmt.Errorf("error checking database structure: %w", err)
 	}
 
 	// Inizializza i package queries e dml con la connessione al database
