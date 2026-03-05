@@ -21,13 +21,13 @@ func GetUser(userID int) (entity.User, error) {
 	logrus.Debug("Entered in GetUser()")
 	logrus.Infof("Getting user %d", userID)
 
-	//Imposta i default
+	// Imposta i default
 	var user entity.User
 	var outErr error = fmt.Errorf("unable to get user %d", userID)
 
 	user_found, err := queries.GetUserByID(userID)
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 
 		user = user_found
@@ -48,10 +48,10 @@ func SetUserName(u *entity.User, newUserName string) error {
 	logrus.Debug("Entered in SetUserName()")
 	var outErr error = fmt.Errorf("cannot update userName for user %d", u.UserID)
 
-	//Rimuovi eventuali spazi
+	// Rimuovi eventuali spazi
 	newUserName = strings.TrimSpace(newUserName)
 
-	//Verifica se il nome è già in uso da un altro utente
+	// Verifica se il nome è già in uso da un altro utente
 	existingID, errCheck := queries.GetUserIDByName(newUserName)
 
 	if errCheck == nil && existingID != u.UserID {
@@ -61,10 +61,10 @@ func SetUserName(u *entity.User, newUserName string) error {
 
 	} else {
 
-		//Aggiorna il nome
+		// Aggiorna il nome
 		err := dml.UpdateNameByUserID(u.UserID, newUserName)
 
-		//Se non ci sono errori, prosegui
+		// Se non ci sono errori, prosegui
 		if err == nil {
 
 			u.Name = newUserName
@@ -87,10 +87,10 @@ func SetPhoto(u *entity.User, newPhoto string) error {
 	logrus.Debug("Entered in SetPhoto()")
 	var outErr error = fmt.Errorf("cannot update photo for user %d", u.UserID)
 
-	//Effettua il caricamento della foto
+	// Effettua il caricamento della foto
 	err := dml.UpdatePhotoByUserID(u.UserID, newPhoto)
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 
 		u.Photo = newPhoto
@@ -115,7 +115,7 @@ func GetUsersByName(search string) ([]entity.User, error) {
 
 	records, err := queries.GetUsersByName(search)
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 
 		users = make([]entity.User, 0, len(records))
@@ -143,4 +143,28 @@ func GetUsersByName(search string) ([]entity.User, error) {
 	}
 
 	return users, outErr
+}
+
+func GetUserIdByName(userName string) (int, error) {
+	logrus.Debug("Entered in GetUserIdByName()")
+	var outErr error = fmt.Errorf("cannot get userID for user %s", userName)
+
+	// Rimuovi eventuali spazi
+	userName = strings.TrimSpace(userName)
+
+	// Ottieni lo userID
+	userID, errUserID := queries.GetUserIDByName(userName)
+
+	// Se la ricerca è stata eseguita
+	if errUserID == nil {
+
+		outErr = nil
+		logrus.Infof("Obtained userID by userName %s", userName)
+
+	} else {
+		outErr = fmt.Errorf("error during retrieving userID for userName %s: %w", userName, errUserID)
+		logrus.Error(outErr)
+	}
+
+	return userID, outErr
 }

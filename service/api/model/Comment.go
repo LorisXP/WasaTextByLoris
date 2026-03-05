@@ -24,19 +24,19 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 	logrus.Debug("Entered in CreateComment()")
 	logrus.Infof("Adding a reaction to messageID %d, between users: %t", messageID, between_users)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to add a new reaction to messageID %d, between users: %t", messageID, between_users)
 	err := fmt.Errorf("Unable to add a new reaction to messageID %d, between users: %t", messageID, between_users)
 	var comment entity.Comment
 
-	//Crea la struct comment da salvare nel DB
+	// Crea la struct comment da salvare nel DB
 	comment.Reaction = reaction
 
-	//Crea l'inserimento a DB in base a se il commento del messaggio è tra utenti o utente->gruppo
+	// Crea l'inserimento a DB in base a se il commento del messaggio è tra utenti o utente->gruppo
 	if between_users {
 		comment.MessageUserID = messageID
 		logrus.Info("Adding a new reaction to message belong two users")
-		
+
 		comment.CommentID, err = dml.AddCommentBelongUsers(comment)
 		logrus.Debug("Passed by AddCommentBelongUsers()")
 	} else {
@@ -47,7 +47,7 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 		logrus.Debug("Passed by AddCommentBetweenUsersAndGroups()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && comment.CommentID != 0 {
 		outErr = nil
 		logrus.Info("Reaction added to message successfully")
@@ -63,16 +63,16 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 func GetCommentByID(commentID int) (entity.Comment, error) {
 	logrus.Infof("Getting a reaction with commentID %d", commentID)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve comment by id %d ", commentID)
 	err := fmt.Errorf("Unable to retrieve comment by id %d ", commentID)
 	var comment entity.Comment
 
-	//Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
+	// Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
 	logrus.Infof("Getting comment by id %d", commentID)
 	comment, err = queries.GetCommentByID(commentID)
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && comment.CommentID != 0 {
 		outErr = nil
 		logrus.Info("Comment obtained successfully")
@@ -84,15 +84,15 @@ func GetCommentByID(commentID int) (entity.Comment, error) {
 	return comment, outErr
 }
 
-func DeleteComment(userID int, commentID int, messageID int, between_users bool, ) (error) {
+func DeleteComment(userID int, commentID int, messageID int, between_users bool) error {
 	logrus.Debug("Entered in DeleteComment()")
 	logrus.Warningf("userID %d wants delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
 	err := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
 
-	//Cancella il commento sul DB nella tabella corretta in base all'utente
+	// Cancella il commento sul DB nella tabella corretta in base all'utente
 	if between_users {
 		logrus.Info("Moving to trash a comment belong two users")
 
@@ -105,13 +105,13 @@ func DeleteComment(userID int, commentID int, messageID int, between_users bool,
 		logrus.Debug("Passed by DeleteCommentBetweenUsersAndGroups()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 		outErr = nil
 		logrus.Infof("userID %d deleted commentID %d of messageID %d between users %t successfully", userID, commentID, messageID, between_users)
 
 	} else {
-		outErr = fmt.Errorf("error for userID %d during removing commentID %d of messageID %d between users %t: %w", userID, commentID, messageID, between_users,err)
+		outErr = fmt.Errorf("error for userID %d during removing commentID %d of messageID %d between users %t: %w", userID, commentID, messageID, between_users, err)
 		logrus.Error(outErr)
 	}
 

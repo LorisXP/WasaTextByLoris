@@ -2,7 +2,7 @@ package dml
 
 import "fmt"
 
-// UpdatePhotoByUserID aggiorna la foto di un utente dato il suo userID
+// UpdatePhotoByUserID aggiorna la foto di un utente dato il suo userID.
 func UpdatePhotoByUserID(userID int, photo string) error {
 	result, err := db.Exec("UPDATE Users SET photo = ? WHERE userID = ?", photo, userID)
 	if err != nil {
@@ -21,7 +21,7 @@ func UpdatePhotoByUserID(userID int, photo string) error {
 	return nil
 }
 
-// UpdateNameByUserID aggiorna il nome di un utente dato il suo userID
+// UpdateNameByUserID aggiorna il nome di un utente dato il suo userID.
 func UpdateNameByUserID(userID int, userName string) error {
 	result, err := db.Exec("UPDATE Users SET name = ? WHERE userID = ?", userName, userID)
 	if err != nil {

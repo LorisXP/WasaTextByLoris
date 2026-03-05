@@ -26,12 +26,12 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 	logrus.Debug("Entered in CreateMessage()")
 	logrus.Infof("Creating a new message in conversationID %d, between users: %t", conversationID, between_users)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to create a new message in conversationID %d, between users: %t", conversationID, between_users)
 	err := fmt.Errorf("Unable to create a new message in conversationID %d, between users: %t", conversationID, between_users)
 	var message entity.Message
 
-	//Crea la struct message da salvare nel DB
+	// Crea la struct message da salvare nel DB
 	message.ConversationID = conversationID
 	message.Between_users = between_users
 	message.Sender = userID
@@ -40,7 +40,7 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 	message.Content = content
 	message.ContentType = content_type
 
-	//Crea prima il contenuto tramite model.CreateContent
+	// Crea prima il contenuto tramite model.CreateContent
 	contentEntity, err := CreateContent(content_type, content)
 	if err != nil {
 		outErr = fmt.Errorf("error during creating content for message: %w", err)
@@ -49,7 +49,7 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 	}
 	logrus.Debug("Passed by CreateContent()")
 
-	//Crea l'inserimento a DB in base a se il messaggio è tra utenti o utente->gruppo
+	// Crea l'inserimento a DB in base a se il messaggio è tra utenti o utente->gruppo
 	if between_users {
 		logrus.Info("Creating a new message between two users")
 
@@ -62,7 +62,7 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 		logrus.Debug("Passed by CreateMessageBetweenUsersAndGroups()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && message.MessageID != 0 {
 
 		outErr = nil
@@ -79,12 +79,12 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 	logrus.Debug("Entered in GetMessageByID() in package model/Message")
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
 	err := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
 	var message entity.Message
 
-	//Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
+	// Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
 	if between_users {
 		logrus.Infof("Getting message by id %d between_users", messageID)
 
@@ -95,7 +95,7 @@ func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 		message, err = queries.GetMesByIDBelongGroups(messageID)
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && message.MessageID != 0 {
 		outErr = nil
 		logrus.Info("Message obtained successfully")
@@ -107,23 +107,25 @@ func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 	return message, outErr
 }
 
-func ForwardMessage(userID int, conversationID int, between_users bool, messageID int) (entity.Message, error){
+func ForwardMessage(userID int, conversationID int, between_users bool, sourceBetweenUsers bool, messageID int) (entity.Message, error) {
 	logrus.Debug("Entered in ForwardMessage()")
-	logrus.Infof("Forwarding a new message in conversationID %d, between users: %t", conversationID, between_users)
+	logrus.Infof("Forwarding messageID %d → conversationID %d (dest between_users: %t, src between_users: %t)", messageID, conversationID, between_users, sourceBetweenUsers)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to forward a new message in conversationID %d, between users: %t", conversationID, between_users)
 	err := fmt.Errorf("Unable to forward a new message in conversationID %d, between users: %t", conversationID, between_users)
 	var message entity.Message
 
-	//Crea la struct message da salvare nel DB
+	// Crea la struct message da salvare nel DB
+	message.MessageID = messageID
 	message.ConversationID = conversationID
 	message.Between_users = between_users
+	message.SourceBetweenUsers = sourceBetweenUsers
 	message.Sender = userID
 	message.Type = "forward"
 	message.Status = "received"
 
-	//Crea l'inserimento a DB in base a se il messagio è tra utenti o utente->gruppo
+	// Crea l'inserimento a DB in base a se il messagio è tra utenti o utente->gruppo
 	if between_users {
 		logrus.Info("Forwarding a new message belong two users")
 
@@ -136,7 +138,7 @@ func ForwardMessage(userID int, conversationID int, between_users bool, messageI
 		logrus.Debug("Passed by ForwardMessageBetweenUsersAndGroups()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && message.MessageID != 0 {
 
 		outErr = nil
@@ -150,15 +152,15 @@ func ForwardMessage(userID int, conversationID int, between_users bool, messageI
 	return message, outErr
 }
 
-func DeleteMessage(userID int, conversationID int, between_users bool, messageID int) (error) {
+func DeleteMessage(userID int, conversationID int, between_users bool, messageID int) error {
 	logrus.Debug("Entered in DeleteMessage()")
 	logrus.Warningf("userID %d wants delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable for userID %d delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
 	err := fmt.Errorf("Unable for userID %d delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
 
-	//Cancella il messaggio sul DB nella tabella corretta in base all'utente
+	// Cancella il messaggio sul DB nella tabella corretta in base all'utente
 	if between_users {
 		logrus.Info("Moving to trash a message belong two users")
 
@@ -171,13 +173,13 @@ func DeleteMessage(userID int, conversationID int, between_users bool, messageID
 		logrus.Debug("Passed by DeleteMessageBetweenUsersAndGroups()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 		outErr = nil
 		logrus.Infof("userID %d deleted messageID %d in conversationID %d between users %t successfully", userID, messageID, conversationID, between_users)
 
 	} else {
-		outErr = fmt.Errorf("error for userID %d during removing messageID %d in conversationID %d between users %t: %w", userID, messageID, conversationID, between_users,err)
+		outErr = fmt.Errorf("error for userID %d during removing messageID %d in conversationID %d between users %t: %w", userID, messageID, conversationID, between_users, err)
 		logrus.Error(outErr)
 	}
 

@@ -5,7 +5,6 @@
 *.iml
 *.exe
 .DS_Store
-.env
 *.wiki.git
 docker-compose.log
 /doc/html
@@ -15,3 +14,4 @@ docker-compose.log
 .vscode/*
 !.vscode/extensions.json
 webapi
+*.db

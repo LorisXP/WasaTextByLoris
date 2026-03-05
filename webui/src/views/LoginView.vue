@@ -1,0 +1,202 @@
+<script>
+export default {
+	data: function () {
+		return {
+			userName: null,
+			errormsg: null,
+		};
+	},
+	methods: {
+		async doAuth() {
+			this.errormsg = null;
+			try {
+				this.errormsg = await this.$services.login.doLogin(this.userName);
+				if (!this.errormsg) {
+					// Login riuscito, reindirizza alle chat
+					this.$router.push("/chats");
+				}
+				// Se errormsg è valorizzato, verrà mostrato all'utente
+			} catch (e) {
+				this.errormsg = e.toString();
+				console.error("Login error:", e);
+			}
+		},
+
+		setUserName(insertedName) {
+			if (this.$validator.validate(
+				insertedName,
+				/^[a-zA-Z0-9_]+$/,
+				3,
+				15,
+				"string"
+			).success) {
+				this.userName = insertedName;
+			} else {
+				this.errormsg = "Inserisci uno username valido";
+			}
+		},
+
+		setError(errormsg) {
+			this.errormsg = errormsg || null;
+			this.$nextTick(() => {
+				if (this.errormsg && this.$refs && this.$refs.username) {
+					try { this.$refs.username.focus(); } catch (e) {}
+				}
+			});
+		},
+	},
+	mounted() {
+		this.refresh();
+	},
+};
+</script>
+
+<template>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="" />
+		<meta name="generator" content="Astro v5.13.2" />
+		<title>Login</title>
+		<script src="../assets/js/color-modes.js"></script>
+		<link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet" />
+		<meta name="theme-color" content="#712cf9" />
+		<style>
+			html,
+			body {
+				height: 100%;
+			}
+
+			.form-signin {
+				max-width: 330px;
+				padding: 1rem;
+			}
+
+			.form-signin .form-floating:focus-within {
+				z-index: 2;
+			}
+
+			.form-signin input[type="email"] {
+				margin-bottom: -1px;
+				border-bottom-right-radius: 0;
+				border-bottom-left-radius: 0;
+			}
+
+			.form-signin input[type="password"] {
+				margin-bottom: 10px;
+				border-top-left-radius: 0;
+				border-top-right-radius: 0;
+			}
+
+			.bd-placeholder-img {
+				font-size: 1.125rem;
+				text-anchor: middle;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				user-select: none;
+			}
+			@media (min-width: 768px) {
+				.bd-placeholder-img-lg {
+					font-size: 3.5rem;
+				}
+			}
+			.b-example-divider {
+				width: 100%;
+				height: 3rem;
+				background-color: #0000001a;
+				border: solid rgba(0, 0, 0, 0.15);
+				border-width: 1px 0;
+				box-shadow:
+					inset 0 0.5em 1.5em #0000001a,
+					inset 0 0.125em 0.5em #00000026;
+			}
+			.b-example-vr {
+				flex-shrink: 0;
+				width: 1.5rem;
+				height: 100vh;
+			}
+			.bi {
+				vertical-align: -0.125em;
+				fill: currentColor;
+			}
+			.nav-scroller {
+				position: relative;
+				z-index: 2;
+				height: 2.75rem;
+				overflow-y: hidden;
+			}
+			.nav-scroller .nav {
+				display: flex;
+				flex-wrap: nowrap;
+				padding-bottom: 1rem;
+				margin-top: -1px;
+				overflow-x: auto;
+				text-align: center;
+				white-space: nowrap;
+				-webkit-overflow-scrolling: touch;
+			}
+			.btn-bd-primary {
+				--bd-violet-bg: #712cf9;
+				--bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+				--bs-btn-font-weight: 600;
+				--bs-btn-color: var(--bs-white);
+				--bs-btn-bg: var(--bd-violet-bg);
+				--bs-btn-border-color: var(--bd-violet-bg);
+				--bs-btn-hover-color: var(--bs-white);
+				--bs-btn-hover-bg: #6528e0;
+				--bs-btn-hover-border-color: #6528e0;
+				--bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+				--bs-btn-active-color: var(--bs-btn-hover-color);
+				--bs-btn-active-bg: #5a23c8;
+				--bs-btn-active-border-color: #5a23c8;
+			}
+			.bd-mode-toggle {
+				z-index: 1500;
+			}
+			.bd-mode-toggle .bi {
+				width: 1em;
+				height: 1em;
+			}
+			.bd-mode-toggle .dropdown-menu .active .bi {
+				display: block !important;
+			}
+		</style>
+	</head>
+	<body class="d-flex align-items-center py-4 bg-body-tertiary">
+		<main class="form-signin w-100 m-auto">
+			<form class="text-center">
+				<img
+					class="mb-4"
+					src="../assets/brand/bootstrap-logo.svg"
+					alt=""
+					width="72"
+					height="57"
+				/>
+				<h1 class="h3 text-center mb-3 fw-normal">Login</h1>
+				<div class="form-floating">
+					<input
+						type="text"
+						class="form-control"
+						:class="{ 'is-invalid': errormsg }"
+						id="floatingInput"
+						ref="username"
+						v-model="userName"
+					/>
+					<div class="invalid-feedback" v-if="errormsg">{{ errormsg }}</div>
+					<label for="floatingInput">Username</label>
+				</div>
+				<button
+					@click.prevent="setUserName(userName); doAuth()"
+					class="mt-3 btn btn-primary w-100 py-2"
+					type="button"
+				>
+					Accedi
+				</button>
+			</form>
+		</main>
+		<script
+			src="../assets/dist/js/bootstrap.bundle.min.js"
+			class="astro-vvvwv3sm"
+		></script>
+	</body>
+</template>

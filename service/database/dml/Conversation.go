@@ -4,45 +4,88 @@ import (
 	"fmt"
 )
 
-// CreateConversationBetweenUsers crea una nuova conversazione tra due utenti
-// e restituisce il conversationID generato
+// CreateConversationBetweenUsers crea una nuova conversazione tra due utenti (se non esiste già)
+// e restituisce il conversationID. I due ID vengono normalizzati (min, max) per garantire unicità
+// indipendentemente dall'ordine in cui sender e receiver vengono passati.
 func CreateConversationBetweenUsers(sender int, receiver int) (int, error) {
+	// Normalizza: user1ID è sempre il minore, così (A,B) e (B,A) puntano alla stessa riga
+	user1, user2 := sender, receiver
+	if user1 > user2 {
+		user1, user2 = user2, user1
+	}
+
 	result, err := db.Exec(
-		"INSERT INTO ConversationsUser (user1ID, user2ID) VALUES (?, ?)",
-		sender, receiver,
+		"INSERT OR IGNORE INTO ConversationsUser (user1ID, user2ID) VALUES (?, ?)",
+		user1, user2,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("unable to insert conversation between users %d and %d: %w", sender, receiver, err)
 	}
 
-	lastID, err := result.LastInsertId()
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return 0, fmt.Errorf("unable to get last insert id for conversation: %w", err)
+		return 0, fmt.Errorf("unable to get rows affected for conversation between users %d and %d: %w", sender, receiver, err)
 	}
 
-	return int(lastID), nil
+	if rowsAffected > 0 {
+		lastID, err := result.LastInsertId()
+		if err != nil {
+			return 0, fmt.Errorf("unable to get last insert id for conversation: %w", err)
+		}
+		return int(lastID), nil
+	}
+
+	// La conversazione esiste già: la recupera
+	var conversationID int
+	err = db.QueryRow(
+		"SELECT conversationID FROM ConversationsUser WHERE user1ID = ? AND user2ID = ?",
+		user1, user2,
+	).Scan(&conversationID)
+	if err != nil {
+		return 0, fmt.Errorf("unable to retrieve existing conversation between users %d and %d: %w", sender, receiver, err)
+	}
+
+	return conversationID, nil
 }
 
-// CreateConversationBetweenGroups crea una nuova conversazione tra un utente e un gruppo
-// e restituisce il conversationID generato
+// CreateConversationBetweenGroups crea una nuova conversazione tra un utente e un gruppo (se non esiste già)
+// e restituisce il conversationID.
 func CreateConversationBetweenGroups(userID int, groupID int) (int, error) {
 	result, err := db.Exec(
-		"INSERT INTO ConversationsGroup (userID, groupID) VALUES (?, ?)",
+		"INSERT OR IGNORE INTO ConversationsGroup (userID, groupID) VALUES (?, ?)",
 		userID, groupID,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("unable to insert conversation between user %d and group %d: %w", userID, groupID, err)
 	}
 
-	lastID, err := result.LastInsertId()
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return 0, fmt.Errorf("unable to get last insert id for group conversation: %w", err)
+		return 0, fmt.Errorf("unable to get rows affected for conversation between user %d and group %d: %w", userID, groupID, err)
 	}
 
-	return int(lastID), nil
+	if rowsAffected > 0 {
+		lastID, err := result.LastInsertId()
+		if err != nil {
+			return 0, fmt.Errorf("unable to get last insert id for group conversation: %w", err)
+		}
+		return int(lastID), nil
+	}
+
+	// La conversazione esiste già: la recupera
+	var conversationID int
+	err = db.QueryRow(
+		"SELECT conversationID FROM ConversationsGroup WHERE userID = ? AND groupID = ?",
+		userID, groupID,
+	).Scan(&conversationID)
+	if err != nil {
+		return 0, fmt.Errorf("unable to retrieve existing conversation between user %d and group %d: %w", userID, groupID, err)
+	}
+
+	return conversationID, nil
 }
 
-// UpdateLastMessageIDforUser aggiorna il lastMessageID di una conversazione tra utenti
+// UpdateLastMessageIDforUser aggiorna il campo lastMessageID di una conversazione tra utenti
 func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
 	result, err := db.Exec(
 		"UPDATE ConversationsUser SET lastMessageID = ? WHERE conversationID = ?",
@@ -64,7 +107,7 @@ func UpdateLastMessageIDforUser(conversationID int, messageID int) error {
 	return nil
 }
 
-// UpdateLastMessageIDforGroup aggiorna il lastMessageID di una conversazione utente-gruppo
+// UpdateLastMessageIDforGroup aggiorna il campo lastMessageID di una conversazione utente-gruppo
 func UpdateLastMessageIDforGroup(conversationID int, messageID int) error {
 	result, err := db.Exec(
 		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",

@@ -5,12 +5,12 @@ import (
 )
 
 // CreateGroup inserisce un nuovo gruppo e restituisce il groupID generato.
-// Inserisce anche l'admin come primo membro del gruppo e registra l'evento "entered".
+// Inserisce inoltre l'admin come primo membro e registra l'evento "entered".
 func CreateGroup(name string, photo string, admin int) (int, error) {
 	// Inserisci il gruppo
 	result, err := db.Exec("INSERT INTO Groups (name, photo, adminID) VALUES (?, ?, ?)", name, photo, admin)
 	if err != nil {
-		return 0, fmt.Errorf("unable to insert the new group %s in the database: %w", name, err)
+		return 0, fmt.Errorf("unable to insert new group %s: %w", name, err)
 	}
 
 	lastID, err := result.LastInsertId()
@@ -20,7 +20,7 @@ func CreateGroup(name string, photo string, admin int) (int, error) {
 
 	groupID := int(lastID)
 
-	// Aggiungi l'admin come primo membro del gruppo
+	// Aggiunge l'admin come primo membro del gruppo
 	_, err = db.Exec("INSERT INTO Members (groupID, userID) VALUES (?, ?)", groupID, admin)
 	if err != nil {
 		return 0, fmt.Errorf("unable to add admin %d as member of group %d: %w", admin, groupID, err)
@@ -35,21 +35,27 @@ func CreateGroup(name string, photo string, admin int) (int, error) {
 	return groupID, nil
 }
 
-// LeaveGroup rimuove un utente dal gruppo e registra l'evento "leave"
+// LeaveGroup rimuove un utente dal gruppo e registra l'evento "leave".
 func LeaveGroup(userID int, groupID int) error {
 	// Rimuovi l'utente dalla tabella Members
 	result, err := db.Exec("DELETE FROM Members WHERE groupID = ? AND userID = ?", groupID, userID)
 	if err != nil {
-		return fmt.Errorf("unable to remove row in Members table for groupID %d performing by userID %d: %w", groupID, userID, err)
+		return fmt.Errorf("unable to remove member row for groupID %d and userID %d: %w", groupID, userID, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("unable to get rows affected for leave group %d: %w", groupID, err)
+		return fmt.Errorf("unable to get rows affected for leaving group %d: %w", groupID, err)
 	}
 
 	if rowsAffected == 0 {
 		return fmt.Errorf("user %d is not a member of group %d", userID, groupID)
+	}
+
+	// Cancella la conversazione (e i messaggi via CASCADE)
+	_, err = db.Exec("DELETE FROM ConversationsGroup WHERE userID = ? AND groupID = ?", userID, groupID)
+	if err != nil {
+		return fmt.Errorf("unable to delete conversation for userID %d in group %d: %w", userID, groupID, err)
 	}
 
 	// Registra l'evento di uscita
@@ -61,7 +67,7 @@ func LeaveGroup(userID int, groupID int) error {
 	return nil
 }
 
-// AddToGroup aggiunge una lista di utenti al gruppo e registra gli eventi "entered"
+// AddToGroup aggiunge una lista di utenti al gruppo e registra gli eventi "entered".
 func AddToGroup(adminID int, userID []int, groupID int) error {
 	for _, uid := range userID {
 		// Inserisci il membro
@@ -80,7 +86,7 @@ func AddToGroup(adminID int, userID []int, groupID int) error {
 	return nil
 }
 
-// UpdateNameGroup aggiorna il nome del gruppo, verificando che l'utente sia l'admin
+// UpdateNameGroup aggiorna il nome del gruppo, verificando che l'utente sia l'admin.
 func UpdateNameGroup(groupID int, adminID int, new_name string) error {
 	result, err := db.Exec("UPDATE Groups SET name = ? WHERE groupID = ? AND adminID = ?", new_name, groupID, adminID)
 	if err != nil {
@@ -99,7 +105,7 @@ func UpdateNameGroup(groupID int, adminID int, new_name string) error {
 	return nil
 }
 
-// UpdatePhotoGroup aggiorna la foto del gruppo, verificando che l'utente sia l'admin
+// UpdatePhotoGroup aggiorna la foto del gruppo, verificando che l'utente sia l'admin.
 func UpdatePhotoGroup(groupID int, adminID int, new_photo string) error {
 	result, err := db.Exec("UPDATE Groups SET photo = ? WHERE groupID = ? AND adminID = ?", new_photo, groupID, adminID)
 	if err != nil {
@@ -118,7 +124,7 @@ func UpdatePhotoGroup(groupID int, adminID int, new_photo string) error {
 	return nil
 }
 
-// DeleteGroup cancella il gruppo. Grazie al CASCADE, vengono eliminati anche Members, Events, ecc.
+// DeleteGroup elimina il gruppo. Grazie al CASCADE vengono rimossi anche Members, Events, ecc.
 // Verifica che l'utente sia l'admin del gruppo.
 func DeleteGroup(groupID int, userID int) error {
 	result, err := db.Exec("DELETE FROM Groups WHERE groupID = ? AND adminID = ?", groupID, userID)
@@ -138,7 +144,7 @@ func DeleteGroup(groupID int, userID int) error {
 	return nil
 }
 
-// KickFromGroup rimuove un utente dal gruppo e registra l'evento "kick"
+// KickFromGroup rimuove un utente dal gruppo e registra l'evento "kick".
 func KickFromGroup(groupID int, adminID int, userID int) error {
 	// Rimuovi l'utente dalla tabella Members
 	result, err := db.Exec("DELETE FROM Members WHERE groupID = ? AND userID = ?", groupID, userID)
@@ -153,6 +159,12 @@ func KickFromGroup(groupID int, adminID int, userID int) error {
 
 	if rowsAffected == 0 {
 		return fmt.Errorf("user %d is not a member of group %d", userID, groupID)
+	}
+
+	// Cancella la conversazione (e i messaggi via CASCADE)
+	_, err = db.Exec("DELETE FROM ConversationsGroup WHERE userID = ? AND groupID = ?", userID, groupID)
+	if err != nil {
+		return fmt.Errorf("unable to delete conversation for userID %d in group %d: %w", userID, groupID, err)
 	}
 
 	// Registra l'evento di kick

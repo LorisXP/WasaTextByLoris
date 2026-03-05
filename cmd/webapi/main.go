@@ -75,8 +75,10 @@ func run() error {
 	logger.SetOutput(os.Stdout)
 	if cfg.Debug {
 		logger.SetLevel(logrus.DebugLevel)
+		logrus.SetLevel(logrus.DebugLevel) // global logger used by model/ and dml/ packages
 	} else {
 		logger.SetLevel(logrus.InfoLevel)
+		logrus.SetLevel(logrus.InfoLevel)
 	}
 
 	logger.Infof("application initializing")

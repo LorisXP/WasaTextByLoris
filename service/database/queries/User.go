@@ -113,6 +113,8 @@ func GetUsersByName(search string) ([]entity.User, error) {
 		}
 		if photo.Valid {
 			u.Photo = photo.String
+		} else {
+			u.Photo = ""
 		}
 		users = append(users, u)
 	}

@@ -16,12 +16,12 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 	logrus.Debug("Entered in CreateConversation()")
 	logrus.Info("Creating a new conversation")
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to create a new conversation")
 	var err error = nil
 	var conversation entity.Conversation
 
-	//Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
+	// Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
 	if between_users {
 		logrus.Info("Creating a new conversation between two users")
 		logrus.Debugf("They are '%d' and '%d'", sender, receiver)
@@ -36,10 +36,10 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 		logrus.Debug("Passed by CreateConversationBetweenGroups()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && conversation.ConversationID != 0 {
 
-		//Crea la struct conversation
+		// Crea la struct conversation
 		conversation.Between_users = between_users
 		conversation.Sender = sender
 		conversation.Receiver = receiver
@@ -62,11 +62,11 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 	logrus.Debug("Entered in SetLastMessageID()")
 	logrus.Infof("Updating last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to update last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
 	err := fmt.Errorf("Unable to update last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
 
-	//Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
+	// Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
 	if conversation.Between_users {
 		logrus.Infof("Updating lastMessageID %d in a conversationID %d between two users", messageID, conversation.ConversationID)
 
@@ -79,7 +79,7 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 		logrus.Debug("Passed by UpdateLastMessageIDforGroup()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 		conversation.LastMessageID = messageID
 		outErr = nil
@@ -96,12 +96,12 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 func GetConversationByID(conversationID int, between_users bool) (entity.Conversation, error) {
 	logrus.Debug("Entered in GetConversationByID() in package model/Conversation")
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve conversation by id %d ", conversationID)
 	err := fmt.Errorf("Unable to retrieve conversation by id %d ", conversationID)
 	var conversation entity.Conversation
 
-	//Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
+	// Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
 	if between_users {
 		logrus.Infof("Getting conversation by id %d between_users", conversationID)
 
@@ -112,7 +112,7 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 		conversation, err = queries.GetConvByIDBelongGroups(conversationID)
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && conversation.ConversationID != 0 {
 		outErr = nil
 		logrus.Info("Conversation obtained successfully")
@@ -126,89 +126,86 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 
 /*
 Return a list of messages of specific conversation (belonging users or group)
-{
-  "messages": [
-    {
-      "content": "aGVsbG8=",
-      "timestamp": "2025-10-25T17:40:11Z",
-      "sender": {
-        "userName": "loris2155519",
-        "userID": 1
-      },
-      "status": "received",
-      "type": "standard",
-      "comments": [
-        {
-          "content": "👍",
-          "sender": {
-            "userName": "loris2155519",
-            "userID": 1
-          },
-          "commentID": 1
-        }
-      ],
-      "messageID": 1,
-      "replyToMessageID": 12
-    }
-  ]
-}
+
+	{
+	  "messages": [
+	    {
+	      "content": "aGVsbG8=",
+	      "timestamp": "2025-10-25T17:40:11Z",
+	      "sender": {
+	        "userName": "loris2155519"
+	      },
+	      "status": "received",
+	      "type": "standard",
+	      "comments": [
+	        {
+	          "content": "👍",
+	          "sender": {
+	            "userName": "loris2155519"
+	          },
+	          "commentID": 1
+	        }
+	      ],
+	      "messageID": 1,
+	      "replyToMessageID": 12
+	    }
+	  ]
+	}
 */
 func GetListMessages(conversation *entity.Conversation) (map[string]interface{}, error) {
 	logrus.Debug("Entered in GetListMessages()")
 	logrus.Info("Getting list of messages")
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to get conversation message list")
 	err := fmt.Errorf("Unable to get conversation message list")
 	var result map[string]interface{}
 	var messagesList []map[string]interface{}
 
 	if conversation.Between_users {
-		//Recupera tutti i messaggi con conversationID = conversation.ConversationID
+		// Recupera tutti i messaggi con conversationID = conversation.ConversationID
 		logrus.Infof("Retrieving list of messages of conversationID %d between two users", conversation.ConversationID)
-		
+
 		// GetMessagesUserList Ritornerà una lista di dict con:
-		// content, content_type, sent_at, senderID, userNameSenderID, 
+		// content, content_type, sent_at, senderID, userNameSenderID,
 		// status, type, comment (content, senderID, userNameSenderID, commentID),
 		// messageID, replyToMessageID
 		messagesList, err = queries.GetMessagesUserList(conversation.ConversationID)
 		logrus.Debug("Passed by GetMessagesUserList()")
 
 	} else {
-		//Recupera tutti i messaggi con conversationID = conversation.ConversationID
+		// Recupera tutti i messaggi con conversationID = conversation.ConversationID
 		logrus.Infof("Retrieving list of messages of conversationID %d between users and groups", conversation.ConversationID)
-		
+
 		// GetMessagesGroupList Ritornerà una lista di dict con:
-		// content, content_type, sent_at, senderID, userNameSenderID, 
+		// content, content_type, sent_at, senderID, userNameSenderID,
 		// status, type, comment (content, senderID, userNameSenderID, commentID),
 		// messageID, replyToMessageID
 		messagesList, err = queries.GetMessagesGroupList(conversation.ConversationID)
 		logrus.Debug("Passed by GetMessagesGroupList()")
 	}
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil && len(messagesList) > 0 {
-		
-		//Crea l'oggetto in output
+
+		// Crea l'oggetto in output
 		formattedMessages := []map[string]interface{}{}
-		
+
 		for _, msg := range messagesList {
-			//Crea la struttura del sender
+			// Crea la struttura del sender
 			sender := map[string]interface{}{
 				"userName": msg["userNameSenderID"],
-				"userID":   msg["senderID"],
 			}
-			
-			//Prepara la lista dei commenti
+
+			// Prepara la lista dei commenti
 			comments := []map[string]interface{}{}
 			if msg["comment"] != nil {
-				//Se ci sono commenti, processali (assumendo che sia una lista)
+				// Se ci sono commenti, processali (assumendo che sia una lista)
 				if commentList, ok := msg["comment"].([]interface{}); ok {
 					for _, c := range commentList {
 						if comment, ok := c.(map[string]interface{}); ok {
 							commentSender := map[string]interface{}{
 								"userName": comment["userNameSenderID"],
-								"userID":   comment["senderID"],
 							}
 							formattedComment := map[string]interface{}{
 								"content":   comment["content"],
@@ -220,8 +217,8 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 					}
 				}
 			}
-			
-			//Crea il messaggio formattato
+
+			// Crea il messaggio formattato
 			formattedMsg := map[string]interface{}{
 				"content":   msg["content"],
 				"timestamp": msg["sent_at"],
@@ -231,20 +228,20 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 				"comments":  comments,
 				"messageID": msg["messageID"],
 			}
-			
-			//Aggiungi replyToMessageID solo se presente
+
+			// Aggiungi replyToMessageID solo se presente
 			if msg["replyToMessageID"] != nil {
 				formattedMsg["replyToMessageID"] = msg["replyToMessageID"]
 			}
-			
+
 			formattedMessages = append(formattedMessages, formattedMsg)
 		}
-		
-		//Crea il risultato finale
+
+		// Crea il risultato finale
 		result = map[string]interface{}{
 			"messages": formattedMessages,
 		}
-		
+
 		outErr = nil
 		logrus.Info("List of messages obtained successfully")
 
@@ -288,44 +285,71 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 	logrus.Info("Returning conversation of user")
 	logrus.Debugf("Returning conversation of userID %d", userID)
 
-	//Imposta i default
+	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve conversations belong users of userID %d", userID)
-	//Crea una lista di dict
+	// Crea una lista di dict
 	conversations := []map[string]interface{}{}
 
-	//Ottieni le conversazioni prima tra utenti e poi nei gruppi, con ordine cronologico inverso
+	// Ottieni le conversazioni prima tra utenti e poi nei gruppi, con ordine cronologico inverso
 	conversations_users, err := queries.GetConvBelongUsers(userID)
 
-	//Se non ci sono errori, prosegui
+	// Se non ci sono errori, prosegui
 	if err == nil {
 		logrus.Info("Conversations belong users obtained successfully")
 
-		//Ora ottieni le conversazioni tra utente e gruppi
+		// Ora ottieni le conversazioni tra utente e gruppi
 		conversations_groups, err := queries.GetConvBetweenUsersAndGroups(userID)
 
-		//Se non ci sono errori, prosegui
+		// Se non ci sono errori, prosegui
 		if err == nil {
 			logrus.Info("Conversations between users and groups obtained successfully")
 
-			//Ora uniscile
+			// Ora uniscile
 			conversations = append(conversations, conversations_users...)
 			conversations = append(conversations, conversations_groups...)
 
-			//Effettua l'ordinamento cronologico inverso per timestamp del messaggio
+			// Effettua l'ordinamento cronologico inverso per timestamp del messaggio
 			sort.Slice(conversations, func(i, j int) bool {
+				// Helper: estrae il timestamp dalla conversazione, restituisce "" se assente
+				getTS := func(c map[string]interface{}) string {
+					lm, ok := c["lastMessage"]
+					if !ok || lm == nil {
+						return ""
+					}
+					lmMap, ok := lm.(map[string]interface{})
+					if !ok || lmMap == nil {
+						return ""
+					}
+					ts, ok := lmMap["timestamp"].(string)
+					if !ok {
+						return ""
+					}
+					return ts
+				}
 
-				// Estrai timestamp i-esimo
-				ts1 := conversations[i]["lastMessage"].(map[string]interface{})["timestamp"].(string)
-				ts2 := conversations[j]["lastMessage"].(map[string]interface{})["timestamp"].(string)
+				ts1 := getTS(conversations[i])
+				ts2 := getTS(conversations[j])
+
+				// Conversazioni senza messaggi vanno in fondo
+				if ts1 == "" && ts2 == "" {
+					return false
+				}
+				if ts1 == "" {
+					return false
+				}
+				if ts2 == "" {
+					return true
+				}
 
 				// Converti in time.Time
-				t1, _ := time.Parse(time.RFC3339, ts1)
-				t2, _ := time.Parse(time.RFC3339, ts2)
+				t1, _ := time.Parse("2006-01-02 15:04:05", ts1)
+				t2, _ := time.Parse("2006-01-02 15:04:05", ts2)
 
 				// Ordine cronologico inverso → più recente prima
 				return t1.After(t2)
 			})
 
+			outErr = nil
 			logrus.Infof("Conversations of userID %d sorted successfully", userID)
 
 		} else {

@@ -30,14 +30,14 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 		// Valida l'input userName con il Validator
 		validationErr := model.ValidateInput(reqBody.UserName, 3, 15, `^[a-z]+[0-9]*$`, "string")
-		
-		//Se il campo inserito è valido
+
+		// Se il campo inserito è valido
 		if validationErr == nil {
 
 			// Chiama il model per autenticare o creare l'utente
 			userID, newUser, authErr := model.AuthUser(reqBody.UserName)
-			
-			//Se l'autenticazione va a buon fine
+
+			// Se l'autenticazione va a buon fine
 			if authErr == nil {
 
 				// Costruisci la risposta JSON con lo userID
@@ -46,8 +46,8 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 				}{UserID: userID}
 
 				jsonBytes, marshalErr := json.Marshal(respData)
-				
-				//Se il JSON viene creato correttamente
+
+				// Se il JSON viene creato correttamente
 				if marshalErr == nil {
 
 					// Tutto ok
