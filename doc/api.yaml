@@ -852,15 +852,16 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/comments/users/{userID}/messages/{messageID}:
+  /api/users/{userID}/conversations/users/{conversationID}/messages/{messageID}/comments:
     parameters:
-      - $ref: "#/components/parameters/userID" #The userID of the user performing the action
+      - $ref: "#/components/parameters/userID"
+      - $ref: "#/components/parameters/conversationID"
       - $ref: "#/components/parameters/messageID"
     post:
       tags:
         - Comment
       summary: Add a reaction to a message (direct)
-      description: Enables the user to react to or comment on a specific direct message
+      description: Enables the user to react to a message in a user-user conversation.
       operationId: commentMessage
       requestBody:
         required: true
@@ -874,9 +875,9 @@ paths:
                 reaction:
                   type: string
                   description: The reaction as an emoji
-                  example: 👍
+                  example: "👍"
                   minLength: 1
-                  maxLength: 2
+                  maxLength: 4
                   pattern: ^.*?$
       responses:
         "200":
@@ -897,15 +898,16 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/comments/groups/{groupID}/messages/{messageID}:
+  /api/users/{userID}/conversations/groups/{conversationID}/messages/{messageID}/comments:
     parameters:
-      - $ref: "#/components/parameters/groupID" #The groupID of the target group
+      - $ref: "#/components/parameters/userID"
+      - $ref: "#/components/parameters/conversationID"
       - $ref: "#/components/parameters/messageID"
     post:
       tags:
         - Comment
       summary: Add a reaction to a message (group)
-      description: Enables the user to react to or comment on a specific message inside a group conversation
+      description: Enables the user to react to a message in a user-group conversation.
       operationId: commentMessageGroup
       requestBody:
         required: true
@@ -919,9 +921,9 @@ paths:
                 reaction:
                   type: string
                   description: The reaction as an emoji
-                  example: 👍
+                  example: "👍"
                   minLength: 1
-                  maxLength: 2
+                  maxLength: 4
                   pattern: ^.*?$
       responses:
         "200":
@@ -938,20 +940,21 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: Message or group not found
+          description: Message not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/comments/users/{userID}/messages/{messageID}/{commentID}:
+  /api/users/{userID}/conversations/users/{conversationID}/messages/{messageID}/comments/{commentID}:
     parameters:
-      - $ref: "#/components/parameters/userID" #The userID of the user performing the action
+      - $ref: "#/components/parameters/userID"
+      - $ref: "#/components/parameters/conversationID"
       - $ref: "#/components/parameters/messageID"
       - $ref: "#/components/parameters/commentID"
     delete:
       tags:
         - Comment
-      summary: Remove a comment from a direct message
-      description: Enables the user to delete a specific comment from a direct message
+      summary: Remove a reaction from a message (direct)
+      description: Enables the user to delete a specific reaction from a message in a user-user conversation.
       operationId: uncommentMessage
       responses:
         "204":
@@ -965,17 +968,18 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/comments/groups/{groupID}/messages/{messageID}/{commentID}:
+  /api/users/{userID}/conversations/groups/{conversationID}/messages/{messageID}/comments/{commentID}:
     parameters:
-      - $ref: "#/components/parameters/groupID" #The groupID of the target group
+      - $ref: "#/components/parameters/userID"
+      - $ref: "#/components/parameters/conversationID"
       - $ref: "#/components/parameters/messageID"
       - $ref: "#/components/parameters/commentID"
     delete:
       tags:
         - Comment
-      summary: Remove a comment from a group message
-      description: Enables the user to delete a specific comment from a message inside a group conversation
-      operationId: uncommentMessage
+      summary: Remove a reaction from a message (group)
+      description: Enables the user to delete a specific reaction from a message in a user-group conversation.
+      operationId: uncommentMessageGroup
       responses:
         "204":
           description: Comment deleted successfully
@@ -984,7 +988,7 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: Message, comment or group not found
+          description: Message or comment not found
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -1063,7 +1067,7 @@ components:
           description: emoji
           example: 👍
           minLength: 1
-          maxLength: 2
+          maxLength: 4
           pattern: "^.*?$"
         sender:
           $ref: "#/components/schemas/SimpleUser"

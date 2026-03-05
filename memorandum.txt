@@ -13,14 +13,13 @@ Per la prossima volta:
 2. FE - Aggiunere la data all'inzio di una conversazione. Se si supera la 00:00, bisogna mostrare "Oggi" e la label precedente diventa "Ieri" e poi direttamente la data (Lunedì 27 Settembre 2025)
 3. FE - Aggiunere gli eventi di Events nelle conversazione dei gruppi (GET /api/users/{userID}/conversations/groups/{conversationID}/messages)
 4. FE - I messaggi mostrano le reazioni?
-5. Il front-end passa per validator prima delle chiamate REST?
+5. FE - Il front-end passa per validator prima delle chiamate REST?
 6. FE - Creare le view
 7. FE - Mostra i nuovi messaggi in arrivo nella sidebar? Dovrebbe cachare la risposta della GET, chiamarla ogni x secondi e fare il diff. 
 8. FE - Definire uno stile CSS moderno
 9. BE/FE - Gestire gli stati del messaggio (vedere pdf OneNote)
-10. BE/FE - Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
-11. BE - Controlli di sicurezza: 
-            + quello userID è abilitato a cancellare/ottenere/creare quella risorsa?
+10.BE - Update top/package comment inside `cmd/webapi/main.go` to reflect the actual project usage, goal, and general info
+
 
 Fatto in precedenza:
 - Scrivere le query e dml per il model
@@ -41,3 +40,6 @@ Fatto in precedenza:
 - Aggiungere controllo Authorization: Bearer <identifier>
 - lastMessageID non viene aggiornato nel forward
 - Tutto il problema della conversation. Tra utenti "Inizia conversazione". Tra utente e gruppo (magari automatico?)
+- BE - Controlli di sicurezza: 
+            + quello userID è abilitato a cancellare/ottenere/creare quella risorsa?
+-  BE/FE - Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
