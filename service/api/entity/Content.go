@@ -2,6 +2,6 @@ package entity
 
 type Content struct {
 	ContentID int
-	Type    string
+	Type      string
 	Content   string
 }
