@@ -152,7 +152,7 @@ Return a list of messages of specific conversation (belonging users or group)
 	  ]
 	}
 */
-func GetListMessages(conversation *entity.Conversation) (map[string]interface{}, error) {
+func GetListMessages(conversation *entity.Conversation, userMadeRequest int) (map[string]interface{}, error) {
 	logrus.Debug("Entered in GetListMessages()")
 	logrus.Info("Getting list of messages")
 
@@ -170,7 +170,7 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 		// content, content_type, sent_at, senderID, userNameSenderID,
 		// status, type, comment (content, senderID, userNameSenderID, commentID),
 		// messageID, replyToMessageID
-		messagesList, err = queries.GetMessagesUserList(conversation.ConversationID)
+		messagesList, err = queries.GetMessagesUserList(conversation.ConversationID, userMadeRequest)
 		logrus.Debug("Passed by GetMessagesUserList()")
 
 	} else {
@@ -181,7 +181,7 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 		// content, content_type, sent_at, senderID, userNameSenderID,
 		// status, type, comment (content, senderID, userNameSenderID, commentID),
 		// messageID, replyToMessageID
-		messagesList, err = queries.GetMessagesGroupList(conversation.ConversationID)
+		messagesList, err = queries.GetMessagesGroupList(conversation.ConversationID, userMadeRequest)
 		logrus.Debug("Passed by GetMessagesGroupList()")
 	}
 

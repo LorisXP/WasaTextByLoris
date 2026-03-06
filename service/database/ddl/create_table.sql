@@ -109,6 +109,18 @@ CREATE TABLE MessagesGroup (
 CREATE INDEX idx_messages_group ON MessagesGroup(conversationID, sent_at);
 
 
+CREATE TABLE GroupMessageReads (
+    messageID INTEGER NOT NULL REFERENCES MessagesGroup(messageID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    userID INTEGER NOT NULL REFERENCES Users(userID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    PRIMARY KEY(messageID, userID)
+);
+CREATE INDEX idx_group_reads_message ON GroupMessageReads(messageID);
+
+
 CREATE TABLE Comments (
     commentID INTEGER PRIMARY KEY AUTOINCREMENT,
 
