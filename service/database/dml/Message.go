@@ -2,6 +2,7 @@ package dml
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
 )
@@ -443,4 +444,87 @@ func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, stri
 	}
 
 	return int(newMessageID), groupID, sentAt, content, contentType, nil
+}
+
+/*
+MarkGroupMessagesAsReadByUser registra la lettura dei messaggi di gruppo da parte di un utente.
+Per ogni messageID inserisce una riga in GroupMessageReads (INSERT OR IGNORE per idempotenza).
+Poi aggiorna status='read' in MessagesGroup per i messaggi in cui tutti i membri
+(escluso il sender) hanno letto.
+*/
+func MarkGroupMessagesAsReadByUser(messageIDs []int, userID int, groupID int) error {
+	if len(messageIDs) == 0 {
+		return nil
+	}
+
+	// 1. Bulk INSERT OR IGNORE delle read receipts
+	placeholders := strings.Repeat("(?,?),", len(messageIDs))
+	placeholders = placeholders[:len(placeholders)-1]
+
+	args := make([]interface{}, 0, len(messageIDs)*2)
+	for _, id := range messageIDs {
+		args = append(args, id, userID)
+	}
+
+	_, err := db.Exec(
+		"INSERT OR IGNORE INTO GroupMessageReads (messageID, userID) VALUES "+placeholders,
+		args...,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to insert group message reads: %w", err)
+	}
+
+	// 2. Aggiorna status='read' per i messaggi in cui tutti i membri (escluso il sender) hanno letto
+	ph := strings.Repeat("?,", len(messageIDs))
+	ph = ph[:len(ph)-1]
+
+	updateArgs := make([]interface{}, 0, len(messageIDs)+1)
+	for _, id := range messageIDs {
+		updateArgs = append(updateArgs, id)
+	}
+	updateArgs = append(updateArgs, groupID)
+
+	_, err = db.Exec(
+		`UPDATE MessagesGroup SET status = 'read'
+		 WHERE messageID IN (`+ph+`)
+		   AND status = 'received'
+		   AND (
+		       SELECT COUNT(*) FROM GroupMessageReads gmr WHERE gmr.messageID = MessagesGroup.messageID
+		   ) >= (
+		       SELECT COUNT(*) FROM Members m WHERE m.groupID = ? AND m.userID != MessagesGroup.senderID
+		   )`,
+		updateArgs...,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to update group messages status to read: %w", err)
+	}
+
+	return nil
+}
+
+/*
+MarkMessagesAsRead aggiorna lo status da "received" a "read" per una lista di messageID.
+Viene eseguita una singola query UPDATE con una clausola IN costruita dinamicamente.
+*/
+func MarkMessagesAsRead(messageIDs []int) error {
+	if len(messageIDs) == 0 {
+		return nil
+	}
+
+	placeholders := strings.Repeat("?,", len(messageIDs))
+	placeholders = placeholders[:len(placeholders)-1] // rimuove la virgola finale
+
+	args := make([]interface{}, len(messageIDs))
+	for i, id := range messageIDs {
+		args[i] = id
+	}
+
+	_, err := db.Exec(
+		"UPDATE MessagesUser SET status = 'read' WHERE messageID IN ("+placeholders+")",
+		args...,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to mark messages as read: %w", err)
+	}
+	return nil
 }

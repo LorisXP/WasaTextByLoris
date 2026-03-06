@@ -9,15 +9,11 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
 Per la prossima volta:
-1. FE - Aggiungere ora d'invio nei messaggi;
-2. FE - Aggiunere la data all'inzio di una conversazione. Se si supera la 00:00, bisogna mostrare "Oggi" e la label precedente diventa "Ieri" e poi direttamente la data (Lunedì 27 Settembre 2025)
-3. FE - Aggiunere gli eventi di Events nelle conversazione dei gruppi (GET /api/users/{userID}/conversations/groups/{conversationID}/messages)
-4. FE - I messaggi mostrano le reazioni?
-5. FE - Il front-end passa per validator prima delle chiamate REST?
 6. FE - Creare le view
-7. FE - Mostra i nuovi messaggi in arrivo nella sidebar? Dovrebbe cachare la risposta della GET, chiamarla ogni x secondi e fare il diff. 
+7. FE - Mostra i nuovi messaggi
+    - Dovrebbe cachare la risposta della GET, chiamarla ogni x secondi e fare il diff. 
+    - Sia in sidebar che in chat
 8. FE - Definire uno stile CSS moderno
-9. BE/FE - Gestire gli stati del messaggio (vedere pdf OneNote)
 10.BE - Update top/package comment inside `cmd/webapi/main.go` to reflect the actual project usage, goal, and general info
 
 
@@ -43,3 +39,9 @@ Fatto in precedenza:
 - BE - Controlli di sicurezza: 
             + quello userID è abilitato a cancellare/ottenere/creare quella risorsa?
 -  BE/FE - Rileggere il README e assicurarsi di aver rispettato tutti i vincoli
+- FE - Aggiungere ora d'invio nei messaggi;
+- FE - Aggiunere la data all'inzio di una conversazione. Se si supera la 00:00, bisogna mostrare "Oggi" e la label precedente diventa "Ieri" e poi direttamente la data (Lunedì 27 Settembre 2025)
+- BE/FE - Gestire gli stati del messaggio (vedere pdf OneNote)
+- FE - Aggiunere gli eventi di Events nelle conversazione dei gruppi (GET /api/users/{userID}/conversations/groups/{conversationID}/messages)
+- FE - I messaggi mostrano le reazioni?
+- FE - Il front-end passa per validator prima delle chiamate REST?

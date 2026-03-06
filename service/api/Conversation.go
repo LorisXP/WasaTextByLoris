@@ -115,7 +115,7 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 				ctx.Logger.Info("conversation obtained successfully")
 
 				// Ottieni la lista dei messaggi
-				messages, errGetMess := model.GetListMessages(&conversation)
+				messages, errGetMess := model.GetListMessages(&conversation, userId)
 				ctx.Logger.Debug("Passed by GetListMessages()")
 
 				// Se hai ricevuto i messaggi
@@ -204,7 +204,7 @@ func (rt *_router) getConversationGroups(w http.ResponseWriter, r *http.Request,
 				ctx.Logger.Info("conversation obtained successfully")
 
 				// Ottieni la lista dei messaggi
-				messages, errGetMess := model.GetListMessages(&conversation)
+				messages, errGetMess := model.GetListMessages(&conversation, userId)
 				ctx.Logger.Debug("Passed by GetListMessages()")
 
 				// Se hai ricevuto i messaggi

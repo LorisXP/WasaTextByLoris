@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/LorisXP/WasaTextByLoris/service/api/entity"
+	"github.com/LorisXP/WasaTextByLoris/service/database/dml"
 )
 
 // GetConvByIDBelongUsers restituisce una conversazione tra utenti dato il conversationID
@@ -208,7 +209,7 @@ status, type, messageID. I commenti vengono aggregati separatamente.
 Join tra MessagesUser, Contents e Users (per il nome del sender).
 Per ogni messaggio, recupera anche i commenti associati dalla tabella Comments.
 */
-func GetMessagesUserList(conversationID int) ([]map[string]interface{}, error) {
+func GetMessagesUserList(conversationID int, userID int) ([]map[string]interface{}, error) {
 	// Prima recupera i messaggi
 	query := `
 		SELECT
@@ -235,6 +236,7 @@ func GetMessagesUserList(conversationID int) ([]map[string]interface{}, error) {
 
 	var messages []map[string]interface{}
 	var messageIDs []int
+	var readMessageIDs []int
 
 	for rows.Next() {
 		var msgID, senderID int
@@ -242,6 +244,13 @@ func GetMessagesUserList(conversationID int) ([]map[string]interface{}, error) {
 
 		if err := rows.Scan(&msgID, &content, &contentType, &sentAt, &senderID, &userName, &status, &msgType); err != nil {
 			return nil, fmt.Errorf("error scanning message row: %w", err)
+		}
+
+		//Se lo userID che fa richiesta dei messaggi, è diverso dal senderID, marka i messaggi come letti
+		if userID != senderID && status == "received" {
+			//Visto che l'utente sta facendo richiesta e sta per leggere i messaggi nuovi, segna che sono letti
+			status = "read"
+			readMessageIDs = append(readMessageIDs, msgID)
 		}
 
 		msg := map[string]interface{}{
@@ -265,6 +274,13 @@ func GetMessagesUserList(conversationID int) ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("error iterating message rows: %w", err)
 	}
 
+	//Se ci sono messaggi di cui aggiornare lo stato, aggiornalo!
+	if len(readMessageIDs) > 0 {
+		if err := dml.MarkMessagesAsRead(readMessageIDs); err != nil {
+			return nil, fmt.Errorf("unable to mark messages as read: %w", err)
+		}
+	}
+
 	// Ora recupera i commenti per ogni messaggio
 	for i, msgID := range messageIDs {
 		comments, err := getCommentsForUserMessage(msgID)
@@ -283,7 +299,17 @@ func GetMessagesUserList(conversationID int) ([]map[string]interface{}, error) {
 GetMessagesGroupList restituisce la lista dei messaggi di una conversazione in un gruppo.
 Stessa struttura di GetMessagesUserList ma usa MessagesGroup.
 */
-func GetMessagesGroupList(conversationID int) ([]map[string]interface{}, error) {
+func GetMessagesGroupList(conversationID int, userID int) ([]map[string]interface{}, error) {
+	// Recupera il groupID dalla conversazione
+	var groupID int
+	err := db.QueryRow(
+		"SELECT groupID FROM ConversationsGroup WHERE conversationID = ?",
+		conversationID,
+	).Scan(&groupID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find groupID for conversationID %d: %w", conversationID, err)
+	}
+
 	// Recupera i messaggi
 	query := `
 		SELECT
@@ -310,6 +336,7 @@ func GetMessagesGroupList(conversationID int) ([]map[string]interface{}, error) 
 
 	var messages []map[string]interface{}
 	var messageIDs []int
+	var readMessageIDs []int
 
 	for rows.Next() {
 		var msgID, senderID int
@@ -317,6 +344,11 @@ func GetMessagesGroupList(conversationID int) ([]map[string]interface{}, error) 
 
 		if err := rows.Scan(&msgID, &content, &contentType, &sentAt, &senderID, &userName, &status, &msgType); err != nil {
 			return nil, fmt.Errorf("error scanning group message row: %w", err)
+		}
+
+		// Se lo userID che fa richiesta è diverso dal senderID, traccia la lettura
+		if userID != senderID && status == "received" {
+			readMessageIDs = append(readMessageIDs, msgID)
 		}
 
 		msg := map[string]interface{}{
@@ -338,6 +370,28 @@ func GetMessagesGroupList(conversationID int) ([]map[string]interface{}, error) 
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating group message rows: %w", err)
+	}
+
+	// Se ci sono messaggi di cui tracciare la lettura, registra e aggiorna!
+	if len(readMessageIDs) > 0 {
+		if err := dml.MarkGroupMessagesAsReadByUser(readMessageIDs, userID, groupID); err != nil {
+			return nil, fmt.Errorf("unable to mark group messages as read: %w", err)
+		}
+	}
+
+	// Aggiorna lo status nei messaggi in memoria dopo l'eventuale update su DB
+	for i := range messages {
+		if messages[i]["status"] == "received" {
+			// Rileggi lo status aggiornato dal DB
+			var updatedStatus string
+			msgID := messages[i]["messageID"].(int)
+			errStatus := db.QueryRow(
+				"SELECT status FROM MessagesGroup WHERE messageID = ?", msgID,
+			).Scan(&updatedStatus)
+			if errStatus == nil {
+				messages[i]["status"] = updatedStatus
+			}
+		}
 	}
 
 	// Recupera i commenti per ogni messaggio di gruppo

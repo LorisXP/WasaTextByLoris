@@ -56,6 +56,9 @@ export default {
 			// ── Uscita / Eliminazione ───────────────────────────────────────
 			leaving: false,
 			leaveError: null,
+
+			// ── Validazione ────────────────────────────────────────────────
+			validationError: { visible: false, title: "Input non valido", description: "" },
 		};
 	},
 
@@ -151,8 +154,9 @@ export default {
 		 */
 		async saveName() {
 			const trimmed = this.editedName.trim();
-			if (trimmed.length < 3 || trimmed.length > 15) {
-				this.nameError = "Il nome deve essere tra 3 e 15 caratteri";
+			const vName = this.$validator(trimmed, null, 3, 15, "string");
+			if (!vName.success) {
+				this.showValidationError("Il nome del gruppo deve essere tra 3 e 15 caratteri.");
 				return;
 			}
 			this.savingName = true;
@@ -251,6 +255,12 @@ export default {
 		 */
 		async searchUsers(query) {
 			this.searchError = null;
+			const vQuery = this.$validator(query, /^[a-z]+[0-9]*$/, 3, 15, "string");
+			if (!vQuery.success) {
+				this.showValidationError("Il nome utente deve essere di 3-15 caratteri, lettere minuscole seguite da numeri opzionali (es. mario42).");
+				this.searching = false;
+				return;
+			}
 			try {
 				const res = await axios.get(
 					`/api/users/${this.myUserID}/other/${encodeURIComponent(query)}`
@@ -378,6 +388,11 @@ export default {
 			this.leaving = false;
 			this.leaveError = null;
 			clearTimeout(this._searchTimer);
+		},
+
+		/** Mostra la modale di errore di validazione */
+		showValidationError(description) {
+			this.validationError = { visible: true, title: "Input non valido", description };
 		},
 
 		/** Restituisce la sorgente base64 della foto di un membro */
@@ -750,6 +765,14 @@ export default {
 			</div>
 		</div>
 	</Teleport>
+
+	<!-- Modale errore di validazione -->
+	<ModalDangerGeneric
+		:visible="validationError.visible"
+		:title="validationError.title"
+		:description="validationError.description"
+		@close="validationError.visible = false"
+	/>
 </template>
 
 <style scoped>

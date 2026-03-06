@@ -43,7 +43,8 @@ export default {
 			// ── Stato submit ───────────────────────────────────────────────────
 			submitting: false,
 			submitError: null,
-		};
+			// ── Validazione ──────────────────────────────────────────────────────
+			validationError: { visible: false, title: "Input non valido", description: "" },		};
 	},
 
 	computed: {
@@ -107,6 +108,11 @@ export default {
 				clearTimeout(this._searchTimer);
 				this._searchTimer = null;
 			}
+		},
+
+		/** Mostra la modale di errore di validazione */
+		showValidationError(description) {
+			this.validationError = { visible: true, title: "Input non valido", description };
 		},
 
 		// ── FOTO GRUPPO ───────────────────────────────────────────────────────
@@ -199,6 +205,12 @@ export default {
 		 * GET /api/users/{userID}/other/{userName}
 		 */
 		async doSearch(query) {
+			const vQuery = this.$validator(query, /^[a-z]+[0-9]*$/, 3, 15, "string");
+			if (!vQuery.success) {
+				this.showValidationError("Il nome utente deve essere di 3-15 caratteri, lettere minuscole seguite da numeri opzionali (es. mario42).");
+				this.searching = false;
+				return;
+			}
 			try {
 				const response = await axios.get(
 					`/api/users/${this.myUserID}/other/${encodeURIComponent(query)}`
@@ -271,6 +283,23 @@ export default {
 		 */
 		async submit() {
 			if (!this.canSubmit) return;
+
+			// Validazione nome gruppo
+			const vName = this.$validator(this.groupName.trim(), null, 3, 15, "string");
+			if (!vName.success) {
+				this.showValidationError("Il nome del gruppo deve essere tra 3 e 15 caratteri.");
+				return;
+			}
+
+			// Validazione foto (se presente)
+			if (this.groupPhoto) {
+				const vPhoto = this.$validator(this.groupPhoto, /^[A-Za-z0-9+/=]+$/, 0, 13981013, "string");
+				if (!vPhoto.success) {
+					this.showValidationError("La foto del gruppo non è valida o supera la dimensione massima consentita (≈ 10 MB).");
+					return;
+				}
+			}
+
 			this.submitting = true;
 			this.submitError = null;
 
@@ -745,6 +774,14 @@ export default {
 			</div>
 		</div>
 	</Teleport>
+
+	<!-- Modale errore di validazione -->
+	<ModalDangerGeneric
+		:visible="validationError.visible"
+		:title="validationError.title"
+		:description="validationError.description"
+		@close="validationError.visible = false"
+	/>
 </template>
 
 <style scoped>

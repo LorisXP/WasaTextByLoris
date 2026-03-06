@@ -152,7 +152,7 @@ Return a list of messages of specific conversation (belonging users or group)
 	  ]
 	}
 */
-func GetListMessages(conversation *entity.Conversation) (map[string]interface{}, error) {
+func GetListMessages(conversation *entity.Conversation, userMadeRequest int) (map[string]interface{}, error) {
 	logrus.Debug("Entered in GetListMessages()")
 	logrus.Info("Getting list of messages")
 
@@ -170,7 +170,7 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 		// content, content_type, sent_at, senderID, userNameSenderID,
 		// status, type, comment (content, senderID, userNameSenderID, commentID),
 		// messageID, replyToMessageID
-		messagesList, err = queries.GetMessagesUserList(conversation.ConversationID)
+		messagesList, err = queries.GetMessagesUserList(conversation.ConversationID, userMadeRequest)
 		logrus.Debug("Passed by GetMessagesUserList()")
 
 	} else {
@@ -181,7 +181,7 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 		// content, content_type, sent_at, senderID, userNameSenderID,
 		// status, type, comment (content, senderID, userNameSenderID, commentID),
 		// messageID, replyToMessageID
-		messagesList, err = queries.GetMessagesGroupList(conversation.ConversationID)
+		messagesList, err = queries.GetMessagesGroupList(conversation.ConversationID, userMadeRequest)
 		logrus.Debug("Passed by GetMessagesGroupList()")
 	}
 
@@ -220,13 +220,14 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 
 			// Crea il messaggio formattato
 			formattedMsg := map[string]interface{}{
-				"content":   msg["content"],
-				"timestamp": msg["sent_at"],
-				"sender":    sender,
-				"status":    msg["status"],
-				"type":      msg["type"],
-				"comments":  comments,
-				"messageID": msg["messageID"],
+				"content":      msg["content"],
+				"content_type": msg["content_type"],
+				"timestamp":    msg["sent_at"],
+				"sender":       sender,
+				"status":       msg["status"],
+				"type":         msg["type"],
+				"comments":     comments,
+				"messageID":    msg["messageID"],
 			}
 
 			// Aggiungi replyToMessageID solo se presente
@@ -257,6 +258,23 @@ func GetListMessages(conversation *entity.Conversation) (map[string]interface{},
 	} else {
 		outErr = fmt.Errorf("error during obtaining messages by conversationID %d: %w", conversation.ConversationID, err)
 		logrus.Error(outErr)
+	}
+
+	// Per le conversazioni di gruppo, aggiungi gli eventi del gruppo
+	if outErr == nil && !conversation.Between_users {
+		events, errEvents := GetEventsByGroupID(conversation.Receiver)
+		logrus.Debug("Passed by GetEventsByGroupID()")
+
+		if errEvents == nil {
+			if events == nil {
+				events = []map[string]interface{}{}
+			}
+			result["events"] = events
+			logrus.Infof("Events for groupID %d added to result", conversation.Receiver)
+		} else {
+			outErr = fmt.Errorf("error during obtaining events for groupID %d: %w", conversation.Receiver, errEvents)
+			logrus.Error(outErr)
+		}
 	}
 
 	return result, outErr

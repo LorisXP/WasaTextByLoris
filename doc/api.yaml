@@ -626,7 +626,7 @@ paths:
             application/json:
               schema:
                 type: object
-                description: Response containing the list of messages in the group conversation
+                description: Response containing the list of messages and events in the group conversation
                 properties:
                   messages:
                     description: List of messages.
@@ -635,6 +635,13 @@ paths:
                     maxItems: 10000
                     items:
                       $ref: "#/components/schemas/Message"
+                  events:
+                    description: List of group events (kick, leave, entered).
+                    type: array
+                    minItems: 0
+                    maxItems: 10000
+                    items:
+                      $ref: "#/components/schemas/Event"
         "404":
           description: Conversation or user not found
         "401":
@@ -1152,6 +1159,33 @@ components:
           $ref: "#/components/schemas/userName"
         photo:
           $ref: "#/components/schemas/Photo"
+
+    Event:
+      title: Event
+      description: Represents a group event (kick, leave, entered).
+      type: object
+      properties:
+        actor:
+          type: string
+          description: userName of the user involved in the event.
+          example: loris2155519
+          minLength: 3
+          maxLength: 15
+          pattern: "^.*?$"
+        action:
+          type: string
+          description: Type of event.
+          enum:
+            - kick
+            - leave
+            - entered
+          example: leave
+          pattern: "^(kick|leave|entered)$"
+        timestamp:
+          type: string
+          format: date-time
+          description: Datetime of the event.
+          example: "2025-10-25T17:40:11Z"
 
     Photo:
       description: encoded image data
