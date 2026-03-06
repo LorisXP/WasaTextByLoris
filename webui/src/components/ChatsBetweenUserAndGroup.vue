@@ -35,6 +35,7 @@ export default {
 	data() {
 		return {
 			messages: [],
+			events: [],   // eventi di gruppo (kick, leave, entered)
 			loading: false,
 			errormsg: null,
 			sendError: null,
@@ -54,6 +55,9 @@ export default {
 
 			// Stato del pannello di modifica gruppo
 			showGroupEdit: false,
+
+			// Validazione input
+			validationError: { visible: false, title: "Input non valido", description: "" },
 		};
 	},
 
@@ -85,15 +89,21 @@ export default {
 		 * Ogni elemento e { type: 'separator', label } oppure { type: 'message', data: msg }.
 		 */
 		messagesWithDateSeparators() {
+			// Costruisce una timeline unificata di messaggi ed eventi, ordinata per timestamp.
+			const timeline = [
+				...this.messages.map(m => ({ type: 'message', data: m, ts: m.timestamp || '' })),
+				...this.events.map(e => ({ type: 'event',   data: e, ts: e.timestamp || '' })),
+			].sort((a, b) => a.ts.localeCompare(b.ts));
+
 			const result = [];
 			let lastDateKey = null;
-			for (const msg of this.messages) {
-				const dateKey = msg.timestamp ? msg.timestamp.slice(0, 10) : null;
+			for (const item of timeline) {
+				const dateKey = item.ts ? item.ts.slice(0, 10) : null;
 				if (dateKey && dateKey !== lastDateKey) {
-					result.push({ type: 'separator', label: this.formatDateLabel(msg.timestamp) });
+					result.push({ type: 'separator', label: this.formatDateLabel(item.ts) });
 					lastDateKey = dateKey;
 				}
-				result.push({ type: 'message', data: msg });
+				result.push(item);
 			}
 			return result;
 		},
@@ -115,6 +125,7 @@ export default {
 				);
 				if (response.status === 200) {
 					this.messages = response.data.messages || [];
+					this.events   = response.data.events   || [];
 					this.$nextTick(() => this.scrollToBottom());
 				} else {
 					this.errormsg = "Impossibile caricare i messaggi";
@@ -150,10 +161,19 @@ export default {
 					content_type = "text";
 				}
 
-				const response = await axios.post(
-					`/api/users/${this.myUserID}/conversations/groups/${this.conversationID}/messages`,
-					{ content, content_type }
+			// Validazione contenuto messaggio
+			const isMedia = content_type === "photo" || content_type === "gif";
+			const vContent = isMedia
+				? this.$validator(content, /^[A-Za-z0-9+/=]+$/, 0, 13981013, "string")
+				: this.$validator(content, null, 1, 4095, "string");
+			if (!vContent.success) {
+				this.showValidationError(
+					isMedia
+						? "Il file allegato non è valido o supera la dimensione massima consentita (≈ 10 MB)."
+						: "Il messaggio deve contenere tra 1 e 4095 caratteri."
 				);
+				return;
+			}
 
 				if (response.status === 201) {
 					this.newMessageText = "";
@@ -215,6 +235,11 @@ export default {
 			this.attachedFilePreview = null;
 		},
 
+		/** Mostra la modale di errore di validazione */
+		showValidationError(description) {
+			this.validationError = { visible: true, title: "Input non valido", description };
+		},
+
 		// --- UTILITY ---
 
 		/** Converte un File in stringa base64 pura (senza prefisso data URI) */
@@ -262,8 +287,7 @@ export default {
 
 		/**
 		 * Restituisce l'etichetta della data per il separatore:
-		 * "Oggi", "Ieri", oppure la data completa in italiano
-		 * (es. "lunedi 27 settembre 2025").
+		 * "Oggi", "Ieri", oppure la data completa in italiano.
 		 */
 		formatDateLabel(timestamp) {
 			if (!timestamp) return "";
@@ -280,6 +304,48 @@ export default {
 				month: "long",
 				year: "numeric",
 			});
+		},
+
+		/**
+		 * Restituisce il testo leggibile per un evento di gruppo.
+		 * action: 'kick' | 'leave' | 'entered'
+		 */
+		formatEventLabel(event) {
+			const actor = event.actor || "Qualcuno";
+			switch (event.action) {
+				case "entered": return `${actor} e entrato nel gruppo`;
+				case "leave":   return `${actor} ha lasciato il gruppo`;
+				case "kick":    return `${actor} e stato rimosso dal gruppo`;
+				default:        return `${actor}: ${event.action}`;
+			}
+		},
+
+		/**
+		 * Restituisce una emoji rappresentativa per il tipo di evento.
+		 */
+		eventIcon(action) {
+			switch (action) {
+				case "entered": return "➕";
+				case "leave":   return "🚪";
+				case "kick":    return "🚫";
+				default:        return "ℹ️";
+			}
+		},
+
+		/**
+		 * Raggruppa le reazioni per emoji e restituisce un array
+		 * { emoji, count } ordinato per frequenza decrescente.
+		 */
+		groupedReactions(comments) {
+			if (!comments || comments.length === 0) return [];
+			const map = {};
+			for (const c of comments) {
+				const emoji = c.content;
+				map[emoji] = (map[emoji] || 0) + 1;
+			}
+			return Object.entries(map)
+				.map(([emoji, count]) => ({ emoji, count }))
+				.sort((a, b) => b.count - a.count);
 		},
 
 		/** Gestisce l'invio con tasto Enter (Shift+Enter per andare a capo) */
@@ -461,7 +527,11 @@ export default {
 
 				<template
 					v-for="item in messagesWithDateSeparators"
-					:key="item.type === 'separator' ? 'sep-' + item.label : 'msg-' + item.data.messageID"
+					:key="
+						item.type === 'separator' ? 'sep-' + item.label
+						: item.type === 'event'   ? 'evt-' + item.data.timestamp + '-' + item.data.actor
+						:                          'msg-' + item.data.messageID
+					"
 				>
 					<!-- Separatore data (pill centrata stile WhatsApp) -->
 					<div v-if="item.type === 'separator'" class="d-flex justify-content-center my-3">
@@ -470,6 +540,20 @@ export default {
 							style="font-size: 0.72rem; font-weight: 500"
 						>
 							{{ item.label }}
+						</span>
+					</div>
+
+					<!-- Evento di gruppo (kick / leave / entered) -->
+					<div
+						v-else-if="item.type === 'event'"
+						class="d-flex justify-content-center my-2"
+					>
+						<span
+							class="badge rounded-pill bg-body-tertiary text-body-secondary border px-3 py-1"
+							style="font-size: 0.72rem; font-weight: 400; max-width: 85%; white-space: normal; text-align: center"
+						>
+							{{ eventIcon(item.data.action) }}
+							{{ formatEventLabel(item.data) }}
 						</span>
 					</div>
 
@@ -536,6 +620,36 @@ export default {
 								>
 									{{ formatTime(item.data.timestamp) }}
 								</div>
+							</div>
+
+							<!-- Strip reazioni -->
+							<div
+								v-if="item.data.comments && item.data.comments.length > 0"
+								class="reactions-strip d-flex align-items-center flex-wrap gap-1 mt-1"
+							>
+								<!-- Emoji raggruppate -->
+								<span
+									v-for="r in groupedReactions(item.data.comments)"
+									:key="r.emoji"
+									class="reaction-pill d-inline-flex align-items-center gap-1 rounded-pill border bg-body shadow-sm px-2"
+									style="font-size: 1rem; padding-top: 2px; padding-bottom: 2px; cursor: default"
+									:title="r.count + ' reazion' + (r.count === 1 ? 'e' : 'i')"
+								>
+									{{ r.emoji }}
+									<span
+										v-if="r.count > 1"
+										class="text-body-secondary"
+										style="font-size: 0.68rem"
+									>{{ r.count }}</span>
+								</span>
+								<!-- Totale reazioni -->
+								<span
+									v-if="item.data.comments.length > 1"
+									class="text-body-secondary"
+									style="font-size: 0.72rem; font-weight: 600"
+								>
+									{{ item.data.comments.length }}
+								</span>
 							</div>
 						</div>
 					</div>
@@ -699,6 +813,14 @@ export default {
 		@close="showGroupEdit = false"
 		@group-updated="loadMessages"
 		@group-left="$emit('group-left')"
+	/>
+
+	<!-- Modale errore di validazione -->
+	<ModalDangerGeneric
+		:visible="validationError.visible"
+		:title="validationError.title"
+		:description="validationError.description"
+		@close="validationError.visible = false"
 	/>
 </template>
 

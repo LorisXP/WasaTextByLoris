@@ -68,6 +68,7 @@ export default {
 			busy: false,
 			actionError: null,
 			emojiList: COMMON_EMOJIS,
+			validationError: { visible: false, title: "Input non valido", description: "" },
 		};
 	},
 
@@ -97,6 +98,11 @@ export default {
 			this.showEmojiPicker = false;
 			this.actionError = null;
 			this.$emit("close");
+		},
+
+		/** Mostra la modale di errore di validazione */
+		showValidationError(description) {
+			this.validationError = { visible: true, title: "Input non valido", description };
 		},
 
 		// ─ AZIONI ─
@@ -167,6 +173,12 @@ export default {
 		 */
 		async sendReaction(emoji) {
 			if (!this.msg) return;
+			// Validazione emoji (reaction)
+			const vEmoji = this.$validator(emoji, null, 1, 4, "string");
+			if (!vEmoji.success) {
+				this.showValidationError("La reazione deve essere un'emoji valida (1-4 caratteri).");
+				return;
+			}
 			this.busy = true;
 			this.actionError = null;
 			try {
@@ -364,6 +376,14 @@ export default {
 			</div>
 		</div>
 	</Teleport>
+
+	<!-- Modale errore di validazione -->
+	<ModalDangerGeneric
+		:visible="validationError.visible"
+		:title="validationError.title"
+		:description="validationError.description"
+		@close="validationError.visible = false"
+	/>
 </template>
 
 <style scoped>
