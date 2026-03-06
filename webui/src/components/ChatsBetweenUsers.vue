@@ -61,6 +61,24 @@
 			cannotSend() {
 				return this.sending || (!this.newMessageText.trim() && !this.attachedFile);
 			},
+
+			/**
+			 * Restituisce la lista dei messaggi arricchita con separatori di data.
+			 * Ogni elemento e { type: 'separator', label } oppure { type: 'message', data: msg }.
+			 */
+			messagesWithDateSeparators() {
+				const result = [];
+				let lastDateKey = null;
+				for (const msg of this.messages) {
+					const dateKey = msg.timestamp ? msg.timestamp.slice(0, 10) : null;
+					if (dateKey && dateKey !== lastDateKey) {
+						result.push({ type: 'separator', label: this.formatDateLabel(msg.timestamp) });
+						lastDateKey = dateKey;
+					}
+					result.push({ type: 'message', data: msg });
+				}
+				return result;
+			},
 		},
 
 		methods: {
@@ -224,6 +242,28 @@
 				});
 			},
 
+			/**
+			 * Restituisce l'etichetta della data per il separatore:
+			 * "Oggi", "Ieri", oppure la data completa in italiano
+			 * (es. "lunedi 27 settembre 2025").
+			 */
+			formatDateLabel(timestamp) {
+				if (!timestamp) return "";
+				const date = new Date(timestamp);
+				const now = new Date();
+				const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+				const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+				const diffDays = Math.round((today - msgDay) / (1000 * 60 * 60 * 24));
+				if (diffDays === 0) return "Oggi";
+				if (diffDays === 1) return "Ieri";
+				return date.toLocaleDateString("it-IT", {
+					weekday: "long",
+					day: "numeric",
+					month: "long",
+					year: "numeric",
+				});
+			},
+
 			/** Gestisce invio con tasto Enter (Shift+Enter per a capo) */
 			onTextKeydown(event) {
 				if (event.key === "Enter" && !event.shiftKey) {
@@ -372,56 +412,71 @@
 					<p class="mb-0 small">Nessun messaggio. Inizia la conversazione!</p>
 				</div>
 
-				<div
-					v-for="msg in messages"
-					:key="msg.messageID"
-					class="d-flex mb-2"
-					:class="isSentByMe(msg) ? 'justify-content-end' : 'justify-content-start'"
+				<template
+					v-for="item in messagesWithDateSeparators"
+					:key="item.type === 'separator' ? 'sep-' + item.label : 'msg-' + item.data.messageID"
 				>
-					<div
-						class="message-bubble px-3 py-2 rounded-3 shadow-sm"
-						:class="
-							isSentByMe(msg)
-								? 'bg-primary text-white'
-								: 'bg-body-secondary text-body'
-						"
-						style="max-width: 70%; word-break: break-word"
-						@contextmenu.prevent="openMenu($event, msg)"
-					>
-						<!-- Contenuto testuale -->
-						<template v-if="msg.content_type === 'text'">
-							<span>{{ msg.content }}</span>
-						</template>
-
-						<!-- Contenuto foto -->
-						<template v-else-if="msg.content_type === 'photo'">
-							<img
-								:src="'data:image/jpeg;base64,' + msg.content"
-								alt="Foto"
-								class="rounded-2 d-block"
-								style="max-width: 220px; max-height: 220px; object-fit: cover"
-							/>
-						</template>
-
-						<!-- Contenuto GIF -->
-						<template v-else-if="msg.content_type === 'gif'">
-							<img
-								:src="'data:image/gif;base64,' + msg.content"
-								alt="GIF"
-								class="rounded-2 d-block"
-								style="max-width: 220px; max-height: 220px"
-							/>
-						</template>
-
-						<!-- Timestamp -->
-						<div
-							class="mt-1"
-							style="font-size: 0.68rem; opacity: 0.72; text-align: right"
+					<!-- Separatore data (pill centrata stile WhatsApp) -->
+					<div v-if="item.type === 'separator'" class="d-flex justify-content-center my-3">
+						<span
+							class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1"
+							style="font-size: 0.72rem; font-weight: 500"
 						>
-							{{ formatTime(msg.timestamp) }}
+							{{ item.label }}
+						</span>
+					</div>
+
+					<!-- Messaggio -->
+					<div
+						v-else
+						class="d-flex mb-2"
+						:class="isSentByMe(item.data) ? 'justify-content-end' : 'justify-content-start'"
+					>
+						<div
+							class="message-bubble px-3 py-2 rounded-3 shadow-sm"
+							:class="
+								isSentByMe(item.data)
+									? 'bg-primary text-white'
+									: 'bg-body-secondary text-body'
+							"
+							style="max-width: 70%; word-break: break-word"
+							@contextmenu.prevent="openMenu($event, item.data)"
+						>
+							<!-- Contenuto testuale -->
+							<template v-if="item.data.content_type === 'text'">
+								<span>{{ item.data.content }}</span>
+							</template>
+
+							<!-- Contenuto foto -->
+							<template v-else-if="item.data.content_type === 'photo'">
+								<img
+									:src="'data:image/jpeg;base64,' + item.data.content"
+									alt="Foto"
+									class="rounded-2 d-block"
+									style="max-width: 220px; max-height: 220px; object-fit: cover"
+								/>
+							</template>
+
+							<!-- Contenuto GIF -->
+							<template v-else-if="item.data.content_type === 'gif'">
+								<img
+									:src="'data:image/gif;base64,' + item.data.content"
+									alt="GIF"
+									class="rounded-2 d-block"
+									style="max-width: 220px; max-height: 220px"
+								/>
+							</template>
+
+							<!-- Timestamp -->
+							<div
+								class="mt-1"
+								style="font-size: 0.68rem; opacity: 0.72; text-align: right"
+							>
+								{{ formatTime(item.data.timestamp) }}
+							</div>
 						</div>
 					</div>
-				</div>
+				</template>
 			</template>
 		</div>
 
