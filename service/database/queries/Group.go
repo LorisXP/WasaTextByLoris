@@ -79,3 +79,38 @@ func GetGroupMembers(groupID int) ([]entity.User, error) {
 
 	return members, nil
 }
+
+// GetEventsByGroupID restituisce la lista degli eventi di un gruppo, con il nome dell'attore
+func GetEventsByGroupID(groupID int) ([]map[string]interface{}, error) {
+	rows, err := db.Query(
+		`SELECT u.name, e.type, e.dt_event
+		 FROM Events e
+		 JOIN Users u ON e.user = u.userID
+		 WHERE e.groupID = ?
+		 ORDER BY e.dt_event ASC`,
+		groupID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get events for groupID %d: %w", groupID, err)
+	}
+	defer rows.Close()
+
+	var events []map[string]interface{}
+	for rows.Next() {
+		var actor, action, timestamp string
+		if err := rows.Scan(&actor, &action, &timestamp); err != nil {
+			return nil, fmt.Errorf("error scanning event row for groupID %d: %w", groupID, err)
+		}
+		events = append(events, map[string]interface{}{
+			"actor":     actor,
+			"action":    action,
+			"timestamp": timestamp,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating events for groupID %d: %w", groupID, err)
+	}
+
+	return events, nil
+}
