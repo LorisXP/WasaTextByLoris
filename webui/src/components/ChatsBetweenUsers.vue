@@ -1,9 +1,14 @@
 <script>
 	import auth from "../services/auth.js";
 	import axios from "../services/axios.js";
+	import ModalDangerGeneric from "./ModalDangerGeneric.vue";
 
 	export default {
 		name: "ChatsBetweenUsers",
+
+		components: {
+			ModalDangerGeneric,
+		},
 
 		props: {
 			/** ID della conversazione (int), passato dal componente padre */
@@ -31,13 +36,19 @@
 				sendError: null,
 				sending: false,
 
-				// Composizione nuovo messaggio
+					// Composizione nuovo messaggio
 				newMessageText: "",
 				attachedFile: null,       // File object scelto dall'utente
 				attachedFileType: null,   // "photo" | "gif"
 				attachedFilePreview: null,// data URL per anteprima
 
-				// Validazione input
+				// Menu contestuale
+				menuVisible: false,
+				menuX: 0,
+				menuY: 0,
+				menuMsg: null,
+
+					// Validazione input
 				validationError: { visible: false, title: "Input non valido", description: "" },
 			};
 		},
@@ -150,6 +161,11 @@
 					return;
 				}
 
+					const response = await axios.post(
+						`/api/users/${this.myUserID}/conversations/users/${this.conversationID}/messages`,
+						{ content, content_type }
+					);
+
 					if (response.status === 201) {
 						// Reset del campo di input
 						this.newMessageText = "";
@@ -242,12 +258,11 @@
 
 			/**
 			 * Restituisce true se il messaggio appartiene all'utente autenticato,
-			 * confrontando la prop otherUserName con il sender (il sender siamo noi
-			 * se il sender NON è l'interlocutore).
+			 * confrontando il sender.userName con lo userName dell'utente loggato.
 			 */
 			isSentByMe(msg) {
 				if (!msg.sender) return false;
-				return msg.sender.userName !== this.otherUserName;
+				return msg.sender.userName === auth.state.userName;
 			},
 
 			/** Formatta timestamp in ora HH:MM */
@@ -349,15 +364,73 @@
 			this.menuMsg = null;
 			this.loadMessages();
 		},
-			/** Ricarica i messaggi se cambia la conversazione */
-			conversationID() {
-				this.messages = [];
-				this.clearAttachment();
-				this.newMessageText = "";
-				this.loadMessages();
-			},
+
+		// ─ POLLING ─
+
+		/** Avvia il polling silenzioso dei messaggi ogni 3 secondi. */
+		startPolling() {
+			this.stopPolling();
+			this.pollTimerID = setInterval(() => this.pollMessages(), 3000);
 		},
-	};
+
+		/** Ferma il polling. */
+		stopPolling() {
+			if (this.pollTimerID !== null) {
+				clearInterval(this.pollTimerID);
+				this.pollTimerID = null;
+			}
+		},
+
+		/**
+		 * Fetch silenzioso: aggiorna la lista solo se sono arrivati nuovi
+		 * messaggi, senza mostrare skeleton né nessun refresh visibile.
+		 */
+		async pollMessages() {
+			if (this.loading || this.sending) return;
+			try {
+				const response = await axios.get(
+					`/api/users/${this.myUserID}/conversations/users/${this.conversationID}/messages`
+				);
+				if (response.status === 200) {
+					const fetched = response.data.messages || [];
+					const knownIDs = new Set(this.messages.map(m => m.messageID));
+					const hasNew = fetched.some(m => !knownIDs.has(m.messageID));
+					if (hasNew) {
+						this.messages = fetched;
+						this.$nextTick(() => this.scrollToBottom());
+					}
+				}
+			} catch (_e) {
+				// Errori di rete durante il polling vengono ignorati silenziosamente.
+			}
+		},
+	},
+
+	created() {
+		this.pollTimerID = null;
+	},
+
+	mounted() {
+		this.loadMessages();
+		this.startPolling();
+	},
+
+	unmounted() {
+		this.stopPolling();
+	},
+
+	watch: {
+		/** Ricarica i messaggi e riavvia il polling se cambia la conversazione. */
+		conversationID() {
+			this.stopPolling();
+			this.messages = [];
+			this.clearAttachment();
+			this.newMessageText = "";
+			this.loadMessages();
+			this.startPolling();
+		},
+	},
+};
 </script>
 
 <template>
@@ -419,7 +492,9 @@
 			</template>
 
 			<!-- Messaggio di errore caricamento -->
-			<ErrorMsg v-else-if="errormsg" :msg="errormsg" />
+			<template v-else-if="errormsg">
+				<ModalDangerGeneric :visible="true" :description="errormsg" @close="errormsg = null" />
+			</template>
 
 			<!-- Lista messaggi (dal più vecchio al più recente) -->
 			<template v-else>
@@ -449,10 +524,10 @@
 					v-for="item in messagesWithDateSeparators"
 					:key="item.type === 'separator' ? 'sep-' + item.label : 'msg-' + item.data.messageID"
 				>
-					<!-- Separatore data (pill centrata stile WhatsApp) -->
+					<!-- Separatore data (pill centrata) -->
 					<div v-if="item.type === 'separator'" class="d-flex justify-content-center my-3">
 						<span
-							class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1"
+							class="badge rounded-pill bg-secondary text-body-secondary px-3 py-1"
 							style="font-size: 0.72rem; font-weight: 500"
 						>
 							{{ item.label }}
@@ -576,7 +651,7 @@
 			</div>
 
 			<!-- Errore invio -->
-			<ErrorMsg v-if="sendError" :msg="sendError" class="mb-2" />
+			<ModalDangerGeneric :visible="!!sendError" :description="sendError || ''" @close="sendError = null" />
 
 			<div class="d-flex align-items-end gap-2">
 				<!-- Input testo (solo se non c'è un allegato) -->

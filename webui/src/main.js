@@ -10,6 +10,7 @@ import ModalCreateGroup from "./components/ModalCreateGroup.vue";
 import GroupEdit from "./components/GroupEdit.vue";
 import ModalDangerGeneric from "./components/ModalDangerGeneric.vue";
 import Sidebar from "./components/Sidebar.vue";
+import StartConversation from "./components/StartConversation.vue";
 
 
 import "./assets/dashboard.css";
@@ -23,6 +24,7 @@ app.config.globalProperties.$apiDomain =
 app.config.globalProperties.$auth = auth;
 
 app.component("Sidebar", Sidebar);
+app.component("StartConversation", StartConversation);
 app.component("MenuMessage", MenuMessage);
 app.component("ModalCreateGroup", ModalCreateGroup);
 app.component("GroupEdit", GroupEdit);

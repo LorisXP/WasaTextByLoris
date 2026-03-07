@@ -1,9 +1,16 @@
 <script>
 import auth from "../services/auth.js";
 import axios from "../services/axios.js";
+import LoadingSpinner from "./LoadingSpinner.vue";
+import ModalDangerGeneric from "./ModalDangerGeneric.vue";
 
 export default {
 	name: "Sidebar",
+
+	components: {
+		LoadingSpinner,
+		ModalDangerGeneric,
+	},
 
 	data: function () {
 		return {
@@ -12,9 +19,24 @@ export default {
 			loading: false,
 			searchQuery: "",
 
+			/** Risultati della ricerca utenti */
+			searchResults: [],
+			searchLoading: false,
+			searchError: null,
+			/** Timer per il debounce della ricerca */
+			searchDebounce: null,
+
 			/** Controlla la visibilità della modale di creazione gruppo */
 			showGroupModal: false,
-		};
+
+
+
+			/**
+			 * Mappa conversationID → true per le conversazioni con messaggi
+			 * non letti (arrivati mentre la chat non era visualizzata).
+			 */
+			newMessageConvIds: {},
+		}
 	},
 
 	computed: {
@@ -120,11 +142,63 @@ export default {
 		},
 
 		/**
-		 * Handler stub per la barra di ricerca utenti.
+		 * Ricerca utenti con debounce.
+		 * GET /api/users/{userID}/other/{userName}
 		 */
 		onSearchInput() {
-			// TODO: implementare la ricerca utenti via API
-			// GET /api/users/{userID}/other/{userName}
+			// Reset immediato dei risultati se la query è vuota
+			if (!this.searchQuery.trim()) {
+				this.searchResults = [];
+				this.searchError = null;
+				clearTimeout(this.searchDebounce);
+				return;
+			}
+
+			// Debounce 400ms
+			clearTimeout(this.searchDebounce);
+			this.searchDebounce = setTimeout(() => {
+				this.fetchUsers(this.searchQuery.trim());
+			}, 400);
+		},
+
+		/**
+		 * Chiama l'API di ricerca utenti.
+		 */
+		async fetchUsers(query) {
+			this.searchLoading = true;
+			this.searchError = null;
+			try {
+				const userID = auth.state.userID;
+				const response = await axios.get(
+					`/api/users/${userID}/other/${encodeURIComponent(query)}`
+				);
+				if (response.status === 200) {
+					this.searchResults = response.data || [];
+				} else if (response.status === 404) {
+					this.searchResults = [];
+				} else {
+					this.searchError = "Errore nella ricerca";
+				}
+			} catch (e) {
+				// 404 means no users found – not a real error
+				if (e.response && e.response.status === 404) {
+					this.searchResults = [];
+				} else {
+					this.searchError = "Errore nella ricerca utenti";
+					console.error("Errore ricerca utenti:", e);
+				}
+			} finally {
+				this.searchLoading = false;
+			}
+		},
+
+		/**
+		 * Naviga al profilo dell'utente trovato per avviare una conversazione.
+		 */
+		openUserProfile(user) {
+			const params = { userName: user.userName };
+			const query = user.photo ? { photo: user.photo } : {};
+			this.$router.push({ path: `/start/${encodeURIComponent(user.userName)}`, query });
 		},
 
 		/**
@@ -145,23 +219,152 @@ export default {
 		},
 
 		/**
-		 * Naviga alla conversazione selezionata.
+		 * Naviga alla conversazione selezionata e azzera il suo badge.
 		 */
 		openConversation(conversation) {
+			// Rimuove il badge di nuovo messaggio per questa conversazione.
+			if (this.newMessageConvIds[conversation.conversationID]) {
+				const updated = { ...this.newMessageConvIds };
+				delete updated[conversation.conversationID];
+				this.newMessageConvIds = updated;
+			}
 			if (conversation.type === "group") {
 				this.$router.push(
 					`/conversations/groups/${conversation.conversationID}`
 				);
 			} else {
-				this.$router.push(
-					`/conversations/users/${conversation.conversationID}`
-				);
+				this.$router.push({
+					path: `/conversations/users/${conversation.conversationID}`,
+					query: {
+						userName: conversation.name || '',
+						photo: conversation.photo || undefined,
+					},
+				});
+			}
+		},
+
+		// ─ POLLING CONVERSAZIONI ─
+
+		/** Avvia il polling silenzioso delle conversazioni ogni 3 secondi. */
+		startPolling() {
+			this.stopPolling();
+			this.pollTimerID = setInterval(() => this.pollConversations(), 3000);
+		},
+
+		/** Ferma il polling. */
+		stopPolling() {
+			if (this.pollTimerID !== null) {
+				clearInterval(this.pollTimerID);
+				this.pollTimerID = null;
+			}
+		},
+
+		/**
+		 * Recupera silenziosamente la lista delle conversazioni ogni 3 s.
+		 * Confronta con lo snapshot in localStorage per rilevare
+		 * nuovi messaggi nelle conversazioni non attualmente aperte.
+		 * Se ne trova, accende il badge "N" e riproduce un suono.
+		 */
+		async pollConversations() {
+			const userID = auth.state.userID;
+			if (!userID) return;
+			try {
+				const response = await axios.get(`/api/users/${userID}/conversations`);
+				if (response.status !== 200) return;
+				const freshConvs = response.data || [];
+
+				// Legge lo snapshot precedente dal localStorage.
+				const lsKey = `wasatext_convs_${userID}`;
+				let prevState = {};
+			try { prevState = JSON.parse(localStorage.getItem(lsKey) || '{}'); } catch (_e) { /* ignore */ }
+				const isFirstLoad = Object.keys(prevState).length === 0;
+
+				// ID della conversazione attualmente aperta nel pannello destro.
+				const activeID = this.$route?.params?.conversationID
+					? Number(this.$route.params.conversationID)
+					: null;
+
+				let hasNewAnywhere = false;
+				const updatedBadges = { ...this.newMessageConvIds };
+
+				if (!isFirstLoad) {
+					for (const conv of freshConvs) {
+						const prevMsgID = prevState[conv.conversationID] ?? null;
+						const currMsgID = conv.lastMessage?.messageID ?? null;
+						// Nuovo messaggio = ID cambiato, non è la conv attiva.
+						if (currMsgID !== prevMsgID && conv.conversationID !== activeID) {
+							updatedBadges[conv.conversationID] = true;
+							hasNewAnywhere = true;
+						}
+					}
+				}
+
+				// Aggiorna le conversazioni e i badge.
+				this.conversations = freshConvs;
+				this.newMessageConvIds = updatedBadges;
+
+				if (hasNewAnywhere) this.playNotificationSound();
+
+				// Salva il nuovo snapshot.
+				const newState = {};
+				for (const conv of freshConvs) {
+					newState[conv.conversationID] = conv.lastMessage?.messageID ?? null;
+				}
+				localStorage.setItem(lsKey, JSON.stringify(newState));
+			} catch (_e) {
+				// Errori di rete durante il polling vengono ignorati silenziosamente.
+			}
+		},
+
+		/**
+		 * Riproduce un breve beep di notifica tramite Web Audio API.
+		 * Non richiede file audio esterni.
+		 */
+		playNotificationSound() {
+			try {
+				const ctx = new (window.AudioContext || window.webkitAudioContext)();
+				const osc = ctx.createOscillator();
+				const gain = ctx.createGain();
+				osc.connect(gain);
+				gain.connect(ctx.destination);
+				osc.type = 'sine';
+				osc.frequency.setValueAtTime(880, ctx.currentTime);
+				gain.gain.setValueAtTime(0.25, ctx.currentTime);
+				gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+				osc.start(ctx.currentTime);
+				osc.stop(ctx.currentTime + 0.35);
+			} catch (_e) {
+				// Notifica sonora non disponibile (es. policy autoplay del browser).
 			}
 		},
 	},
 
+	created() {
+		this.pollTimerID = null;
+	},
+
 	mounted() {
 		this.loadConversations();
+		this.startPolling();
+	},
+
+	unmounted() {
+		this.stopPolling();
+	},
+
+	watch: {
+		/**
+		 * Quando la rotta cambia (es. l'utente naviga a una conversazione
+		 * via $router.push), azzera il badge per quella conversazione.
+		 */
+		'$route'(to) {
+			const id = to?.params?.conversationID ? Number(to.params.conversationID) : null;
+			if (id && this.newMessageConvIds[id]) {
+				const updated = { ...this.newMessageConvIds };
+				delete updated[id];
+				this.newMessageConvIds = updated;
+			}
+		},
 	},
 };
 </script>
@@ -219,17 +422,70 @@ export default {
 			</div>
 		</div>
 
+		<!-- Risultati ricerca utenti (visibili solo quando si sta cercando) -->
+		<div
+			v-if="searchQuery.trim()"
+			class="search-results border-bottom"
+			style="overflow-y: auto; max-height: 40vh"
+		>
+			<!-- Caricamento ricerca -->
+			<div v-if="searchLoading" class="text-center py-3 text-secondary small">
+				<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+				Ricerca in corso…
+			</div>
+
+			<!-- Errore ricerca -->
+			<div v-else-if="searchError" class="text-danger small px-3 py-2">{{ searchError }}</div>
+
+			<!-- Nessun risultato -->
+			<div
+				v-else-if="searchResults.length === 0 && !searchLoading"
+				class="text-secondary small px-3 py-3 text-center"
+			>
+				Nessun utente trovato
+			</div>
+
+			<!-- Lista utenti trovati -->
+			<a
+				v-for="user in searchResults"
+				:key="user.userName"
+				href="#"
+				class="list-group-item list-group-item-action py-2 px-3 d-flex align-items-center gap-3"
+				@click.prevent="openUserProfile(user)"
+			>
+				<!-- Avatar utente trovato -->
+				<img
+					v-if="user.photo"
+					:src="'data:image/jpeg;base64,' + user.photo"
+					:alt="user.userName"
+					class="rounded-circle flex-shrink-0"
+					width="38"
+					height="38"
+					style="object-fit: cover"
+				/>
+				<div
+					v-else
+					class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-semibold flex-shrink-0"
+					style="width: 38px; height: 38px; font-size: 1rem"
+				>
+					{{ user.userName.charAt(0).toUpperCase() }}
+				</div>
+				<!-- Username -->
+				<span class="fw-medium text-truncate">{{ user.userName }}</span>
+			</a>
+		</div>
+
 		<!-- Stato di caricamento -->
-		<div v-if="loading" class="text-center py-4 text-secondary">
+		<div v-if="loading && !searchQuery.trim()" class="text-center py-4 text-secondary">
 			<LoadingSpinner />
 		</div>
 
 		<!-- Messaggio di errore -->
-		<ErrorMsg v-if="errormsg" :msg="errormsg" class="mx-3 mt-2" />
+		<ModalDangerGeneric :visible="!!(errormsg && !searchQuery.trim())" :description="errormsg || ''" @close="errormsg = null" />
 
 		<!-- Lista delle conversazioni -->
 		<div
-			v-if="!loading"
+			v-if="!loading && !searchQuery.trim()"
 			class="list-group list-group-flush border-bottom scrollarea flex-grow-1"
 			style="overflow-y: auto"
 		>
@@ -262,6 +518,7 @@ export default {
 				:key="conv.conversationID"
 				href="#"
 				class="list-group-item list-group-item-action py-3 lh-sm"
+				:class="{ 'conv-unread': newMessageConvIds[conv.conversationID] }"
 				@click.prevent="openConversation(conv)"
 			>
 				<div class="d-flex align-items-center gap-3">
@@ -294,13 +551,22 @@ export default {
 							class="d-flex w-100 align-items-center justify-content-between"
 						>
 							<strong class="mb-1 text-truncate">{{ conv.name }}</strong>
-							<small class="text-body-secondary flex-shrink-0 ms-2">
-								{{
-									conv.lastMessage
-										? formatTimestamp(conv.lastMessage.timestamp)
-										: ""
-								}}
-							</small>
+							<div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+								<!-- Badge "N" per nuovo messaggio non letto -->
+								<span
+									v-if="newMessageConvIds[conv.conversationID]"
+									class="badge bg-success rounded-pill"
+									style="font-size:0.6rem; padding: 3px 6px"
+									aria-label="Nuovo messaggio"
+								>N</span>
+								<small class="text-body-secondary">
+									{{
+										conv.lastMessage
+											? formatTimestamp(conv.lastMessage.timestamp)
+											: ""
+									}}
+								</small>
+							</div>
 						</div>
 						<div class="col-12 mb-1 small text-body-secondary text-truncate">
 							{{ getLastMessagePreview(conv.lastMessage) }}
@@ -365,5 +631,14 @@ button.btn.rounded-circle:hover {
 /* Animazione sottile sull'elemento della lista al hover */
 .list-group-item-action {
 	transition: background-color 0.15s ease;
+}
+
+/* Evidenziazione conversazione con messaggio non letto */
+.conv-unread {
+	background-color: color-mix(in srgb, var(--bs-success) 12%, transparent) !important;
+	border-left: 3px solid var(--bs-success);
+}
+.conv-unread:hover {
+	background-color: color-mix(in srgb, var(--bs-success) 20%, transparent) !important;
 }
 </style>

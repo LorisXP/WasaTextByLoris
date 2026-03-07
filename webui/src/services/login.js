@@ -1,12 +1,12 @@
-import axios from "./services/axios.js";
-import auth from "./services/auth.js";
+import axios from "./axios.js";
+import auth from "./auth.js";
 
 
 /**
  * Effettua il login
  * @returns {Promise<string>} Un messaggio di errore, o una stringa vuota se il login è riuscito
  */
-async function doLogin(userName) {
+export default async function doLogin(userName) {
     let errormsg = "Errore durante il login";
     try {
         if (userName || typeof userName == "string") {
@@ -26,9 +26,10 @@ async function doLogin(userName) {
                 let userID = response.data.userID;
                 if (userID > 0) {
                     auth.setUserID(userID);
+                    auth.setUserName(userName);
                     // Resetta il messaggio di errore
                     errormsg = "";
-                    console.log("Authenticated, userID set", userID);
+                    console.debug("Authenticated, userID set", userID);
                 } else {
                     console.warn("Login succeeded but no userID returned");
                 }
