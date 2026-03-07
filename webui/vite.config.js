@@ -16,6 +16,7 @@ export default defineConfig(({command, mode, ssrBuild}) => {
 	ret.define = {
 		// Do not modify this constant, it is used in the evaluation.
 		"__API_URL__": JSON.stringify("http://localhost:3000"),
+		"__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": false,
 	};
 	return ret;
 })
