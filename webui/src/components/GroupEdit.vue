@@ -1,12 +1,19 @@
 <script>
 import auth from "../services/auth.js";
 import axios from "../services/axios.js";
+import ModalDangerGeneric from "./ModalDangerGeneric.vue";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 /** Millisecondi di debounce sulla ricerca utenti */
 const SEARCH_DEBOUNCE_MS = 420;
 
 export default {
 	name: "GroupEdit",
+
+	components: {
+		ModalDangerGeneric,
+		LoadingSpinner,
+	},
 
 	props: {
 		/** Controlla se il pannello è visibile */
@@ -452,7 +459,9 @@ export default {
 					</div>
 
 					<!-- Errore di caricamento -->
-					<ErrorMsg v-else-if="errormsg" :msg="errormsg" />
+					<template v-else-if="errormsg">
+						<ModalDangerGeneric :visible="true" :description="errormsg" @close="errormsg = null" />
+					</template>
 
 					<!-- Contenuto principale: due colonne -->
 					<div v-else-if="group" class="row gx-4 gy-4">
