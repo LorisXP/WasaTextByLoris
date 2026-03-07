@@ -1,9 +1,14 @@
 <script>
 import auth from "../services/auth.js";
 import axios from "../services/axios.js";
+import ModalDangerGeneric from "./ModalDangerGeneric.vue";
 
 export default {
 	name: "ChatsBetweenUserAndGroup",
+
+	components: {
+		ModalDangerGeneric,
+	},
 
 	props: {
 		/** ID della conversazione di gruppo (int), passato dal componente padre */
@@ -58,7 +63,7 @@ export default {
 
 			// Validazione input
 			validationError: { visible: false, title: "Input non valido", description: "" },
-		};
+		}
 	},
 
 	computed: {
@@ -175,6 +180,10 @@ export default {
 				return;
 			}
 
+				const response = await axios.post(
+					`/api/users/${this.myUserID}/conversations/groups/${this.conversationID}/messages`,
+					{ content, content_type }
+				);
 				if (response.status === 201) {
 					this.newMessageText = "";
 					this.clearAttachment();
@@ -313,9 +322,9 @@ export default {
 		formatEventLabel(event) {
 			const actor = event.actor || "Qualcuno";
 			switch (event.action) {
-				case "entered": return `${actor} e entrato nel gruppo`;
+				case "entered": return `${actor} è entrato nel gruppo`;
 				case "leave":   return `${actor} ha lasciato il gruppo`;
-				case "kick":    return `${actor} e stato rimosso dal gruppo`;
+				case "kick":    return `${actor} è stato rimosso dal gruppo`;
 				default:        return `${actor}: ${event.action}`;
 			}
 		},
@@ -406,19 +415,74 @@ export default {
 			this.menuMsg = null;
 			this.loadMessages();
 		},
+
+		// ─ POLLING ─
+
+		/** Avvia il polling silenzioso dei messaggi ogni 3 secondi. */
+		startPolling() {
+			this.stopPolling();
+			this.pollTimerID = setInterval(() => this.pollMessages(), 3000);
+		},
+
+		/** Ferma il polling. */
+		stopPolling() {
+			if (this.pollTimerID !== null) {
+				clearInterval(this.pollTimerID);
+				this.pollTimerID = null;
+			}
+		},
+
+		/**
+		 * Fetch silenzioso: aggiorna la lista solo se sono arrivati nuovi
+		 * messaggi o eventi, senza mostrare skeleton né nessun refresh visibile.
+		 */
+		async pollMessages() {
+			if (this.loading || this.sending) return;
+			try {
+				const response = await axios.get(
+					`/api/users/${this.myUserID}/conversations/groups/${this.conversationID}/messages`
+				);
+				if (response.status === 200) {
+					const fetchedMsgs = response.data.messages || [];
+					const fetchedEvts = response.data.events   || [];
+					const knownIDs = new Set(this.messages.map(m => m.messageID));
+					const hasNew = fetchedMsgs.some(m => !knownIDs.has(m.messageID))
+						|| fetchedEvts.length !== this.events.length;
+					if (hasNew) {
+						this.messages = fetchedMsgs;
+						this.events   = fetchedEvts;
+						this.$nextTick(() => this.scrollToBottom());
+					}
+				}
+			} catch (_e) {
+				// Errori di rete durante il polling vengono ignorati silenziosamente.
+			}
+		},
+	},
+
+	created() {
+		this.pollTimerID = null;
 	},
 
 	mounted() {
 		this.loadMessages();
+		this.startPolling();
+	},
+
+	unmounted() {
+		this.stopPolling();
 	},
 
 	watch: {
-		/** Ricarica i messaggi se cambia la conversazione */
+		/** Ricarica i messaggi e riavvia il polling se cambia la conversazione. */
 		conversationID() {
+			this.stopPolling();
 			this.messages = [];
+			this.events = [];
 			this.clearAttachment();
 			this.newMessageText = "";
 			this.loadMessages();
+			this.startPolling();
 		},
 	},
 };
@@ -502,7 +566,9 @@ export default {
 			</template>
 
 			<!-- Messaggio di errore caricamento -->
-			<ErrorMsg v-else-if="errormsg" :msg="errormsg" />
+			<template v-else-if="errormsg">
+				<ModalDangerGeneric :visible="true" :description="errormsg" @close="errormsg = null" />
+			</template>
 
 			<!-- Lista messaggi (dal piu vecchio al piu recente) -->
 			<template v-else>
@@ -536,7 +602,7 @@ export default {
 					<!-- Separatore data (pill centrata stile WhatsApp) -->
 					<div v-if="item.type === 'separator'" class="d-flex justify-content-center my-3">
 						<span
-							class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1"
+							class="badge rounded-pill bg-secondary text-body-secondary px-3 py-1"
 							style="font-size: 0.72rem; font-weight: 500"
 						>
 							{{ item.label }}
@@ -549,7 +615,7 @@ export default {
 						class="d-flex justify-content-center my-2"
 					>
 						<span
-							class="badge rounded-pill bg-body-tertiary text-body-secondary border px-3 py-1"
+							class="badge rounded-pill bg-tertiary text-body-secondary border px-3 py-1"
 							style="font-size: 0.72rem; font-weight: 400; max-width: 85%; white-space: normal; text-align: center"
 						>
 							{{ eventIcon(item.data.action) }}
@@ -683,7 +749,7 @@ export default {
 			</div>
 
 			<!-- Errore invio -->
-			<ErrorMsg v-if="sendError" :msg="sendError" class="mb-2" />
+			<ModalDangerGeneric :visible="!!sendError" :description="sendError || ''" @close="sendError = null" />
 
 			<div class="d-flex align-items-end gap-2">
 				<!-- Textarea messaggio -->
