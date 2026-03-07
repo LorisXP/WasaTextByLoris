@@ -9,13 +9,18 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 3. Si aggiorna lastMessageID della tabella ConversationUsers con il messageID restituito dal db
 
 Per la prossima volta:
-6. FE - Creare le view
-7. FE - Mostra i nuovi messaggi
-    - Dovrebbe cachare la risposta della GET, chiamarla ogni x secondi e fare il diff. 
-    - Sia in sidebar che in chat
 8. FE - Definire uno stile CSS moderno
 10.BE - Update top/package comment inside `cmd/webapi/main.go` to reflect the actual project usage, goal, and general info
-
+11. FE - Lo scorrimento della chat deve rimanere sempre in basso all'arrivo di un nuovo messaggio
+12. FE - Inserimento reazione non funziona
+13. FE - La cancellazione del messaggio non appare al destinatario
+14. FE - Testare l'inoltro
+15. FE - Aggiungere l'apertura dell'immagine al click su una nuova tabella
+16. FE - Sistemare desgin della sidebar
+17. FE - Testare interazione con il gruppo
+18. FE - Testare nuova conversazione (StartConversation)
+19. FE - Testare creazione gruppo
+20. FE - Stato ricevuto/letto, si vede?
 
 Fatto in precedenza:
 - Scrivere le query e dml per il model
@@ -45,3 +50,7 @@ Fatto in precedenza:
 - FE - Aggiunere gli eventi di Events nelle conversazione dei gruppi (GET /api/users/{userID}/conversations/groups/{conversationID}/messages)
 - FE - I messaggi mostrano le reazioni?
 - FE - Il front-end passa per validator prima delle chiamate REST?
+- FE - Creare le view
+- FE - Mostra i nuovi messaggi
+    - Dovrebbe cachare la risposta della GET, chiamarla ogni x secondi e fare il diff. 
+    - Sia in sidebar che in chat
