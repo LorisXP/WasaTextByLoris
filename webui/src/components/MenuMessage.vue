@@ -1,10 +1,12 @@
 <script>
 import auth from "../services/auth.js";
 import axios from "../services/axios.js";
+import ModalDangerGeneric from "./ModalDangerGeneric.vue";
+import ModalForwardMessage from "./ModalForwardMessage.vue";
 
 /** Emoji comuni per le reazioni rapide */
 const COMMON_EMOJIS = [
-	"👍", "❤️", "😂", "😮", "😢", "😡",
+	"👍", "😂", "😮", "😢", "😡",
 	"🎉", "🔥", "👏", "🙏", "💯", "✅",
 	"😍", "🤔", "😅", "🤣", "😎", "🥺",
 	"😊", "🫡", "🫠", "💀", "🤌", "🫶",
@@ -12,6 +14,11 @@ const COMMON_EMOJIS = [
 
 export default {
 	name: "MenuMessage",
+
+	components: {
+		ModalDangerGeneric,
+		ModalForwardMessage,
+	},
 
 	props: {
 		/** Controlla se il menu è visibile */
@@ -69,6 +76,7 @@ export default {
 			actionError: null,
 			emojiList: COMMON_EMOJIS,
 			validationError: { visible: false, title: "Input non valido", description: "" },
+			showForwardModal: false,
 		};
 	},
 
@@ -87,6 +95,13 @@ export default {
 				zIndex: 9999,
 				minWidth: "170px",
 			};
+		},
+
+		/** True se il messaggio corrente appartiene all'utente loggato */
+		isMyMessage() {
+			if (!this.msg || !this.msg.sender) return true;
+			if (auth.state.userName) return this.msg.sender.userName === auth.state.userName;
+			return false;
 		},
 	},
 
@@ -107,30 +122,17 @@ export default {
 
 		// ─ AZIONI ─
 
-		/**
-		 * Inoltra il messaggio nella stessa conversazione.
-		 * Users:  POST /api/users/{userID}/conversations/users/{conversationID}/messages/{messageID}
-		 * Groups: POST /api/users/{userID}/conversations/groups/{conversationID}/messages/{messageID}
-		 */
-		async forwardMessage() {
+		/** Apre la modale di selezione conversazione per l'inoltro. */
+		openForwardModal() {
 			if (!this.msg) return;
-			this.busy = true;
-			this.actionError = null;
-			try {
-				const url = `/api/users/${this.myUserID}/conversations/${this.conversationType}/${this.conversationID}/messages/${this.msg.messageID}`;
-				const response = await axios.post(url);
-				if (response.status === 201) {
-					this.$emit("message-forwarded");
-					this.closeMenu();
-				} else {
-					this.actionError = "Errore durante l'inoltro del messaggio.";
-				}
-			} catch (e) {
-				this.actionError = "Errore durante l'inoltro del messaggio.";
-				console.error("Errore inoltro messaggio:", e);
-			} finally {
-				this.busy = false;
-			}
+			this.showForwardModal = true;
+		},
+
+		/** Chiamato quando ModalForwardMessage conferma l'inoltro con successo. */
+		onForwarded() {
+			this.showForwardModal = false;
+			this.$emit("message-forwarded");
+			this.closeMenu();
 		},
 
 		/**
@@ -182,12 +184,7 @@ export default {
 			this.busy = true;
 			this.actionError = null;
 			try {
-				let url;
-				if (this.conversationType === "groups") {
-					url = `/api/comments/groups/${this.groupID}/messages/${this.msg.messageID}`;
-				} else {
-					url = `/api/comments/users/${this.myUserID}/messages/${this.msg.messageID}`;
-				}
+				const url = `/api/users/${this.myUserID}/conversations/${this.conversationType}/${this.conversationID}/messages/${this.msg.messageID}/comments`;
 				const response = await axios.post(url, { reaction: emoji });
 				if (response.status === 200) {
 					this.$emit("reaction-added", emoji);
@@ -210,6 +207,7 @@ export default {
 			if (newVal) {
 				this.showEmojiPicker = false;
 				this.actionError = null;
+				this.showForwardModal = false;
 			}
 		},
 	},
@@ -253,7 +251,7 @@ export default {
 						class="menu-item d-flex align-items-center gap-2 w-100 px-3 py-2 btn btn-link text-body text-decoration-none"
 						role="menuitem"
 						:disabled="busy"
-						@click="forwardMessage"
+						@click="openForwardModal"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -272,6 +270,7 @@ export default {
 					</button>
 				</li>
 
+				<template v-if="isMyMessage">
 				<li class="menu-divider" role="separator"></li>
 
 				<!-- ── Cancella ── -->
@@ -299,6 +298,7 @@ export default {
 						<span>Cancella</span>
 					</button>
 				</li>
+				</template>
 
 				<li class="menu-divider" role="separator"></li>
 
@@ -383,6 +383,16 @@ export default {
 		:title="validationError.title"
 		:description="validationError.description"
 		@close="validationError.visible = false"
+	/>
+
+	<!-- Modale selezione conversazione per l'inoltro (componente dedicato con Teleport interno) -->
+	<ModalForwardMessage
+		:visible="showForwardModal"
+		:msg="msg"
+		:conversationID="conversationID"
+		:conversationType="conversationType"
+		@close="showForwardModal = false"
+		@message-forwarded="onForwarded"
 	/>
 </template>
 

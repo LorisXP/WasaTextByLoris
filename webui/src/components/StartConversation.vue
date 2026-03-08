@@ -62,7 +62,13 @@ export default {
 				);
 				if (response.status === 201) {
 					const { conversationID } = response.data;
-					this.$router.push(`/conversations/users/${conversationID}`);
+					this.$router.push({
+						path: `/conversations/users/${conversationID}`,
+						query: {
+							userName: this.userName,
+							...(this.userPhoto ? { photo: this.userPhoto } : {}),
+						},
+					});
 				} else {
 					this.errormsg = "Impossibile creare la conversazione.";
 				}

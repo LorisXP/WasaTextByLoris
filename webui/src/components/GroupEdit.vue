@@ -297,7 +297,7 @@ export default {
 				await axios.post(
 					`/api/groups/${this.groupID}/users`,
 					{
-						userID: String(this.myUserID),
+						userID: this.myUserID,
 						userNames: [userName],
 					}
 				);

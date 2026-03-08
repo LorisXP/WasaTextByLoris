@@ -26,8 +26,9 @@ func CreateGroup(name string, photo string, admin int) (int, error) {
 		return 0, fmt.Errorf("unable to add admin %d as member of group %d: %w", admin, groupID, err)
 	}
 
-	// Registra l'evento di ingresso dell'admin
-	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'entered', ?)", groupID, admin)
+	// Registra l'evento di ingresso dell'admin (timestamp sub-secondo per evitare
+	// collisioni sulla PK (groupID, dt_event) se più utenti entrano nello stesso secondo)
+	_, err = db.Exec("INSERT INTO Events (groupID, type, user, dt_event) VALUES (?, 'entered', ?, strftime('%Y-%m-%d %H:%M:%f', 'now'))", groupID, admin)
 	if err != nil {
 		return 0, fmt.Errorf("unable to register entered event for admin %d in group %d: %w", admin, groupID, err)
 	}
@@ -58,8 +59,8 @@ func LeaveGroup(userID int, groupID int) error {
 		return fmt.Errorf("unable to delete conversation for userID %d in group %d: %w", userID, groupID, err)
 	}
 
-	// Registra l'evento di uscita
-	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'leave', ?)", groupID, userID)
+	// Registra l'evento di uscita (timestamp sub-secondo)
+	_, err = db.Exec("INSERT INTO Events (groupID, type, user, dt_event) VALUES (?, 'leave', ?, strftime('%Y-%m-%d %H:%M:%f', 'now'))", groupID, userID)
 	if err != nil {
 		return fmt.Errorf("unable to register leave event for userID %d in group %d: %w", userID, groupID, err)
 	}
@@ -76,8 +77,9 @@ func AddToGroup(adminID int, userID []int, groupID int) error {
 			return fmt.Errorf("unable to add userID %d to group %d: %w", uid, groupID, err)
 		}
 
-		// Registra l'evento di ingresso
-		_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'entered', ?)", groupID, uid)
+		// Registra l'evento di ingresso (timestamp sub-secondo per evitare
+		// collisioni sulla PK (groupID, dt_event) se più utenti entrano nello stesso secondo)
+		_, err = db.Exec("INSERT INTO Events (groupID, type, user, dt_event) VALUES (?, 'entered', ?, strftime('%Y-%m-%d %H:%M:%f', 'now'))", groupID, uid)
 		if err != nil {
 			return fmt.Errorf("unable to register entered event for userID %d in group %d: %w", uid, groupID, err)
 		}
@@ -167,8 +169,8 @@ func KickFromGroup(groupID int, adminID int, userID int) error {
 		return fmt.Errorf("unable to delete conversation for userID %d in group %d: %w", userID, groupID, err)
 	}
 
-	// Registra l'evento di kick
-	_, err = db.Exec("INSERT INTO Events (groupID, type, user) VALUES (?, 'kick', ?)", groupID, userID)
+	// Registra l'evento di kick (timestamp sub-secondo)
+	_, err = db.Exec("INSERT INTO Events (groupID, type, user, dt_event) VALUES (?, 'kick', ?, strftime('%Y-%m-%d %H:%M:%f', 'now'))", groupID, userID)
 	if err != nil {
 		return fmt.Errorf("unable to register kick event for userID %d in group %d: %w", userID, groupID, err)
 	}

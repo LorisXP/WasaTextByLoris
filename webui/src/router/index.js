@@ -51,6 +51,9 @@ const router = createRouter({
 					component: ChatsBetweenUserAndGroup,
 					props: route => ({
 						conversationID: Number(route.params.conversationID),
+						groupName: route.query.groupName || '',
+						groupPhoto: route.query.photo || null,
+						groupID: route.query.groupID ? Number(route.query.groupID) : 0,
 					}),
 				},
 			],
