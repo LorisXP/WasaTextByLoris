@@ -253,7 +253,24 @@
 			/** Scorre la lista messaggi fino all'ultimo */
 			scrollToBottom() {
 				const el = this.$refs.messagesList;
-				if (el) el.scrollTop = el.scrollHeight;
+				if (el) {
+					el.scrollTop = el.scrollHeight;
+					// Secondo scroll dopo breve ritardo per immagini caricate in ritardo
+					setTimeout(() => { el.scrollTop = el.scrollHeight; }, 150);
+				}
+			},
+
+			/** Apre un'immagine base64 in una nuova scheda del browser (Blob URL) */
+			openImageInNewTab(base64, type) {
+				const mimeType = type === 'gif' ? 'image/gif' : 'image/jpeg';
+				const byteChars = atob(base64);
+				const byteArray = new Uint8Array(byteChars.length);
+				for (let i = 0; i < byteChars.length; i++) {
+					byteArray[i] = byteChars.charCodeAt(i);
+				}
+				const blob = new Blob([byteArray], { type: mimeType });
+				const url = URL.createObjectURL(blob);
+				window.open(url, '_blank');
 			},
 
 			/**
@@ -394,10 +411,30 @@
 				if (response.status === 200) {
 					const fetched = response.data.messages || [];
 					const knownIDs = new Set(this.messages.map(m => m.messageID));
-					const hasNew = fetched.some(m => !knownIDs.has(m.messageID));
-					if (hasNew) {
+					const fetchedIDs = new Set(fetched.map(m => m.messageID));
+					const hasNew     = fetched.some(m => !knownIDs.has(m.messageID));
+					const hasDeleted = this.messages.some(m => !fetchedIDs.has(m.messageID));
+
+					// Controlla anche se lo stato di qualche messaggio è cambiato (received → read)
+					const statusChanged = fetched.some(fm => {
+						const existing = this.messages.find(m => m.messageID === fm.messageID);
+						return existing && existing.status !== fm.status;
+					});
+
+					// Controlla se le reazioni (commenti) di qualche messaggio sono cambiate
+					const reactionsChanged = fetched.some(fm => {
+						const existing = this.messages.find(m => m.messageID === fm.messageID);
+						if (!existing) return false;
+						const oldCount = (existing.comments || []).length;
+						const newCount = (fm.comments || []).length;
+						return oldCount !== newCount;
+					});
+
+					if (hasNew || hasDeleted || statusChanged || reactionsChanged) {
 						this.messages = fetched;
-						this.$nextTick(() => this.scrollToBottom());
+						if (hasNew) {
+							this.$nextTick(() => this.scrollToBottom());
+						}
 					}
 				}
 			} catch (_e) {
@@ -567,7 +604,8 @@
 										:src="'data:image/jpeg;base64,' + item.data.content"
 										alt="Foto"
 										class="rounded-2 d-block"
-										style="max-width: 220px; max-height: 220px; object-fit: cover"
+										style="max-width: 220px; max-height: 220px; object-fit: cover; cursor: pointer"
+										@click="openImageInNewTab(item.data.content, 'photo')"
 									/>
 								</template>
 
@@ -577,16 +615,19 @@
 										:src="'data:image/gif;base64,' + item.data.content"
 										alt="GIF"
 										class="rounded-2 d-block"
-										style="max-width: 220px; max-height: 220px"
+										style="max-width: 220px; max-height: 220px; cursor: pointer"
+										@click="openImageInNewTab(item.data.content, 'gif')"
 									/>
 								</template>
 
-								<!-- Timestamp -->
+								<!-- Timestamp + stato messaggio -->
 								<div
-									class="mt-1"
-									style="font-size: 0.68rem; opacity: 0.72; text-align: right"
+									class="mt-1 d-flex align-items-center justify-content-end gap-1"
+									style="font-size: 0.68rem; opacity: 0.72"
 								>
-									{{ formatTime(item.data.timestamp) }}
+									<span>{{ formatTime(item.data.timestamp) }}</span>
+								<span v-if="item.data.status === 'read'" title="Letto" style="letter-spacing: -0.15em; font-size: 0.72rem">✓✓</span>
+								<span v-else-if="item.data.status === 'received'" title="Ricevuto" style="font-size: 0.72rem">✓</span>
 								</div>
 							</div>
 
@@ -623,6 +664,8 @@
 					</div>
 				</template>
 			</template>
+
+
 		</div>
 
 		<!--  BARRA DI INVIO  -->

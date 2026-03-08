@@ -326,7 +326,7 @@ export default {
 				if (this.selectedUsers.length > 0) {
 					const userNames = this.selectedUsers.map((u) => u.userName);
 					const addPayload = {
-						userID: String(this.myUserID),
+						userID: this.myUserID,
 						userNames,
 					};
 

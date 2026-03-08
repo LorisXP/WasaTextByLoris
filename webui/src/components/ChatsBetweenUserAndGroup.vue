@@ -33,7 +33,7 @@ export default {
 		 */
 		groupID: {
 			type: Number,
-			default: null,
+			default: 0,
 		},
 	},
 
@@ -267,7 +267,24 @@ export default {
 		/** Scorre la lista messaggi fino all'ultimo */
 		scrollToBottom() {
 			const el = this.$refs.messagesList;
-			if (el) el.scrollTop = el.scrollHeight;
+			if (el) {
+				el.scrollTop = el.scrollHeight;
+				// Secondo scroll dopo breve ritardo per immagini caricate in ritardo
+				setTimeout(() => { el.scrollTop = el.scrollHeight; }, 150);
+			}
+		},
+
+		/** Apre un'immagine base64 in una nuova scheda del browser (Blob URL) */
+		openImageInNewTab(base64, type) {
+			const mimeType = type === 'gif' ? 'image/gif' : 'image/jpeg';
+			const byteChars = atob(base64);
+			const byteArray = new Uint8Array(byteChars.length);
+			for (let i = 0; i < byteChars.length; i++) {
+				byteArray[i] = byteChars.charCodeAt(i);
+			}
+			const blob = new Blob([byteArray], { type: mimeType });
+			const url = URL.createObjectURL(blob);
+			window.open(url, '_blank');
 		},
 
 		/**
@@ -445,13 +462,33 @@ export default {
 				if (response.status === 200) {
 					const fetchedMsgs = response.data.messages || [];
 					const fetchedEvts = response.data.events   || [];
-					const knownIDs = new Set(this.messages.map(m => m.messageID));
+					const knownIDs    = new Set(this.messages.map(m => m.messageID));
+					const fetchedIDs  = new Set(fetchedMsgs.map(m => m.messageID));
 					const hasNew = fetchedMsgs.some(m => !knownIDs.has(m.messageID))
 						|| fetchedEvts.length !== this.events.length;
-					if (hasNew) {
+					const hasDeleted = this.messages.some(m => !fetchedIDs.has(m.messageID));
+
+					// Controlla anche se lo stato di qualche messaggio è cambiato (received → read)
+					const statusChanged = fetchedMsgs.some(fm => {
+						const existing = this.messages.find(m => m.messageID === fm.messageID);
+						return existing && existing.status !== fm.status;
+					});
+
+					// Controlla se le reazioni (commenti) di qualche messaggio sono cambiate
+					const reactionsChanged = fetchedMsgs.some(fm => {
+						const existing = this.messages.find(m => m.messageID === fm.messageID);
+						if (!existing) return false;
+						const oldCount = (existing.comments || []).length;
+						const newCount = (fm.comments || []).length;
+						return oldCount !== newCount;
+					});
+
+					if (hasNew || hasDeleted || statusChanged || reactionsChanged) {
 						this.messages = fetchedMsgs;
 						this.events   = fetchedEvts;
-						this.$nextTick(() => this.scrollToBottom());
+						if (hasNew) {
+							this.$nextTick(() => this.scrollToBottom());
+						}
 					}
 				}
 			} catch (_e) {
@@ -573,7 +610,7 @@ export default {
 			<!-- Lista messaggi (dal piu vecchio al piu recente) -->
 			<template v-else>
 				<div
-					v-if="messages.length === 0"
+					v-if="messages.length === 0 && events.length === 0"
 					class="text-center text-secondary py-5"
 				>
 					<svg
@@ -615,8 +652,8 @@ export default {
 						class="d-flex justify-content-center my-2"
 					>
 						<span
-							class="badge rounded-pill bg-tertiary text-body-secondary border px-3 py-1"
-							style="font-size: 0.72rem; font-weight: 400; max-width: 85%; white-space: normal; text-align: center"
+							class="badge rounded-pill border bg-light text-secondary px-3 py-1"
+							style="font-size: 0.72rem; font-weight: 400; max-width: 85%; white-space: normal; text-align: center;"
 						>
 							{{ eventIcon(item.data.action) }}
 							{{ formatEventLabel(item.data) }}
@@ -665,7 +702,8 @@ export default {
 										:src="'data:image/jpeg;base64,' + item.data.content"
 										alt="Foto"
 										class="rounded-2 d-block"
-										style="max-width: 220px; max-height: 220px; object-fit: cover"
+										style="max-width: 220px; max-height: 220px; object-fit: cover; cursor: pointer"
+										@click="openImageInNewTab(item.data.content, 'photo')"
 									/>
 								</template>
 
@@ -675,16 +713,19 @@ export default {
 										:src="'data:image/gif;base64,' + item.data.content"
 										alt="GIF"
 										class="rounded-2 d-block"
-										style="max-width: 220px; max-height: 220px"
+										style="max-width: 220px; max-height: 220px; cursor: pointer"
+										@click="openImageInNewTab(item.data.content, 'gif')"
 									/>
 								</template>
 
-								<!-- Timestamp -->
+								<!-- Timestamp + stato messaggio -->
 								<div
-									class="mt-1"
-									style="font-size: 0.68rem; opacity: 0.72; text-align: right"
+									class="mt-1 d-flex align-items-center justify-content-end gap-1"
+									style="font-size: 0.68rem; opacity: 0.72"
 								>
-									{{ formatTime(item.data.timestamp) }}
+									<span>{{ formatTime(item.data.timestamp) }}</span>
+								<span v-if="item.data.status === 'read'" title="Letto" style="letter-spacing: -0.15em; font-size: 0.72rem">✓✓</span>
+								<span v-else-if="item.data.status === 'received'" title="Ricevuto" style="font-size: 0.72rem">✓</span>
 								</div>
 							</div>
 
@@ -721,6 +762,8 @@ export default {
 					</div>
 				</template>
 			</template>
+
+
 		</div>
 
 		<!-- BARRA DI INVIO -->

@@ -110,13 +110,13 @@ func CreateMessageBetweenUsersAndGroups(message entity.Message, contentID int) (
 		return 0, 0, "", fmt.Errorf("unable to get sent_at for messageID %d: %w", messageID, err)
 	}
 
-	// 4. Aggiorna lastMessageID della conversazione esistente
+	// 4. Aggiorna lastMessageID per TUTTE le conversazioni del gruppo (tutti i membri)
 	_, err = db.Exec(
-		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
-		int(messageID), message.ConversationID,
+		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE groupID = ?",
+		int(messageID), groupID,
 	)
 	if err != nil {
-		return 0, 0, "", fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", message.ConversationID, err)
+		return 0, 0, "", fmt.Errorf("unable to update lastMessageID for group %d: %w", groupID, err)
 	}
 
 	return int(messageID), groupID, sentAt, nil
@@ -434,13 +434,13 @@ func ForwardMessageBetweenUsersAndGroups(message entity.Message) (int, int, stri
 		return 0, 0, "", "", "", fmt.Errorf("unable to get sent_at for messageID %d: %w", newMessageID, err)
 	}
 
-	// 6. Aggiorna lastMessageID della conversazione
+	// 6. Aggiorna lastMessageID per TUTTE le conversazioni del gruppo (tutti i membri)
 	_, err = db.Exec(
-		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE conversationID = ?",
-		int(newMessageID), message.ConversationID,
+		"UPDATE ConversationsGroup SET lastMessageID = ? WHERE groupID = ?",
+		int(newMessageID), groupID,
 	)
 	if err != nil {
-		return 0, 0, "", "", "", fmt.Errorf("unable to update lastMessageID for group conversation %d: %w", message.ConversationID, err)
+		return 0, 0, "", "", "", fmt.Errorf("unable to update lastMessageID for group %d: %w", groupID, err)
 	}
 
 	return int(newMessageID), groupID, sentAt, content, contentType, nil

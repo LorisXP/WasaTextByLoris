@@ -77,8 +77,13 @@ export default {
 					this.errormsg = "Impossibile caricare le conversazioni";
 				}
 			} catch (e) {
-				this.errormsg = e.toString();
-				console.error("Errore nel caricamento delle conversazioni:", e);
+				// 404 = nessuna conversazione (utente appena registrato): non è un errore.
+				if (e.response && e.response.status === 404) {
+					this.conversations = [];
+				} else {
+					this.errormsg = e.toString();
+					console.error("Errore nel caricamento delle conversazioni:", e);
+				}
 			} finally {
 				this.loading = false;
 			}
@@ -148,6 +153,14 @@ export default {
 		onSearchInput() {
 			// Reset immediato dei risultati se la query è vuota
 			if (!this.searchQuery.trim()) {
+				this.searchResults = [];
+				this.searchError = null;
+				clearTimeout(this.searchDebounce);
+				return;
+			}
+
+			// Attende almeno 3 caratteri prima di avviare la ricerca
+			if (this.searchQuery.trim().length < 3) {
 				this.searchResults = [];
 				this.searchError = null;
 				clearTimeout(this.searchDebounce);
@@ -229,9 +242,14 @@ export default {
 				this.newMessageConvIds = updated;
 			}
 			if (conversation.type === "group") {
-				this.$router.push(
-					`/conversations/groups/${conversation.conversationID}`
-				);
+				this.$router.push({
+					path: `/conversations/groups/${conversation.conversationID}`,
+					query: {
+						groupName: conversation.name || '',
+						photo: conversation.photo || undefined,
+						groupID: conversation.groupID || undefined,
+					},
+				});
 			} else {
 				this.$router.push({
 					path: `/conversations/users/${conversation.conversationID}`,
@@ -311,8 +329,12 @@ export default {
 					newState[conv.conversationID] = conv.lastMessage?.messageID ?? null;
 				}
 				localStorage.setItem(lsKey, JSON.stringify(newState));
-			} catch (_e) {
-				// Errori di rete durante il polling vengono ignorati silenziosamente.
+			} catch (e) {
+				// 404 = nessuna conversazione (utente nuovo): aggiorna a lista vuota.
+				if (e.response && e.response.status === 404) {
+					this.conversations = [];
+				}
+				// Altri errori di rete durante il polling vengono ignorati silenziosamente.
 			}
 		},
 
@@ -355,9 +377,23 @@ export default {
 	watch: {
 		/**
 		 * Quando la rotta cambia (es. l'utente naviga a una conversazione
-		 * via $router.push), azzera il badge per quella conversazione.
+		 * via $router.push):
+		 * 1. Pulisce la ricerca nella sidebar;
+		 * 2. Ricarica le conversazioni (utile dopo "Inizia conversazione");
+		 * 3. Azzera il badge per la conversazione aperta.
 		 */
 		'$route'(to) {
+			// 1. Rimuove la ricerca e i risultati, così la lista conversazioni torna visibile.
+			if (this.searchQuery.trim()) {
+				this.searchQuery = "";
+				this.searchResults = [];
+				this.searchError = null;
+			}
+
+			// 2. Ricarica le conversazioni per riflettere eventuali nuove conversazioni.
+			this.loadConversations();
+
+			// 3. Azzera il badge "nuovo messaggio" per la conversazione appena aperta.
 			const id = to?.params?.conversationID ? Number(to.params.conversationID) : null;
 			if (id && this.newMessageConvIds[id]) {
 				const updated = { ...this.newMessageConvIds };

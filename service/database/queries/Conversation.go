@@ -137,6 +137,7 @@ func GetConvBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) 
 	query := `
 		SELECT
 			cg.conversationID,
+			cg.groupID,
 			g.name AS groupName,
 			g.photo AS groupPhoto,
 			mg.messageID,
@@ -160,6 +161,7 @@ func GetConvBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) 
 	conversations := []map[string]interface{}{}
 	for rows.Next() {
 		var convID int
+		var groupID int
 		var groupName string
 		var groupPhoto sql.NullString
 		var msgID sql.NullInt64
@@ -167,12 +169,13 @@ func GetConvBetweenUsersAndGroups(userID int) ([]map[string]interface{}, error) 
 		var preview sql.NullString
 		var timestamp sql.NullString
 
-		if err := rows.Scan(&convID, &groupName, &groupPhoto, &msgID, &msgType, &preview, &timestamp); err != nil {
+		if err := rows.Scan(&convID, &groupID, &groupName, &groupPhoto, &msgID, &msgType, &preview, &timestamp); err != nil {
 			return nil, fmt.Errorf("error scanning group conversation row: %w", err)
 		}
 
 		conv := map[string]interface{}{
 			"conversationID": convID,
+			"groupID":        groupID,
 			"name":           groupName,
 			"type":           "group",
 		}
@@ -310,7 +313,7 @@ func GetMessagesGroupList(conversationID int, userID int) ([]map[string]interfac
 		return nil, fmt.Errorf("unable to find groupID for conversationID %d: %w", conversationID, err)
 	}
 
-	// Recupera i messaggi
+	// Recupera i messaggi di tutto il gruppo (tutte le conversationID associate al groupID)
 	query := `
 		SELECT
 			mg.messageID,
@@ -324,11 +327,13 @@ func GetMessagesGroupList(conversationID int, userID int) ([]map[string]interfac
 		FROM MessagesGroup mg
 		JOIN Contents c ON mg.contentID = c.contentID
 		JOIN Users u ON mg.senderID = u.userID
-		WHERE mg.conversationID = ?
+		WHERE mg.conversationID IN (
+			SELECT conversationID FROM ConversationsGroup WHERE groupID = ?
+		)
 		ORDER BY mg.sent_at ASC
 	`
 
-	rows, err := db.Query(query, conversationID)
+	rows, err := db.Query(query, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to return message list between users and groups by conversationID %d: %w", conversationID, err)
 	}

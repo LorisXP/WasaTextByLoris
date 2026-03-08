@@ -166,7 +166,7 @@ func AddToGroup(group entity.Group, userName []string) error {
 	logrus.Infof("adminID %d adding users %v, in groupID %d", group.AdminID, userName, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for adminID %d adding users %v, in groupID %d", group.AdminID, userName, group.AdminID)
+	outErr := fmt.Errorf("Unable for adminID %d adding users %v, in groupID %d", group.AdminID, userName, group.GroupID)
 
 	// Bisogna prima ottenere gli userID dai nomi e poi inserirli nel gruppo
 	userID_list, err := queries.GetUsersIDByName(userName)
@@ -190,7 +190,7 @@ func AddToGroup(group entity.Group, userName []string) error {
 				logrus.Infof("adminID %d added users %v to groupID %d successfully", group.AdminID, userName, group.GroupID)
 				outErr = nil
 			} else {
-				outErr = fmt.Errorf("error during add userID list in the groupID %d: %w", group.AdminID, err)
+				outErr = fmt.Errorf("error during add userID list in the groupID %d: %w", group.GroupID, err)
 				logrus.Error(outErr)
 			}
 
