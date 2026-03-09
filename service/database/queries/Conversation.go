@@ -419,11 +419,10 @@ func getCommentsForUserMessage(messageID int) ([]interface{}, error) {
 		SELECT
 			co.commentID,
 			co.reaction,
-			mu.senderID,
+			co.senderID,
 			u.name AS userNameSenderID
 		FROM Comments co
-		JOIN MessagesUser mu ON co.messageUserID = mu.messageID
-		JOIN Users u ON mu.senderID = u.userID
+		JOIN Users u ON co.senderID = u.userID
 		WHERE co.messageUserID = ?
 	`
 
@@ -460,11 +459,10 @@ func getCommentsForGroupMessage(messageID int) ([]interface{}, error) {
 		SELECT
 			co.commentID,
 			co.reaction,
-			mg.senderID,
+			co.senderID,
 			u.name AS userNameSenderID
 		FROM Comments co
-		JOIN MessagesGroup mg ON co.messageGroupID = mg.messageID
-		JOIN Users u ON mg.senderID = u.userID
+		JOIN Users u ON co.senderID = u.userID
 		WHERE co.messageGroupID = ?
 	`
 

@@ -5,6 +5,7 @@ import HomeView from '../views/HomeView.vue'
 import StartConversation from '../components/StartConversation.vue'
 import ChatsBetweenUsers from '../components/ChatsBetweenUsers.vue'
 import ChatsBetweenUserAndGroup from '../components/ChatsBetweenUserAndGroup.vue'
+import auth from '../services/auth.js'
 
 const router = createRouter({
 	history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -60,5 +61,30 @@ const router = createRouter({
 		},
 	]
 })
+
+/**
+ * Guard globale di navigazione.
+ * - Se l'utente non è autenticato e tenta di accedere a una rotta protetta
+ *   (qualsiasi rotta al di fuori di '/'), lo reindirizza al login.
+ * - Questo gestisce anche il caso di F5 (refresh): poiché l'auth è in-memory,
+ *   dopo il refresh l'utente non risulta autenticato e viene riportato alla home.
+ * - Se l'utente è già autenticato e naviga verso '/' (login), viene reindirizzato
+ *   a '/chats' per evitare di mostrare nuovamente la schermata di login.
+ */
+router.beforeEach((to, _from, next) => {
+	if (to.path === '/') {
+		// Pagina di login: se già autenticato, salta direttamente alle chat.
+		if (auth.isAuthenticated()) {
+			next('/chats');
+		} else {
+			next();
+		}
+	} else if (!auth.isAuthenticated()) {
+		// Rotta protetta senza autenticazione: torna al login.
+		next('/');
+	} else {
+		next();
+	}
+});
 
 export default router

@@ -43,15 +43,20 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 			// Valida l'input
 			validationNameErr := model.ValidateInput(reqBody.Name, 3, 15, `^.*?$`, "string")
-			validationPhotoErr := model.ValidateInput(reqBody.Photo, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
+
+			// La foto è opzionale: validarla solo se presente
+			var validationPhotoErr error
+			if reqBody.Photo != "" {
+				validationPhotoErr = model.ValidateInput(reqBody.Photo, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
+			}
 
 			// Se il campo name inserito è valido
 			if validationNameErr == nil {
 				ctx.Logger.Info("'name' in request is valid")
 
-				// Se il campo photo inserito è valido
+				// Se il campo photo inserito è valido (o assente)
 				if validationPhotoErr == nil {
-					ctx.Logger.Info("'photo' in request is valid")
+					ctx.Logger.Info("'photo' in request is valid (or empty)")
 
 					// Crea il grupppo
 					group, errGrp := model.CreateGroup(reqBody.Name, reqBody.Photo, userId)

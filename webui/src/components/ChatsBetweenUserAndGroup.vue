@@ -913,6 +913,7 @@ export default {
 		@message-deleted="onMessageDeleted"
 		@message-forwarded="onMessageForwarded"
 		@reaction-added="onReactionAdded"
+		@reaction-removed="onReactionAdded"
 	/>
 
 	<!-- Pannello di modifica gruppo -->

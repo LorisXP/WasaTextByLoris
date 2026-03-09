@@ -7,14 +7,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Se utente esite -> restituisce userID
+// Se utente esite -> restituisce userID e photo
 // Altrimenti -> nuovo utente, nuovo userID
-func AuthUser(username string) (int, bool, error) {
+func AuthUser(username string) (int, string, bool, error) {
 	logrus.Debug("Entered in AuthUser()")
 	logrus.Infof("The user %s is authenticating now...", username)
 
 	// Imposta i default
 	var newUser bool = false
+	var photo string
 	outErr := fmt.Errorf("Unable to return userID for username %s", username)
 
 	// Fai una query di ricerca
@@ -30,6 +31,11 @@ func AuthUser(username string) (int, bool, error) {
 			logrus.Infof("%s is a new user", username)
 		} else {
 			logrus.Infof("%s authenticated successfully", username)
+			// Carica la foto profilo dell'utente esistente
+			u, errUser := queries.GetUserByID(userID)
+			if errUser == nil {
+				photo = u.Photo
+			}
 		}
 
 	} else {
@@ -38,5 +44,5 @@ func AuthUser(username string) (int, bool, error) {
 	}
 
 	// Restituisci
-	return userID, newUser, outErr
+	return userID, photo, newUser, outErr
 }

@@ -815,9 +815,8 @@
 		@message-deleted="onMessageDeleted"
 		@message-forwarded="onMessageForwarded"
 		@reaction-added="onReactionAdded"
+		@reaction-removed="onReactionAdded"
 	/>
-
-	<!-- Modale errore di validazione -->
 	<ModalDangerGeneric
 		:visible="validationError.visible"
 		:title="validationError.title"

@@ -14,10 +14,10 @@ func GetCommentByID(commentID int) (entity.Comment, error) {
 	var msgGroupID sql.NullInt64
 
 	row := db.QueryRow(
-		"SELECT commentID, messageUserID, messageGroupID, reaction FROM Comments WHERE commentID = ?",
+		"SELECT commentID, senderID, messageUserID, messageGroupID, reaction FROM Comments WHERE commentID = ?",
 		commentID,
 	)
-	err := row.Scan(&comment.CommentID, &msgUserID, &msgGroupID, &comment.Reaction)
+	err := row.Scan(&comment.CommentID, &comment.SenderID, &msgUserID, &msgGroupID, &comment.Reaction)
 	if err != nil {
 		return entity.Comment{}, fmt.Errorf("unable to return comment by id %d: %w", commentID, err)
 	}

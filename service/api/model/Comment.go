@@ -31,6 +31,7 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 
 	// Crea la struct comment da salvare nel DB
 	comment.Reaction = reaction
+	comment.SenderID = userID
 
 	// Crea l'inserimento a DB in base a se il commento del messaggio è tra utenti o utente->gruppo
 	if between_users {

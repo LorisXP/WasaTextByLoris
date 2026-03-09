@@ -3,6 +3,8 @@ import auth from "../services/auth.js";
 import axios from "../services/axios.js";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import ModalDangerGeneric from "./ModalDangerGeneric.vue";
+import ModalCreateGroup from "./ModalCreateGroup.vue";
+import ModalUserProfile from "./ModalUserProfile.vue";
 
 export default {
 	name: "Sidebar",
@@ -10,6 +12,8 @@ export default {
 	components: {
 		LoadingSpinner,
 		ModalDangerGeneric,
+		ModalCreateGroup,
+		ModalUserProfile,
 	},
 
 	data: function () {
@@ -29,17 +33,32 @@ export default {
 			/** Controlla la visibilità della modale di creazione gruppo */
 			showGroupModal: false,
 
-
-
+			/** Controlla la visibilità della modale del profilo utente */
+			showProfileModal: false,
 			/**
 			 * Mappa conversationID → true per le conversazioni con messaggi
 			 * non letti (arrivati mentre la chat non era visualizzata).
 			 */
 			newMessageConvIds: {},
+
+			/**
+			 * Flag per-sessione: diventa true dopo il primo poll riuscito.
+			 * Evita falsi badge da snapshot localStorage stale di sessioni precedenti.
+			 */
+			pollInitialized: false,
 		}
 	},
 
 	computed: {
+		/** Username dell'utente autenticato (per l'avatar nella sidebar) */
+		myUserName() {
+			return auth.state.userName;
+		},
+		/** Foto profilo dell'utente autenticato (base64 raw) */
+		myUserPhoto() {
+			return auth.state.userPhoto;
+		},
+
 		/**
 		 * Filtra le conversazioni in base alla query di ricerca (lato client).
 		 */
@@ -232,13 +251,29 @@ export default {
 		},
 
 		/**
+		 * Genera una chiave composita unica per una conversazione.
+		 * Necessario perché ConversationsUser e ConversationsGroup hanno
+		 * autoincrement separati e possono avere lo stesso conversationID numerico.
+		 * @param {object|string} conv - oggetto conversazione (con .type e .conversationID)
+		 *   oppure type ("user"|"group") quando usato come convKey(type, id)
+		 * @param {number} [id] - conversationID (solo se il primo arg è una stringa)
+		 */
+		convKey(convOrType, id) {
+			if (typeof convOrType === 'object') {
+				return `${convOrType.type}_${convOrType.conversationID}`;
+			}
+			return `${convOrType}_${id}`;
+		},
+
+		/**
 		 * Naviga alla conversazione selezionata e azzera il suo badge.
 		 */
 		openConversation(conversation) {
 			// Rimuove il badge di nuovo messaggio per questa conversazione.
-			if (this.newMessageConvIds[conversation.conversationID]) {
+			const key = this.convKey(conversation);
+			if (this.newMessageConvIds[key]) {
 				const updated = { ...this.newMessageConvIds };
-				delete updated[conversation.conversationID];
+				delete updated[key];
 				this.newMessageConvIds = updated;
 			}
 			if (conversation.type === "group") {
@@ -294,24 +329,30 @@ export default {
 				// Legge lo snapshot precedente dal localStorage.
 				const lsKey = `wasatext_convs_${userID}`;
 				let prevState = {};
-			try { prevState = JSON.parse(localStorage.getItem(lsKey) || '{}'); } catch (_e) { /* ignore */ }
+				try { prevState = JSON.parse(localStorage.getItem(lsKey) || '{}'); } catch (_e) { /* ignore */ }
 				const isFirstLoad = Object.keys(prevState).length === 0;
 
-				// ID della conversazione attualmente aperta nel pannello destro.
-				const activeID = this.$route?.params?.conversationID
-					? Number(this.$route.params.conversationID)
-					: null;
+				// Chiave composita della conversazione attualmente aperta.
+				const activeConvID = this.$route?.params?.conversationID
+					? Number(this.$route.params.conversationID) : null;
+				const activePath = this.$route?.path || '';
+				let activeKey = null;
+				if (activeConvID) {
+					const activeType = activePath.includes('/groups/') ? 'group' : 'user';
+					activeKey = `${activeType}_${activeConvID}`;
+				}
 
 				let hasNewAnywhere = false;
 				const updatedBadges = { ...this.newMessageConvIds };
 
 				if (!isFirstLoad) {
 					for (const conv of freshConvs) {
-						const prevMsgID = prevState[conv.conversationID] ?? null;
+						const key = this.convKey(conv);
 						const currMsgID = conv.lastMessage?.messageID ?? null;
+						const prevMsgID = prevState[key] ?? null;
 						// Nuovo messaggio = ID cambiato, non è la conv attiva.
-						if (currMsgID !== prevMsgID && conv.conversationID !== activeID) {
-							updatedBadges[conv.conversationID] = true;
+						if (currMsgID !== prevMsgID && key !== activeKey) {
+							updatedBadges[key] = true;
 							hasNewAnywhere = true;
 						}
 					}
@@ -323,10 +364,10 @@ export default {
 
 				if (hasNewAnywhere) this.playNotificationSound();
 
-				// Salva il nuovo snapshot.
+				// Salva il nuovo snapshot con chiavi composite.
 				const newState = {};
 				for (const conv of freshConvs) {
-					newState[conv.conversationID] = conv.lastMessage?.messageID ?? null;
+					newState[this.convKey(conv)] = conv.lastMessage?.messageID ?? null;
 				}
 				localStorage.setItem(lsKey, JSON.stringify(newState));
 			} catch (e) {
@@ -382,7 +423,7 @@ export default {
 		 * 2. Ricarica le conversazioni (utile dopo "Inizia conversazione");
 		 * 3. Azzera il badge per la conversazione aperta.
 		 */
-		'$route'(to) {
+		async '$route'(to) {
 			// 1. Rimuove la ricerca e i risultati, così la lista conversazioni torna visibile.
 			if (this.searchQuery.trim()) {
 				this.searchQuery = "";
@@ -390,15 +431,22 @@ export default {
 				this.searchError = null;
 			}
 
-			// 2. Ricarica le conversazioni per riflettere eventuali nuove conversazioni.
-			this.loadConversations();
+			// 2. Ricarica le conversazioni preservando la posizione di scroll.
+			const el = this.$refs.convListEl;
+			const prevScroll = el ? el.scrollTop : 0;
+			await this.loadConversations();
+			this.$nextTick(() => { if (el) el.scrollTop = prevScroll; });
 
 			// 3. Azzera il badge "nuovo messaggio" per la conversazione appena aperta.
 			const id = to?.params?.conversationID ? Number(to.params.conversationID) : null;
-			if (id && this.newMessageConvIds[id]) {
-				const updated = { ...this.newMessageConvIds };
-				delete updated[id];
-				this.newMessageConvIds = updated;
+			if (id) {
+				const routeType = (to.path || '').includes('/groups/') ? 'group' : 'user';
+				const key = this.convKey(routeType, id);
+				if (this.newMessageConvIds[key]) {
+					const updated = { ...this.newMessageConvIds };
+					delete updated[key];
+					this.newMessageConvIds = updated;
+				}
 			}
 		},
 	},
@@ -407,8 +455,8 @@ export default {
 
 <template>
 	<div
-		class="sidebar d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary"
-		style="width: 380px; height: 100vh; position: relative"
+		class="sidebar d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary border-end"
+		style="width: 380px; height: 100vh; position: relative; padding: 8px;"
 	>
 		<!-- Header con titolo "Chat" -->
 		<div
@@ -427,11 +475,36 @@ export default {
 					d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"
 				/>
 			</svg>
-			<span class="fs-5 fw-semibold">Chat</span>
+			<span class="fs-5 fw-semibold flex-grow-1">Chat</span>
+
+			<!-- Avatar utente autenticato: click apre la modale profilo -->
+			<button
+				type="button"
+				class="btn p-0 border-0 bg-transparent d-flex align-items-center"
+				title="Il mio profilo"
+				aria-label="Apri profilo utente"
+				@click="showProfileModal = true"
+			>
+				<img
+					v-if="myUserPhoto"
+					:src="'data:image/jpeg;base64,' + myUserPhoto"
+					:alt="myUserName"
+					class="rounded-circle border"
+					style="width: 34px; height: 34px; object-fit: cover; cursor: pointer"
+				/>
+				<div
+					v-else
+					class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-semibold"
+					style="width: 34px; height: 34px; font-size: 0.9rem; cursor: pointer"
+					:aria-label="myUserName"
+				>
+					{{ myUserName ? myUserName.charAt(0).toUpperCase() : '?' }}
+				</div>
+			</button>
 		</div>
 
 		<!-- Barra di ricerca utenti -->
-		<div class="px-3 pt-2 pb-1 border-bottom">
+		<div class="px-3 pt-2 pb-2 border-bottom">
 			<div class="input-group">
 				<span class="input-group-text bg-body border-end-0">
 					<svg
@@ -521,6 +594,7 @@ export default {
 
 		<!-- Lista delle conversazioni -->
 		<div
+			ref="convListEl"
 			v-if="!loading && !searchQuery.trim()"
 			class="list-group list-group-flush border-bottom scrollarea flex-grow-1"
 			style="overflow-y: auto"
@@ -551,10 +625,10 @@ export default {
 			<!-- Elemento conversazione -->
 			<a
 				v-for="conv in filteredConversations"
-				:key="conv.conversationID"
+				:key="convKey(conv)"
 				href="#"
 				class="list-group-item list-group-item-action py-3 lh-sm"
-				:class="{ 'conv-unread': newMessageConvIds[conv.conversationID] }"
+				:class="{ 'conv-unread': newMessageConvIds[convKey(conv)] }"
 				@click.prevent="openConversation(conv)"
 			>
 				<div class="d-flex align-items-center gap-3">
@@ -590,7 +664,7 @@ export default {
 							<div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
 								<!-- Badge "N" per nuovo messaggio non letto -->
 								<span
-									v-if="newMessageConvIds[conv.conversationID]"
+								v-if="newMessageConvIds[convKey(conv)]"
 									class="badge bg-success rounded-pill"
 									style="font-size:0.6rem; padding: 3px 6px"
 									aria-label="Nuovo messaggio"
@@ -645,6 +719,13 @@ export default {
 		:visible="showGroupModal"
 		@close="showGroupModal = false"
 		@group-created="onGroupCreated"
+	/>
+
+	<!-- Modale profilo utente (foto) -->
+	<ModalUserProfile
+		:visible="showProfileModal"
+		@close="showProfileModal = false"
+		@photo-updated="showProfileModal = false"
 	/>
 </template>
 

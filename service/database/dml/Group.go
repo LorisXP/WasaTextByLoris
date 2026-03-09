@@ -7,8 +7,12 @@ import (
 // CreateGroup inserisce un nuovo gruppo e restituisce il groupID generato.
 // Inserisce inoltre l'admin come primo membro e registra l'evento "entered".
 func CreateGroup(name string, photo string, admin int) (int, error) {
-	// Inserisci il gruppo
-	result, err := db.Exec("INSERT INTO Groups (name, photo, adminID) VALUES (?, ?, ?)", name, photo, admin)
+	// Inserisci il gruppo (photo = nil se vuota, per rispettare il CHECK constraint)
+	var photoParam interface{}
+	if photo != "" {
+		photoParam = photo
+	}
+	result, err := db.Exec("INSERT INTO Groups (name, photo, adminID) VALUES (?, ?, ?)", name, photoParam, admin)
 	if err != nil {
 		return 0, fmt.Errorf("unable to insert new group %s: %w", name, err)
 	}
