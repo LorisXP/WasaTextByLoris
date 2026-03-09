@@ -10,8 +10,8 @@ import (
 // Il campo MessageUserID dell'entity deve essere valorizzato.
 func AddCommentBelongUsers(comment entity.Comment) (int, error) {
 	result, err := db.Exec(
-		"INSERT INTO Comments (messageUserID, reaction) VALUES (?, ?)",
-		comment.MessageUserID, comment.Reaction,
+		"INSERT INTO Comments (senderID, messageUserID, reaction) VALUES (?, ?, ?)",
+		comment.SenderID, comment.MessageUserID, comment.Reaction,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("unable to insert reaction to user message %d: %w", comment.MessageUserID, err)
@@ -29,8 +29,8 @@ func AddCommentBelongUsers(comment entity.Comment) (int, error) {
 // Il campo MessageGroupID dell'entity deve essere valorizzato.
 func AddCommentBetweenUsersAndGroups(comment entity.Comment) (int, error) {
 	result, err := db.Exec(
-		"INSERT INTO Comments (messageGroupID, reaction) VALUES (?, ?)",
-		comment.MessageGroupID, comment.Reaction,
+		"INSERT INTO Comments (senderID, messageGroupID, reaction) VALUES (?, ?, ?)",
+		comment.SenderID, comment.MessageGroupID, comment.Reaction,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("unable to insert reaction to group message %d: %w", comment.MessageGroupID, err)
@@ -46,16 +46,14 @@ func AddCommentBetweenUsersAndGroups(comment entity.Comment) (int, error) {
 
 /*
 DeleteCommentBelongUsers cancella un commento su un messaggio tra utenti.
-Verifica che l'utente sia il mittente del messaggio a cui appartiene il commento
-tramite una JOIN tra Comments e MessagesUser.
+Verifica che l'utente sia l'autore della reazione (co.senderID).
 */
 func DeleteCommentBelongUsers(userID int, commentID int, messageID int) error {
-	// Verifica che il commento appartenga al messaggio e che l'utente sia il sender del messaggio
+	// Verifica che il commento appartenga al messaggio e che l'utente sia l'autore della reazione
 	var exists int
 	err := db.QueryRow(`
 		SELECT 1 FROM Comments co
-		JOIN MessagesUser mu ON co.messageUserID = mu.messageID
-		WHERE co.commentID = ? AND co.messageUserID = ? AND mu.senderID = ?
+		WHERE co.commentID = ? AND co.messageUserID = ? AND co.senderID = ?
 	`, commentID, messageID, userID).Scan(&exists)
 	if err != nil {
 		return fmt.Errorf("commentID %d not found for messageID %d or user %d not authorized: %w", commentID, messageID, userID, err)
@@ -81,16 +79,14 @@ func DeleteCommentBelongUsers(userID int, commentID int, messageID int) error {
 
 /*
 DeleteCommentBetweenUsersAndGroups cancella un commento su un messaggio di gruppo.
-Verifica che l'utente sia il mittente del messaggio a cui appartiene il commento
-tramite una JOIN tra Comments e MessagesGroup.
+Verifica che l'utente sia l'autore della reazione (co.senderID).
 */
 func DeleteCommentBetweenUsersAndGroups(userID int, commentID int, messageID int) error {
-	// Verifica che il commento appartenga al messaggio e che l'utente sia il sender del messaggio
+	// Verifica che il commento appartenga al messaggio e che l'utente sia l'autore della reazione
 	var exists int
 	err := db.QueryRow(`
 		SELECT 1 FROM Comments co
-		JOIN MessagesGroup mg ON co.messageGroupID = mg.messageID
-		WHERE co.commentID = ? AND co.messageGroupID = ? AND mg.senderID = ?
+		WHERE co.commentID = ? AND co.messageGroupID = ? AND co.senderID = ?
 	`, commentID, messageID, userID).Scan(&exists)
 	if err != nil {
 		return fmt.Errorf("commentID %d not found for messageID %d or user %d not authorized: %w", commentID, messageID, userID, err)

@@ -67,7 +67,7 @@ export default {
 		},
 	},
 
-	emits: ["close", "message-deleted", "message-forwarded", "reaction-added"],
+	emits: ["close", "message-deleted", "message-forwarded", "reaction-added", "reaction-removed"],
 
 	data() {
 		return {
@@ -102,6 +102,17 @@ export default {
 			if (!this.msg || !this.msg.sender) return true;
 			if (auth.state.userName) return this.msg.sender.userName === auth.state.userName;
 			return false;
+		},
+
+		/**
+		 * Restituisce il commento (reazione) dell'utente corrente su questo
+		 * messaggio, oppure null se non ha reagito.
+		 */
+		myComment() {
+			if (!this.msg?.comments || !auth.state.userName) return null;
+			return this.msg.comments.find(
+				(c) => c.sender?.userName === auth.state.userName
+			) || null;
 		},
 	},
 
@@ -195,6 +206,32 @@ export default {
 			} catch (e) {
 				this.actionError = "Errore durante l'invio della reazione.";
 				console.error("Errore reazione:", e);
+			} finally {
+				this.busy = false;
+			}
+		},
+
+		/**
+		 * Rimuove la propria reazione dal messaggio.
+		 * DELETE /api/users/{userID}/conversations/{type}/{conversationID}/messages/{messageID}/comments/{commentID}
+		 */
+		async deleteReaction() {
+			const comment = this.myComment;
+			if (!comment || !this.msg) return;
+			this.busy = true;
+			this.actionError = null;
+			try {
+				const url = `/api/users/${this.myUserID}/conversations/${this.conversationType}/${this.conversationID}/messages/${this.msg.messageID}/comments/${comment.commentID}`;
+				const response = await axios.delete(url);
+				if (response.status === 204) {
+					this.$emit("reaction-removed");
+					this.closeMenu();
+				} else {
+					this.actionError = "Errore durante la rimozione della reazione.";
+				}
+			} catch (e) {
+				this.actionError = "Errore durante la rimozione della reazione.";
+				console.error("Errore rimozione reazione:", e);
 			} finally {
 				this.busy = false;
 			}
@@ -296,6 +333,34 @@ export default {
 							/>
 						</svg>
 						<span>Cancella</span>
+					</button>
+				</li>
+				</template>
+
+				<!-- ── Rimuovi la mia reazione (solo se ho già reagito) ── -->
+				<template v-if="myComment">
+				<li class="menu-divider" role="separator"></li>
+				<li role="none">
+					<button
+						type="button"
+						class="menu-item d-flex align-items-center gap-2 w-100 px-3 py-2 btn btn-link text-danger text-decoration-none"
+						role="menuitem"
+						:disabled="busy"
+						@click="deleteReaction"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="15"
+							height="15"
+							fill="currentColor"
+							class="bi bi-emoji-frown flex-shrink-0"
+							viewBox="0 0 16 16"
+							aria-hidden="true"
+						>
+							<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+							<path d="M4.285 12.433a.5.5 0 0 0 .683-.183A3.498 3.498 0 0 1 8 10.5c1.295 0 2.426.703 3.032 1.75a.5.5 0 0 0 .866-.5A4.498 4.498 0 0 0 8 9.5a4.5 4.5 0 0 0-3.898 2.25.5.5 0 0 0 .183.683M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5m4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5"/>
+						</svg>
+						<span>Rimuovi reazione {{ myComment.content }}</span>
 					</button>
 				</li>
 				</template>

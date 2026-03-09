@@ -27,6 +27,10 @@ export default async function doLogin(userName) {
                 if (userID > 0) {
                     auth.setUserID(userID);
                     auth.setUserName(userName);
+                    // Foto profilo restituita direttamente dalla risposta di autenticazione.
+                    if (response.data.photo) {
+                        auth.setUserPhoto(response.data.photo);
+                    }
                     // Resetta il messaggio di errore
                     errormsg = "";
                     console.debug("Authenticated, userID set", userID);

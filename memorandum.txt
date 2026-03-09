@@ -11,9 +11,6 @@ Quando si continua la conversazione, ormai questa ha un suo ID, quindi, se un ut
 Per la prossima volta:
 8. FE - Definire uno stile CSS moderno
 10.BE - Update top/package comment inside `cmd/webapi/main.go` to reflect the actual project usage, goal, and general info
-16. FE - Sistemare desgin della sidebar
-19. FE - Testare creazione gruppo
-20. FE - Fare ii listener del refresh e direzionarlo su http://localhost:5173/#/
 
 Fatto in precedenza:
 - Scrivere le query e dml per il model
@@ -56,3 +53,6 @@ Fatto in precedenza:
 - FE - Testare nuova conversazione (StartConversation)
 - FE - Test UX nuovo utente
 - FE - Testare interazione con il gruppo
+- FE - Fare ii listener del refresh e direzionarlo su http://localhost:5173/#/
+- FE - Testare creazione gruppo
+- FE - Sistemare desgin della sidebar

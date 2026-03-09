@@ -124,6 +124,11 @@ CREATE INDEX idx_group_reads_message ON GroupMessageReads(messageID);
 CREATE TABLE Comments (
     commentID INTEGER PRIMARY KEY AUTOINCREMENT,
 
+    -- Chi ha messo la reazione
+    senderID INTEGER NOT NULL REFERENCES Users(userID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
     -- Può essere un messaggio user→user
     messageUserID INTEGER REFERENCES MessagesUser(messageID)
         ON DELETE CASCADE

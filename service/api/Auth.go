@@ -35,15 +35,16 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		if validationErr == nil {
 
 			// Chiama il model per autenticare o creare l'utente
-			userID, newUser, authErr := model.AuthUser(reqBody.UserName)
+			userID, photo, newUser, authErr := model.AuthUser(reqBody.UserName)
 
 			// Se l'autenticazione va a buon fine
 			if authErr == nil {
 
-				// Costruisci la risposta JSON con lo userID
+				// Costruisci la risposta JSON con lo userID e la foto
 				respData := struct {
-					UserID int `json:"userID"`
-				}{UserID: userID}
+					UserID int    `json:"userID"`
+					Photo  string `json:"photo,omitempty"`
+				}{UserID: userID, Photo: photo}
 
 				jsonBytes, marshalErr := json.Marshal(respData)
 

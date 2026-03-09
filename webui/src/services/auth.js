@@ -7,6 +7,7 @@ import { setUserID as setAxiosUserID } from "./axios.js";
 const state = reactive({
 	userID: null,
 	userName: null,
+	userPhoto: null,
 });
 
 function init() {
@@ -22,9 +23,14 @@ function setUserName(name) {
 	state.userName = name || null;
 }
 
+function setUserPhoto(photo) {
+	state.userPhoto = photo || null;
+}
+
 function clear() {
 	setUserID(null);
 	setUserName(null);
+	state.userPhoto = null;
 }
 
 function isAuthenticated() {
@@ -36,6 +42,7 @@ export default {
 	init,
 	setUserID,
 	setUserName,
+	setUserPhoto,
 	clear,
 	isAuthenticated,
 };
