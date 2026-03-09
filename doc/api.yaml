@@ -44,10 +44,12 @@ paths:
           content:
             application/json:
               schema:
-                description: Authentication response containing user ID
+                description: Authentication response containing user ID and optional photo
                 properties:
                   userID:
                     $ref: "#/components/schemas/userID"
+                  photo:
+                    $ref: "#/components/schemas/Photo"
         "201":
           description: A new user is created.
           content:
