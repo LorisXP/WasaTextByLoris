@@ -1,0 +1,26 @@
+# Parto da node
+FROM node:lts AS builder
+
+# Imposto la cartella base di lavoro
+WORKDIR /src/
+
+# Copio il frontend dentro il container
+COPY ./webui ./webui
+
+# Entro nella directory del frontend
+WORKDIR /src/webui/
+
+# Abilito Yarn tramite Corepack
+RUN corepack enable
+
+# Installo le dipendenze
+RUN yarn install
+
+# Eseguo la build come per andare in prod
+RUN yarn run build-prod
+
+# Parto da NGINX per servire i file statici
+FROM nginx:stable
+
+# Copio i file generati dalla build nella directory public di Nginx.
+COPY --from=builder /src/webui/dist /usr/share/nginx/html

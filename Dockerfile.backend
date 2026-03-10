@@ -1,0 +1,26 @@
+# Uso Go per compilare il progetto
+FROM golang:1.22.1 AS builder
+
+# Imposto la directory di lavoro per la build
+WORKDIR /src/
+
+# Copoa tutto il progetto dentro il container
+COPY . .
+
+# Compilo il backend Go che si trova in ./cmd/webapi
+RUN go build -o /app/webapi ./cmd/webapi
+
+# Creo un' immagine finale minimale per eseguire il go binary
+FROM debian:trixie-slim
+
+# Apro l'ascolto sulla porta 3000
+EXPOSE 3000
+
+# Imposto la directory di lavoro per il container finale
+WORKDIR /app/
+
+# Copio il binario dal builder all'immagine debian.
+COPY --from=builder /app/webapi ./
+
+# Avvio il back-end.
+CMD ["/app/webapi"]

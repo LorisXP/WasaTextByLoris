@@ -21,6 +21,53 @@ Return values (exit codes):
 Note that this program will update the schema of the database to the latest version available (embedded in the
 executable during the build).
 */
+
+/*
+WASAText è una piattaforma di messaggistica completamente REST API.
+Si basa su `Fantastic Coffe (Decaffinated)`.
+Per il back-end, viene usato Go e pochi altri package built-in.
+Per il front-end, viene usato Vite + Vue.js, Per i componenti grafici Bootstarp
+Per il database, viene usato SQL Lite.
+
+Per questo progetto è stato applicato il pattern MVC (Model View Controller).
+La logica di business viene richiamta solo dal Controller attraverso le API esposte.
+La view si interfaccia tramite tali API. Nel model, non vengono richiamati metodi del controller di nesun tipo.
+
+Di seguito viene fornita la struttura del progetto.
+
+Nella cartella `service`, è presente:
+
+  - `entity` ci sono le entity, modellate come tipi struct che saranno usate in parte dal model.
+
+  - `model`dove è prensente la logica di business, rappresentata come package e suddivisa in:
+
+  - `Auth“: model responsabile dell'autenticazione. Se lo userName esiste, rilascia il suo lo userID.
+
+  - `User`: model che rappresenta un utente. Ha dei metodi per la ricerca e l'aggiornamento del profilo personale.
+
+  - `Group`: model che rappresenta un grupo di utenti. Ha dei metodi per la sua creazione o cancellazione; inserimento, rimozione di membri.
+
+  - `Message`: model che rappresenta un messaggio. Ha dei metodi per la creazione, inoltro o cancellazione.
+
+  - `Conversation`: model che rappresenta una conversazione tra utente o utente e gruppo. Consente la creazione e l'ottenimento di conversazioni.
+
+  - `Event`: model che rappresenta l'accadimento di un evento all'interno dei gruppi. Eventi come la 'inserimento', 'uscita' e 'rimozione' vengono
+    registrati con il rispettivo timestamp.
+
+  - `Comment`: model che rappresenta la reazione ad un messaggio. Può essere inserita o rimossa a qualnque messaggio della stessa conversazione.
+
+  - `Validator`: model che rappresenta un validatore dei dati. È un validatore tra i dati ricevuti dal mondo esterno alla logica di business.
+
+  - `Content`: model che rappresenta il contenuto dei messaggi. Gestisce testo, foto o GIF.
+
+Nella cartella `database`, è presente:
+
+  - `ddl`: Data Definition Language dello schema del databse generale. Qui c'è lo script sql d'inizializzazione.
+
+  - `dml`: Data Manipulation Language. Qui ci sono, per ogni entità, solo le operazioni di INSERT, UPDATE e DELETE delle collection.
+
+  - `queries`: Qui ci sono, per ogni entità, solo le operazioni di SELECT, per ottenere le collection deisderate.
+*/
 package main
 
 import (
