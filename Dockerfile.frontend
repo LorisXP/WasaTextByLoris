@@ -1,5 +1,5 @@
-# Parto da node apline
-FROM node:lts-alpine AS builder
+# Parto da node
+FROM node:lts AS builder
 
 # Imposto la cartella base di lavoro
 WORKDIR /src/
@@ -20,7 +20,7 @@ RUN yarn install
 RUN yarn run build-prod
 
 # Parto da NGINX per servire i file statici
-FROM nginx:stable-alpine
+FROM nginx:stable
 
 # Copio i file generati dalla build nella directory public di Nginx.
 COPY --from=builder /src/webui/dist /usr/share/nginx/html
