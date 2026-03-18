@@ -249,9 +249,9 @@ func GetMessagesUserList(conversationID int, userID int) ([]map[string]interface
 			return nil, fmt.Errorf("error scanning message row: %w", err)
 		}
 
-		//Se lo userID che fa richiesta dei messaggi, è diverso dal senderID, marka i messaggi come letti
+		// Se lo userID che fa richiesta dei messaggi, è diverso dal senderID, marka i messaggi come letti
 		if userID != senderID && status == "received" {
-			//Visto che l'utente sta facendo richiesta e sta per leggere i messaggi nuovi, segna che sono letti
+			// Visto che l'utente sta facendo richiesta e sta per leggere i messaggi nuovi, segna che sono letti
 			status = "read"
 			readMessageIDs = append(readMessageIDs, msgID)
 		}
@@ -277,7 +277,7 @@ func GetMessagesUserList(conversationID int, userID int) ([]map[string]interface
 		return nil, fmt.Errorf("error iterating message rows: %w", err)
 	}
 
-	//Se ci sono messaggi di cui aggiornare lo stato, aggiornalo!
+	// Se ci sono messaggi di cui aggiornare lo stato, aggiornalo!
 	if len(readMessageIDs) > 0 {
 		if err := dml.MarkMessagesAsRead(readMessageIDs); err != nil {
 			return nil, fmt.Errorf("unable to mark messages as read: %w", err)

@@ -32,22 +32,22 @@ export default {
 
 	data() {
 		return {
-			// ── Dati del gruppo ──────────────────────────────────────────────
+			//  Dati del gruppo 
 			group: null,           // GroupInfoResponse completo
 			loading: false,
 			errormsg: null,
 
-			// ── Modifica nome (inline) ──────────────────────────────────────
+			//  Modifica nome (inline) 
 			editingName: false,
 			editedName: "",
 			savingName: false,
 			nameError: null,
 
-			// ── Modifica foto ───────────────────────────────────────────────
+			//  Modifica foto 
 			savingPhoto: false,
 			photoError: null,
 
-			// ── Aggiunta membro ─────────────────────────────────────────────
+			//  Aggiunta membro 
 			showAddMember: false,
 			searchQuery: "",
 			searchResults: [],
@@ -57,14 +57,14 @@ export default {
 			addError: null,
 			_searchTimer: null,
 
-			// ── Kick membro ─────────────────────────────────────────────────
+			//  Kick membro 
 			kickingUser: null,      // userName in fase di kick
 
-			// ── Uscita / Eliminazione ───────────────────────────────────────
+			//  Uscita / Eliminazione 
 			leaving: false,
 			leaveError: null,
 
-			// ── Validazione ────────────────────────────────────────────────
+			//  Validazione 
 			validationError: { visible: false, title: "Input non valido", description: "" },
 		};
 	},
@@ -111,7 +111,7 @@ export default {
 	},
 
 	methods: {
-		// ─── CARICAMENTO INFO GRUPPO ────────────────────────────────────
+		//  CARICAMENTO INFO GRUPPO 
 
 		/**
 		 * GET /api/users/{userID}/groups/{groupID}
@@ -136,7 +136,7 @@ export default {
 			}
 		},
 
-		// ─── MODIFICA NOME ─────────────────────────────────────────────
+		//  MODIFICA NOME 
 
 		/** Entra in modalità di editing del nome */
 		startEditName() {
@@ -183,7 +183,7 @@ export default {
 			}
 		},
 
-		// ─── MODIFICA FOTO ─────────────────────────────────────────────
+		//  MODIFICA FOTO 
 
 		/** Apre il selettore file per la foto */
 		pickPhoto() {
@@ -227,7 +227,7 @@ export default {
 			}
 		},
 
-		// ─── AGGIUNTA MEMBRO ───────────────────────────────────────────
+		//  AGGIUNTA MEMBRO 
 
 		/** Toggle pannello di ricerca utenti */
 		toggleAddMember() {
@@ -313,7 +313,7 @@ export default {
 			}
 		},
 
-		// ─── KICK MEMBRO ───────────────────────────────────────────────
+		//  KICK MEMBRO 
 
 		/**
 		 * DELETE /api/users/{userID}/groups/{groupID}/member/{userName}
@@ -335,7 +335,7 @@ export default {
 			}
 		},
 
-		// ─── USCITA / ELIMINAZIONE GRUPPO ──────────────────────────────
+		//  USCITA / ELIMINAZIONE GRUPPO 
 
 		/**
 		 * Esci dal gruppo (non admin) o elimina il gruppo (admin).
@@ -368,7 +368,7 @@ export default {
 			}
 		},
 
-		// ─── UTILITY ───────────────────────────────────────────────────
+		//  UTILITY 
 
 		close() {
 			this.$emit("close");
@@ -435,7 +435,7 @@ export default {
 				class="card shadow-lg border rounded-4 overflow-hidden"
 				style="width: 100%; max-width: 720px; max-height: 92vh; display: flex; flex-direction: column;"
 			>
-				<!-- ── HEADER ─────────────────────────────────────────────────── -->
+				<!--  HEADER  -->
 				<div
 					class="card-header d-flex align-items-center justify-content-between px-4 py-3 bg-primary text-white border-0"
 				>
@@ -450,7 +450,7 @@ export default {
 					></button>
 				</div>
 
-				<!-- ── BODY ───────────────────────────────────────────────────── -->
+				<!--  BODY  -->
 				<div class="card-body overflow-y-auto px-4 py-4" style="overflow-y: auto; flex: 1 1 auto;">
 
 					<!-- Caricamento in corso -->
@@ -745,7 +745,7 @@ export default {
 					</div>
 				</div>
 
-				<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+				<!--  FOOTER  -->
 				<div
 					v-if="group"
 					class="card-footer d-flex justify-content-center px-4 py-3 border-top bg-body-tertiary"

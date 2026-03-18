@@ -389,7 +389,7 @@ export default {
 			el.style.height = Math.min(el.scrollHeight, 120) + "px";
 		},
 
-		// ─ MENU CONTESTUALE ─
+		//  MENU CONTESTUALE 
 
 		/**
 		 * Apre il menu contestuale sul messaggio.
@@ -433,7 +433,7 @@ export default {
 			this.loadMessages();
 		},
 
-		// ─ POLLING ─
+		//  POLLING 
 
 		/** Avvia il polling silenzioso dei messaggi ogni 3 secondi. */
 		startPolling() {

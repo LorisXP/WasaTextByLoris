@@ -17,13 +17,13 @@ export default {
 
 	data() {
 		return {
-			// ── Anteprima / stato upload ───────────────────────────────────────
+			//  Anteprima / stato upload 
 			/** File selezionato dall'utente (oggetto File) */
 			selectedFile: null,
 			/** data URL per l'anteprima dell'immagine scelta */
 			previewSrc: null,
 
-			// ── Stato operazione ──────────────────────────────────────────────
+			//  Stato operazione 
 			saving: false,
 			errorMsg: null,
 			successMsg: null,
@@ -51,7 +51,7 @@ export default {
 	},
 
 	methods: {
-		// ── LIFECYCLE MODALE ──────────────────────────────────────────────────
+		//  LIFECYCLE MODALE 
 
 		close() {
 			this.reset();
@@ -69,7 +69,7 @@ export default {
 			}
 		},
 
-		// ── SELEZIONE FOTO ────────────────────────────────────────────────────
+		//  SELEZIONE FOTO 
 
 		pickPhoto() {
 			this.$refs.fileInput.click();
@@ -100,7 +100,7 @@ export default {
 			this.errorMsg = null;
 		},
 
-		// ── SALVATAGGIO ───────────────────────────────────────────────────────
+		//  SALVATAGGIO 
 
 		/**
 		 * Invia la nuova foto al backend.
@@ -179,7 +179,7 @@ export default {
 				class="card shadow-lg border rounded-4 overflow-hidden"
 				style="width: 100%; max-width: 420px"
 			>
-				<!-- ── HEADER ──────────────────────────────────────────────────── -->
+				<!--  HEADER  -->
 				<div class="card-header d-flex align-items-center justify-content-between px-4 py-3 bg-primary text-white border-0">
 					<h5 id="modal-user-profile-title" class="mb-0 fw-semibold fs-6">
 						Il mio profilo
@@ -193,7 +193,7 @@ export default {
 					></button>
 				</div>
 
-				<!-- ── BODY ────────────────────────────────────────────────────── -->
+				<!--  BODY  -->
 				<div class="card-body px-4 py-4">
 
 					<!-- Nome utente -->
@@ -290,7 +290,7 @@ export default {
 					</div>
 				</div>
 
-				<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+				<!--  FOOTER  -->
 				<div class="card-footer d-flex justify-content-end gap-2 px-4 py-3 border-top bg-body-tertiary">
 					<button
 						type="button"
