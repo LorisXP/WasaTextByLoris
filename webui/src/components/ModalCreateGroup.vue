@@ -38,7 +38,7 @@ export default {
 			searchResults: [],       // array di { userName, photo? }
 			searching: false,
 			searchError: null,
-			_searchTimer: null,
+			searchTimer: null,
 
 			//  Stato submit 
 			submitting: false,
@@ -104,9 +104,9 @@ export default {
 			this.searchError = null;
 			this.submitting = false;
 			this.submitError = null;
-			if (this._searchTimer) {
-				clearTimeout(this._searchTimer);
-				this._searchTimer = null;
+			if (this.searchTimer) {
+				clearTimeout(this.searchTimer);
+				this.searchTimer = null;
 			}
 		},
 
@@ -186,7 +186,7 @@ export default {
 		 * Implementa un debounce per evitare troppe chiamate API.
 		 */
 		onSearchInput() {
-			if (this._searchTimer) clearTimeout(this._searchTimer);
+			if (this.searchTimer) clearTimeout(this.searchTimer);
 			const q = this.searchQuery.trim();
 			if (!q) {
 				this.searchResults = [];
@@ -197,7 +197,7 @@ export default {
 			// Mostra subito i placeholder skeleton
 			this.searching = true;
 			this.searchError = null;
-			this._searchTimer = setTimeout(() => this.doSearch(q), SEARCH_DEBOUNCE_MS);
+			this.searchTimer = setTimeout(() => this.doSearch(q), SEARCH_DEBOUNCE_MS);
 		},
 
 		/**

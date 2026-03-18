@@ -55,7 +55,7 @@ export default {
 			searchError: null,
 			addingMember: false,
 			addError: null,
-			_searchTimer: null,
+			searchTimer: null,
 
 			//  Kick membro 
 			kickingUser: null,      // userName in fase di kick
@@ -246,14 +246,14 @@ export default {
 
 		/** Ricerca utenti con debounce */
 		onSearchInput() {
-			clearTimeout(this._searchTimer);
+			clearTimeout(this.searchTimer);
 			const q = this.searchQuery.trim();
 			if (q.length < 3) {
 				this.searchResults = [];
 				return;
 			}
 			this.searching = true;
-			this._searchTimer = setTimeout(() => this.searchUsers(q), SEARCH_DEBOUNCE_MS);
+			this.searchTimer = setTimeout(() => this.searchUsers(q), SEARCH_DEBOUNCE_MS);
 		},
 
 		/**
@@ -394,7 +394,7 @@ export default {
 			this.kickingUser = null;
 			this.leaving = false;
 			this.leaveError = null;
-			clearTimeout(this._searchTimer);
+			clearTimeout(this.searchTimer);
 		},
 
 		/** Mostra la modale di errore di validazione */
