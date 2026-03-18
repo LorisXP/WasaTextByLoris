@@ -313,10 +313,10 @@ func DeleteGroup(group *entity.Group) error {
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		// Azzeralo
-		group = &entity.Group{}
 		outErr = nil
 		logrus.Infof("adminID %d deleted groupID %d successfully", group.AdminID, group.GroupID)
+		// Azzera i campi del gruppo
+		*group = entity.Group{}
 	} else {
 		outErr = fmt.Errorf("error deleting group %d: %w", group.GroupID, err)
 		logrus.Error(outErr)

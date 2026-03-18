@@ -96,7 +96,7 @@
 		},
 
 		methods: {
-			// ─ LETTURA MESSAGGI 
+			//  LETTURA MESSAGGI 
 
 			/**
 			 * Carica i messaggi della conversazione.
@@ -123,7 +123,7 @@
 				}
 			},
 
-			// ─ INVIO MESSAGGIO ─
+			//  INVIO MESSAGGIO 
 
 			/**
 			 * Invia un messaggio di testo, foto o GIF.
@@ -183,7 +183,7 @@
 				}
 			},
 
-			// ─ ALLEGATI 
+			//  ALLEGATI 
 
 			/** Apre il file picker filtrando per immagini (photo) */
 			pickPhoto() {
@@ -234,7 +234,7 @@
 				this.validationError = { visible: true, title: "Input non valido", description };
 			},
 
-			// ─ UTILITY ─
+			//  UTILITY 
 
 			/** Converte un File in stringa base64 */
 			fileToBase64(file) {
@@ -337,7 +337,7 @@
 				}
 			},
 
-		// ─ MENU CONTESTUALE ─
+		//  MENU CONTESTUALE 
 
 		/**
 		 * Apre il menu contestuale sul messaggio.
@@ -382,7 +382,7 @@
 			this.loadMessages();
 		},
 
-		// ─ POLLING ─
+		//  POLLING 
 
 		/** Avvia il polling silenzioso dei messaggi ogni 3 secondi. */
 		startPolling() {

@@ -28,7 +28,7 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to create a new message in conversationID %d, between users: %t", conversationID, between_users)
-	err := fmt.Errorf("Unable to create a new message in conversationID %d, between users: %t", conversationID, between_users)
+	var err error
 	var message entity.Message
 
 	// Crea la struct message da salvare nel DB
@@ -81,7 +81,7 @@ func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
-	err := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
+	var err error
 	var message entity.Message
 
 	// Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
@@ -113,7 +113,7 @@ func ForwardMessage(userID int, conversationID int, between_users bool, sourceBe
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to forward a new message in conversationID %d, between users: %t", conversationID, between_users)
-	err := fmt.Errorf("Unable to forward a new message in conversationID %d, between users: %t", conversationID, between_users)
+	var err error
 	var message entity.Message
 
 	// Crea la struct message da salvare nel DB
@@ -158,7 +158,7 @@ func DeleteMessage(userID int, conversationID int, between_users bool, messageID
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable for userID %d delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
-	err := fmt.Errorf("Unable for userID %d delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
+	var err error
 
 	// Cancella il messaggio sul DB nella tabella corretta in base all'utente
 	if between_users {

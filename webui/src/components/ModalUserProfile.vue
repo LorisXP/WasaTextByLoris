@@ -13,17 +13,24 @@ export default {
 		},
 	},
 
-	emits: ["close", "photo-updated"],
+	emits: ["close", "photo-updated", "username-updated"],
 
 	data() {
 		return {
-			// ── Anteprima / stato upload ───────────────────────────────────────
+			//  Anteprima / stato upload 
 			/** File selezionato dall'utente (oggetto File) */
 			selectedFile: null,
 			/** data URL per l'anteprima dell'immagine scelta */
 			previewSrc: null,
 
-			// ── Stato operazione ──────────────────────────────────────────────
+			//  Modifica nome utente 
+			editingName: false,
+			editedName: "",
+			savingName: false,
+			nameError: null,
+			nameSuccess: null,
+
+			//  Stato operazione 
 			saving: false,
 			errorMsg: null,
 			successMsg: null,
@@ -51,7 +58,7 @@ export default {
 	},
 
 	methods: {
-		// ── LIFECYCLE MODALE ──────────────────────────────────────────────────
+		//  LIFECYCLE MODALE 
 
 		close() {
 			this.reset();
@@ -64,12 +71,17 @@ export default {
 			this.saving = false;
 			this.errorMsg = null;
 			this.successMsg = null;
+			this.editingName = false;
+			this.editedName = "";
+			this.savingName = false;
+			this.nameError = null;
+			this.nameSuccess = null;
 			if (this.$refs.fileInput) {
 				this.$refs.fileInput.value = "";
 			}
 		},
 
-		// ── SELEZIONE FOTO ────────────────────────────────────────────────────
+		//  SELEZIONE FOTO 
 
 		pickPhoto() {
 			this.$refs.fileInput.click();
@@ -100,7 +112,7 @@ export default {
 			this.errorMsg = null;
 		},
 
-		// ── SALVATAGGIO ───────────────────────────────────────────────────────
+		//  SALVATAGGIO 
 
 		/**
 		 * Invia la nuova foto al backend.
@@ -146,6 +158,69 @@ export default {
 				this.saving = false;
 			}
 		},
+
+		//  MODIFICA NOME UTENTE 
+
+		/** Entra in modalità di editing del nome utente */
+		startEditName() {
+			this.editedName = this.myUserName;
+			this.editingName = true;
+			this.nameError = null;
+			this.nameSuccess = null;
+			this.$nextTick(() => {
+				const el = this.$refs.nameInput;
+				if (el) el.focus();
+			});
+		},
+
+		/** Annulla la modifica del nome utente */
+		cancelEditName() {
+			this.editingName = false;
+			this.nameError = null;
+		},
+
+		/**
+		 * Salva il nuovo nome utente.
+		 * PATCH /api/users/{userID}/me/name
+		 * Body: { userName: string }
+		 */
+		async saveUserName() {
+			const trimmed = this.editedName.trim();
+			const vName = this.$validator(trimmed, /^[a-z]+[0-9]*$/, 3, 15, "string");
+			if (!vName.success) {
+				this.nameError = "Il nome utente deve essere di 3-15 caratteri, lettere minuscole seguite da numeri opzionali (es. mario42).";
+				return;
+			}
+			if (trimmed === this.myUserName) {
+				this.editingName = false;
+				return;
+			}
+			this.savingName = true;
+			this.nameError = null;
+			this.nameSuccess = null;
+			try {
+				const response = await axios.patch(
+					`/api/users/${this.myUserID}/me/name`,
+					{ userName: trimmed }
+				);
+				if (response.status === 200) {
+					auth.setUserName(trimmed);
+					this.editingName = false;
+					this.nameSuccess = "Nome utente aggiornato con successo!";
+					this.$emit("username-updated");
+				} else {
+					this.nameError = "Impossibile aggiornare il nome utente. Riprova.";
+				}
+			} catch (e) {
+				if (e.response?.status === 409) {
+					this.nameError = "Nome utente già in uso. Scegline un altro.";
+				} else {
+					this.nameError = e.response?.data || "Errore imprevisto. Riprova.";
+				}
+			} finally {
+				this.savingName = false;
+			}
+		},
 	},
 
 	watch: {
@@ -179,7 +254,7 @@ export default {
 				class="card shadow-lg border rounded-4 overflow-hidden"
 				style="width: 100%; max-width: 420px"
 			>
-				<!-- ── HEADER ──────────────────────────────────────────────────── -->
+				<!--  HEADER  -->
 				<div class="card-header d-flex align-items-center justify-content-between px-4 py-3 bg-primary text-white border-0">
 					<h5 id="modal-user-profile-title" class="mb-0 fw-semibold fs-6">
 						Il mio profilo
@@ -193,13 +268,68 @@ export default {
 					></button>
 				</div>
 
-				<!-- ── BODY ────────────────────────────────────────────────────── -->
+				<!--  BODY  -->
 				<div class="card-body px-4 py-4">
 
-					<!-- Nome utente -->
-					<p class="text-center text-secondary small mb-4">
-						Connesso come <strong class="text-body">{{ myUserName }}</strong>
-					</p>
+					<!-- Nome utente (con possibilità di modifica) -->
+					<div class="text-center mb-4">
+						<template v-if="!editingName">
+							<p class="text-secondary small mb-1">
+								Connesso come <strong class="text-body">{{ myUserName }}</strong>
+							</p>
+							<button
+								type="button"
+								class="btn btn-link btn-sm p-0 text-decoration-none"
+								:disabled="saving || savingName"
+								@click="startEditName"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
+									<path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+								</svg>
+								Modifica nome utente
+							</button>
+							<div v-if="nameSuccess" class="alert alert-success py-1 px-2 small mt-2 mb-0">
+								{{ nameSuccess }}
+							</div>
+						</template>
+						<template v-else>
+							<div class="d-flex align-items-center justify-content-center gap-2">
+								<input
+									ref="nameInput"
+									v-model="editedName"
+									type="text"
+									class="form-control form-control-sm"
+									style="max-width: 200px"
+									placeholder="Nuovo nome utente"
+									minlength="3"
+									maxlength="15"
+									:disabled="savingName"
+									@keyup.enter="saveUserName"
+									@keyup.escape="cancelEditName"
+								/>
+								<button
+									type="button"
+									class="btn btn-primary btn-sm"
+									:disabled="savingName"
+									@click="saveUserName"
+								>
+									<span v-if="savingName" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+									<template v-else>Salva</template>
+								</button>
+								<button
+									type="button"
+									class="btn btn-outline-secondary btn-sm"
+									:disabled="savingName"
+									@click="cancelEditName"
+								>
+									Annulla
+								</button>
+							</div>
+							<div v-if="nameError" class="alert alert-danger py-1 px-2 small mt-2 mb-0">
+								{{ nameError }}
+							</div>
+						</template>
+					</div>
 
 					<!-- Foto corrente / anteprima nuova foto -->
 					<div class="d-flex flex-column align-items-center gap-3 mb-4">
@@ -290,7 +420,7 @@ export default {
 					</div>
 				</div>
 
-				<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+				<!--  FOOTER  -->
 				<div class="card-footer d-flex justify-content-end gap-2 px-4 py-3 border-top bg-body-tertiary">
 					<button
 						type="button"

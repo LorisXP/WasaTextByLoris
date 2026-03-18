@@ -17,7 +17,7 @@ import (
 func ValidateInput(value interface{}, min int, max int, pattern string, tipo string) error {
 
 	// Default negativo: l'input è considerato invalido fino a prova contraria
-	var err error = fmt.Errorf("input validation failed")
+	var err error
 
 	// 1. Verifica del tipo
 	switch tipo {

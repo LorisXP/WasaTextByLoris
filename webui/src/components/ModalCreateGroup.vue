@@ -20,30 +20,30 @@ export default {
 
 	data() {
 		return {
-			// ── Campi del form ──────────────────────────────────────────────────
+			//  Campi del form 
 			groupName: "",
 			groupPhoto: null,        // base64 pura (senza prefisso data URI)
 			groupPhotoPreview: null, // data URL per anteprima
 
-			// ── Utenti selezionati ─────────────────────────────────────────────
+			//  Utenti selezionati 
 			/** Utenti scelti da aggiungere al gruppo */
 			selectedUsers: [],       // array di { userName }
 
-			// ── Suggerimenti da conversazioni esistenti ────────────────────────
+			//  Suggerimenti da conversazioni esistenti 
 			conversationSuggestions: [],  // array di { userName } derivati dalle conv.
 			loadingSuggestions: false,
 
-			// ── Ricerca manuale ────────────────────────────────────────────────
+			//  Ricerca manuale 
 			searchQuery: "",
 			searchResults: [],       // array di { userName, photo? }
 			searching: false,
 			searchError: null,
-			_searchTimer: null,
+			searchTimer: null,
 
-			// ── Stato submit ───────────────────────────────────────────────────
+			//  Stato submit 
 			submitting: false,
 			submitError: null,
-			// ── Validazione ──────────────────────────────────────────────────────
+			//  Validazione 
 			validationError: { visible: false, title: "Input non valido", description: "" },		};
 	},
 
@@ -84,7 +84,7 @@ export default {
 	},
 
 	methods: {
-		// ── LIFECYCLE DEL MODALE ──────────────────────────────────────────────
+		//  LIFECYCLE DEL MODALE 
 
 		/** Resetta tutto il form e chiude la modale */
 		close() {
@@ -104,9 +104,9 @@ export default {
 			this.searchError = null;
 			this.submitting = false;
 			this.submitError = null;
-			if (this._searchTimer) {
-				clearTimeout(this._searchTimer);
-				this._searchTimer = null;
+			if (this.searchTimer) {
+				clearTimeout(this.searchTimer);
+				this.searchTimer = null;
 			}
 		},
 
@@ -115,7 +115,7 @@ export default {
 			this.validationError = { visible: true, title: "Input non valido", description };
 		},
 
-		// ── FOTO GRUPPO ───────────────────────────────────────────────────────
+		//  FOTO GRUPPO 
 
 		/** Apre il file picker per la foto del gruppo */
 		pickPhoto() {
@@ -143,7 +143,7 @@ export default {
 			this.groupPhotoPreview = null;
 		},
 
-		// ── SUGGERIMENTI DA CONVERSAZIONI ─────────────────────────────────────
+		//  SUGGERIMENTI DA CONVERSAZIONI 
 
 		/**
 		 * Carica i suggerimenti utenti dalle conversazioni esistenti.
@@ -179,14 +179,14 @@ export default {
 			}
 		},
 
-		// ── RICERCA UTENTE ────────────────────────────────────────────────────
+		//  RICERCA UTENTE 
 
 		/**
 		 * Chiamato ad ogni keystroke nella barra di ricerca.
 		 * Implementa un debounce per evitare troppe chiamate API.
 		 */
 		onSearchInput() {
-			if (this._searchTimer) clearTimeout(this._searchTimer);
+			if (this.searchTimer) clearTimeout(this.searchTimer);
 			const q = this.searchQuery.trim();
 			if (!q) {
 				this.searchResults = [];
@@ -197,7 +197,7 @@ export default {
 			// Mostra subito i placeholder skeleton
 			this.searching = true;
 			this.searchError = null;
-			this._searchTimer = setTimeout(() => this.doSearch(q), SEARCH_DEBOUNCE_MS);
+			this.searchTimer = setTimeout(() => this.doSearch(q), SEARCH_DEBOUNCE_MS);
 		},
 
 		/**
@@ -245,7 +245,7 @@ export default {
 			}
 		},
 
-		// ── GESTIONE UTENTI SELEZIONATI ────────────────────────────────────────
+		//  GESTIONE UTENTI SELEZIONATI 
 
 		/**
 		 * Aggiunge un utente alla lista dei selezionati (se non già presente).
@@ -271,7 +271,7 @@ export default {
 			);
 		},
 
-		// ── INVIO ────────────────────────────────────────────────────────────
+		//  INVIO 
 
 		/**
 		 * Crea il gruppo e aggiunge gli utenti selezionati.
@@ -304,7 +304,7 @@ export default {
 			this.submitError = null;
 
 			try {
-				// ── Passo 1: crea il gruppo ────────────────────────────────────
+				//  Passo 1: crea il gruppo 
 				const createPayload = {
 					name: this.groupName.trim(),
 					photo: this.groupPhoto || "",
@@ -322,7 +322,7 @@ export default {
 
 				const groupID = createResp.data.groupID;
 
-				// ── Passo 2: aggiungi utenti (se presenti) ─────────────────────
+				//  Passo 2: aggiungi utenti (se presenti) 
 				if (this.selectedUsers.length > 0) {
 					const userNames = this.selectedUsers.map((u) => u.userName);
 					const addPayload = {
@@ -346,7 +346,7 @@ export default {
 					}
 				}
 
-				// ── Tutto ok ────────────────────────────────────────────────────
+				//  Tutto ok 
 				this.$emit("group-created", { groupID });
 				this.close();
 
@@ -396,7 +396,7 @@ export default {
 				class="card shadow-lg border rounded-4 overflow-hidden"
 				style="width: 100%; max-width: 520px; max-height: 92vh; display: flex; flex-direction: column;"
 			>
-				<!-- ── HEADER ─────────────────────────────────────────────────── -->
+				<!--  HEADER  -->
 				<div
 					class="card-header d-flex align-items-center justify-content-between px-4 py-3 bg-primary text-white border-0"
 				>
@@ -415,7 +415,7 @@ export default {
 					></button>
 				</div>
 
-				<!-- ── BODY (scrollabile) ──────────────────────────────────────── -->
+				<!--  BODY (scrollabile)  -->
 				<div class="card-body overflow-y-auto px-4 py-4" style="overflow-y: auto; flex: 1 1 auto;">
 
 					<!-- Errore globale del submit -->
@@ -427,7 +427,7 @@ export default {
 						{{ submitError }}
 					</div>
 
-					<!-- ── Nome del gruppo ─────────────────────────────────────── -->
+					<!--  Nome del gruppo  -->
 					<div class="mb-4">
 						<label for="group-name" class="form-label fw-semibold">
 							Nome del gruppo
@@ -453,7 +453,7 @@ export default {
 						</div>
 					</div>
 
-					<!-- ── Foto del gruppo (opzionale) ────────────────────────── -->
+					<!--  Foto del gruppo (opzionale)  -->
 					<div class="mb-4">
 						<p class="form-label fw-semibold mb-2">Foto del gruppo <span class="fw-normal text-secondary">(opzionale)</span></p>
 						<div class="d-flex align-items-center gap-3">
@@ -525,7 +525,7 @@ export default {
 						/>
 					</div>
 
-					<!-- ── Aggiungi partecipanti ───────────────────────────────── -->
+					<!--  Aggiungi partecipanti  -->
 					<div>
 						<p class="form-label fw-semibold mb-2">
 							Partecipanti
@@ -732,7 +732,7 @@ export default {
 					</div>
 				</div>
 
-				<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+				<!--  FOOTER  -->
 				<div class="card-footer d-flex justify-content-end gap-2 px-4 py-3 border-top bg-body-tertiary">
 					<button
 						type="button"

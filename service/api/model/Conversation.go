@@ -64,7 +64,7 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to update last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
-	err := fmt.Errorf("Unable to update last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
+	var err error
 
 	// Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
 	if conversation.Between_users {
@@ -98,7 +98,7 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve conversation by id %d ", conversationID)
-	err := fmt.Errorf("Unable to retrieve conversation by id %d ", conversationID)
+	var err error
 	var conversation entity.Conversation
 
 	// Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
@@ -158,7 +158,7 @@ func GetListMessages(conversation *entity.Conversation, userMadeRequest int) (ma
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to get conversation message list")
-	err := fmt.Errorf("Unable to get conversation message list")
+	var err error
 	var result map[string]interface{}
 	var messagesList []map[string]interface{}
 

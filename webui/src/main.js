@@ -19,8 +19,7 @@ import "./assets/main.css";
 const app = createApp(App);
 
 app.config.globalProperties.$axios = axios;
-app.config.globalProperties.$apiDomain =
-	import.meta.env.VITE_API_URL || "http://localhost:3000";
+app.config.globalProperties.$apiDomain = __API_URL__;
 app.config.globalProperties.$auth = auth;
 
 app.component("Sidebar", Sidebar);

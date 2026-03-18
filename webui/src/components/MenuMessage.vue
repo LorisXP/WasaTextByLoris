@@ -117,7 +117,7 @@ export default {
 	},
 
 	methods: {
-		// ─ CONTROLLO MENU ─
+		//  CONTROLLO MENU 
 
 		/** Chiude il menu e resetta lo stato interno */
 		closeMenu() {
@@ -131,7 +131,7 @@ export default {
 			this.validationError = { visible: true, title: "Input non valido", description };
 		},
 
-		// ─ AZIONI ─
+		//  AZIONI 
 
 		/** Apre la modale di selezione conversazione per l'inoltro. */
 		openForwardModal() {
@@ -281,7 +281,7 @@ export default {
 			</div>
 
 			<ul class="list-unstyled mb-0">
-				<!-- ── Inoltra ── -->
+				<!--  Inoltra  -->
 				<li role="none">
 					<button
 						type="button"
@@ -310,7 +310,7 @@ export default {
 				<template v-if="isMyMessage">
 				<li class="menu-divider" role="separator"></li>
 
-				<!-- ── Cancella ── -->
+				<!--  Cancella  -->
 				<li role="none">
 					<button
 						type="button"
@@ -337,7 +337,7 @@ export default {
 				</li>
 				</template>
 
-				<!-- ── Rimuovi la mia reazione (solo se ho già reagito) ── -->
+				<!--  Rimuovi la mia reazione (solo se ho già reagito)  -->
 				<template v-if="myComment">
 				<li class="menu-divider" role="separator"></li>
 				<li role="none">
@@ -367,7 +367,7 @@ export default {
 
 				<li class="menu-divider" role="separator"></li>
 
-				<!-- ── Reagisci ── -->
+				<!--  Reagisci  -->
 				<li role="none">
 					<button
 						type="button"

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
+	baseURL: __API_URL__,
 	timeout: 1000 * 5,
 });
 // Set Authorization header to use Bearer <identifier> as required by the spec.

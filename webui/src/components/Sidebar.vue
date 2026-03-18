@@ -296,7 +296,7 @@ export default {
 			}
 		},
 
-		// ─ POLLING CONVERSAZIONI ─
+		//  POLLING CONVERSAZIONI 
 
 		/** Avvia il polling silenzioso delle conversazioni ogni 3 secondi. */
 		startPolling() {
