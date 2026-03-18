@@ -16,7 +16,7 @@ func CreateContent(content_type string, content string) (entity.Content, error) 
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to create a new content. Type: %s . Text: %s", content_type, content)
-	err := fmt.Errorf("Unable to create a new content. Type: %s . Text: %s", content_type, content)
+	var err error
 	var message_content entity.Content
 
 	// Controlla il tipo
@@ -67,7 +67,7 @@ func GetContentByID(contentID int) (entity.Content, error) {
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve content by id %d ", contentID)
-	err := fmt.Errorf("Unable to retrieve content by id %d ", contentID)
+	var err error
 	var content entity.Content
 
 	// Ottieni le info a DB
@@ -92,7 +92,7 @@ func DeleteContentByID(contentID int) error {
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to remove contentID %d", contentID)
-	err := fmt.Errorf("Unable to remove contentID %d", contentID)
+	var err error
 
 	// Cancella il contenuto dal DB
 	logrus.Infof("Deleting contentID %d", contentID)

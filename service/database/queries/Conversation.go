@@ -389,7 +389,10 @@ func GetMessagesGroupList(conversationID int, userID int) ([]map[string]interfac
 		if messages[i]["status"] == "received" {
 			// Rileggi lo status aggiornato dal DB
 			var updatedStatus string
-			msgID := messages[i]["messageID"].(int)
+			msgID, ok := messages[i]["messageID"].(int)
+			if !ok {
+				return nil, fmt.Errorf("messageID is not of type int")
+			}
 			errStatus := db.QueryRow(
 				"SELECT status FROM MessagesGroup WHERE messageID = ?", msgID,
 			).Scan(&updatedStatus)

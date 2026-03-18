@@ -26,7 +26,7 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to add a new reaction to messageID %d, between users: %t", messageID, between_users)
-	err := fmt.Errorf("Unable to add a new reaction to messageID %d, between users: %t", messageID, between_users)
+	var err error
 	var comment entity.Comment
 
 	// Crea la struct comment da salvare nel DB
@@ -66,7 +66,7 @@ func GetCommentByID(commentID int) (entity.Comment, error) {
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable to retrieve comment by id %d ", commentID)
-	err := fmt.Errorf("Unable to retrieve comment by id %d ", commentID)
+	var err error
 	var comment entity.Comment
 
 	// Ottieni le info a DB in base a se sono tra utenti o utente->gruppo
@@ -91,7 +91,7 @@ func DeleteComment(userID int, commentID int, messageID int, between_users bool)
 
 	// Imposta i default
 	outErr := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
-	err := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
+	var err error
 
 	// Cancella il commento sul DB nella tabella corretta in base all'utente
 	if between_users {
