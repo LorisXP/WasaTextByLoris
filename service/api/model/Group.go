@@ -20,7 +20,7 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 	logrus.Infof("Creating a group named %s, by admin %d ", name, admin)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to create a new group named %s, by admin %d ", name, admin)
+	var outErr error
 	var group entity.Group
 
 	// Crea l'inserimento a DB
@@ -68,7 +68,7 @@ func GetGroup(groupID int, userID int) (entity.GroupInfoResponse, error) {
 	logrus.Infof("Getting group by id %d, requested by userID %d", groupID, userID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to retrieve group by id %d ", groupID)
+	var outErr error
 	var result entity.GroupInfoResponse
 
 	// Verifica se l'utente fa parte del gruppo
@@ -142,7 +142,7 @@ func LeaveGroup(userID int, group entity.Group) error {
 	logrus.Infof("userID %d leaving from groupID %d", userID, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for userID %d to leave from group by id %d ", userID, group.GroupID)
+	var outErr error
 
 	// Effettua l'operazione al DB
 	err := dml.LeaveGroup(userID, group.GroupID)
@@ -166,7 +166,7 @@ func AddToGroup(group entity.Group, userName []string) error {
 	logrus.Infof("adminID %d adding users %v, in groupID %d", group.AdminID, userName, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for adminID %d adding users %v, in groupID %d", group.AdminID, userName, group.GroupID)
+	var outErr error
 
 	// Bisogna prima ottenere gli userID dai nomi e poi inserirli nel gruppo
 	userID_list, err := queries.GetUsersIDByName(userName)
@@ -214,7 +214,7 @@ func SetNameGroup(group *entity.Group, new_name string) error {
 	logrus.Infof("adminID %d setting the name of groupID %d", group.AdminID, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for adminID %d setting the name of groupID %d", group.AdminID, group.GroupID)
+	var outErr error
 
 	// Effettua l'operazione al DB
 	new_name = strings.TrimSpace(new_name)
@@ -240,7 +240,7 @@ func SetGroupPhoto(group *entity.Group, new_photo string) error {
 	logrus.Infof("adminID %d setting the photo of groupID %d", group.AdminID, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for adminID %d setting the photo of groupID %d", group.AdminID, group.GroupID)
+	var outErr error
 
 	// Effettua l'operazione al DB
 	err := dml.UpdatePhotoGroup(group.GroupID, group.AdminID, new_photo)
@@ -267,7 +267,7 @@ func KickFromGroup(group *entity.Group, userName string) error {
 	logrus.Infof("adminID %d is kicking out the user '%s' from groupID %d", group.AdminID, userName, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for adminID %d to kick out the user '%s' from groupID %d", group.AdminID, userName, group.GroupID)
+	var outErr error
 
 	// Ottieni lo userID
 	user_id, err := queries.GetUserIDByName(userName)
@@ -305,7 +305,7 @@ func DeleteGroup(group *entity.Group) error {
 	logrus.Warningf("adminID %d is deleting groupID %d", group.AdminID, group.GroupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("unable for adminID %d to delete groupID %d", group.AdminID, group.GroupID)
+	var outErr error
 
 	// Effettua l'operazione al DB
 	err := dml.DeleteGroup(group.GroupID, group.AdminID)

@@ -18,7 +18,7 @@ import (
 func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -133,7 +133,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -256,7 +256,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")

@@ -17,7 +17,7 @@ import (
 //	POST /api/users/:userID/conversations/groups/:conversationID/messages/:messageID/comments
 func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -105,7 +105,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 //	DELETE /api/users/:userID/conversations/groups/:conversationID/messages/:messageID/comments/:commentID
 func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 

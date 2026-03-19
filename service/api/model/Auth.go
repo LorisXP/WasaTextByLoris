@@ -16,7 +16,7 @@ func AuthUser(username string) (int, string, bool, error) {
 	// Imposta i default
 	var newUser bool = false
 	var photo string
-	outErr := fmt.Errorf("Unable to return userID for username %s", username)
+	var outErr error
 
 	// Fai una query di ricerca
 	userID, isNew, err := queries.GetOrCreateUserIDByName(username)

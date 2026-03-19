@@ -15,7 +15,7 @@ import (
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -87,7 +87,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -176,7 +176,7 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 func (rt *_router) getConversationGroups(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -265,7 +265,7 @@ func (rt *_router) getConversationGroups(w http.ResponseWriter, r *http.Request,
 func (rt *_router) createConversationUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -350,9 +350,9 @@ func (rt *_router) createConversationUsers(w http.ResponseWriter, r *http.Reques
 					}
 
 				} else {
-					statusCode = http.StatusInternalServerError
-					outErr = errorReceiverId
-					ctx.Logger.WithError(errorReceiverId).Errorf("error during retrieving userID by userName %s", reqBody.UserName)
+					statusCode = http.StatusNotFound
+					outErr = fmt.Errorf("userName %s not found on WasaText", reqBody.UserName)
+					ctx.Logger.WithError(errorReceiverId).Infof("userName %s not found", reqBody.UserName)
 				}
 
 			} else {

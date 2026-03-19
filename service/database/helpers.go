@@ -29,7 +29,7 @@ Example usage:
 */
 func (db *appdbimpl) ExecuteQuery(query string, args ...interface{}) (*sql.Rows, error) {
 	// Imposta i default
-	outErr := fmt.Errorf("error executing query")
+	var outErr error
 	var rows *sql.Rows
 
 	// Esegui la query
@@ -78,7 +78,7 @@ Example usage:
 */
 func (db *appdbimpl) ExecuteInsert(query string, args ...interface{}) (int64, error) {
 	// Imposta i default
-	outErr := fmt.Errorf("error executing insert")
+	var outErr error
 	var lastID int64 = 0
 
 	// Esegui l'insert
@@ -115,7 +115,7 @@ Example usage:
 */
 func (db *appdbimpl) ExecuteUpdate(query string, args ...interface{}) (int64, error) {
 	// Imposta i default
-	outErr := fmt.Errorf("error executing update")
+	var outErr error
 	var rowsAffected int64 = 0
 
 	// Esegui l'update
@@ -152,7 +152,7 @@ Example usage:
 */
 func (db *appdbimpl) ExecuteDelete(query string, args ...interface{}) (int64, error) {
 	// Imposta i default
-	outErr := fmt.Errorf("error executing delete")
+	var outErr error
 	var rowsAffected int64 = 0
 
 	// Esegui il delete

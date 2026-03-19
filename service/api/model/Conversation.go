@@ -17,8 +17,8 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 	logrus.Info("Creating a new conversation")
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to create a new conversation")
-	var err error = nil
+	var outErr error
+	var err error
 	var conversation entity.Conversation
 
 	// Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
@@ -63,7 +63,7 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 	logrus.Infof("Updating last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to update last message id (%d) in conversationID %d", messageID, conversation.ConversationID)
+	var outErr error
 	var err error
 
 	// Crea l'inserimento a DB in base a se sono tra utenti o utente->gruppo
@@ -97,7 +97,7 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 	logrus.Debug("Entered in GetConversationByID() in package model/Conversation")
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to retrieve conversation by id %d ", conversationID)
+	var outErr error
 	var err error
 	var conversation entity.Conversation
 
@@ -157,7 +157,7 @@ func GetListMessages(conversation *entity.Conversation, userMadeRequest int) (ma
 	logrus.Info("Getting list of messages")
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to get conversation message list")
+	var outErr error
 	var err error
 	var result map[string]interface{}
 	var messagesList []map[string]interface{}
@@ -304,7 +304,7 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 	logrus.Debugf("Returning conversation of userID %d", userID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to retrieve conversations belong users of userID %d", userID)
+	var outErr error
 	// Crea una lista di dict
 	conversations := []map[string]interface{}{}
 

@@ -15,7 +15,7 @@ import (
 func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -68,7 +68,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 						validationContentErr = model.ValidateInput(reqBody.Content, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
 
 					} else {
-						statusCode = http.StatusBadRequest
 						outErr = validationContentErr
 						ctx.Logger.WithError(validationContentErr).Error("invalid enum in content_type")
 					}
@@ -156,7 +155,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -209,7 +208,6 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 						validationContentErr = model.ValidateInput(reqBody.Content, 0, 13981013, `^[A-Za-z0-9+/]+={0,2}$`, "string")
 
 					} else {
-						statusCode = http.StatusBadRequest
 						outErr = validationContentErr
 						ctx.Logger.WithError(validationContentErr).Error("invalid enum in content_type")
 					}
@@ -297,7 +295,7 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -405,7 +403,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -513,7 +511,7 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -607,7 +605,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")

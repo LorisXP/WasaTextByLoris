@@ -23,7 +23,7 @@ func GetUser(userID int) (entity.User, error) {
 
 	// Imposta i default
 	var user entity.User
-	var outErr error = fmt.Errorf("unable to get user %d", userID)
+	var outErr error
 
 	user_found, err := queries.GetUserByID(userID)
 
@@ -46,7 +46,7 @@ func GetUser(userID int) (entity.User, error) {
 // SetUserName imposta un nuovo nome utente
 func SetUserName(u *entity.User, newUserName string) error {
 	logrus.Debug("Entered in SetUserName()")
-	var outErr error = fmt.Errorf("cannot update userName for user %d", u.UserID)
+	var outErr error
 
 	// Rimuovi eventuali spazi
 	newUserName = strings.TrimSpace(newUserName)
@@ -85,7 +85,7 @@ func SetUserName(u *entity.User, newUserName string) error {
 // SetPhoto aggiorna la foto dell'utente
 func SetPhoto(u *entity.User, newPhoto string) error {
 	logrus.Debug("Entered in SetPhoto()")
-	var outErr error = fmt.Errorf("cannot update photo for user %d", u.UserID)
+	var outErr error
 
 	// Effettua il caricamento della foto
 	err := dml.UpdatePhotoByUserID(u.UserID, newPhoto)
@@ -111,7 +111,7 @@ func SetPhoto(u *entity.User, newPhoto string) error {
 func GetUsersByName(search string) ([]entity.User, error) {
 
 	var users []entity.User
-	var outErr error = fmt.Errorf("cannot search users by name '%s'", search)
+	var outErr error
 
 	records, err := queries.GetUsersByName(search)
 
@@ -147,7 +147,7 @@ func GetUsersByName(search string) ([]entity.User, error) {
 
 func GetUserIdByName(userName string) (int, error) {
 	logrus.Debug("Entered in GetUserIdByName()")
-	var outErr error = fmt.Errorf("cannot get userID for user %s", userName)
+	var outErr error
 
 	// Rimuovi eventuali spazi
 	userName = strings.TrimSpace(userName)

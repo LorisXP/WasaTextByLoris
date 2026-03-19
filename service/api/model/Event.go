@@ -24,7 +24,7 @@ func GetEventsByGroupID(groupID int) ([]map[string]interface{}, error) {
 	logrus.Infof("Getting events for groupID %d", groupID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("unable to retrieve events for groupID %d", groupID)
+	var outErr error
 	var events []map[string]interface{}
 
 	// Ottieni gli eventi dal DB

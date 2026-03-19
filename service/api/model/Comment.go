@@ -25,7 +25,7 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 	logrus.Infof("Adding a reaction to messageID %d, between users: %t", messageID, between_users)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to add a new reaction to messageID %d, between users: %t", messageID, between_users)
+	var outErr error
 	var err error
 	var comment entity.Comment
 
@@ -65,7 +65,7 @@ func GetCommentByID(commentID int) (entity.Comment, error) {
 	logrus.Infof("Getting a reaction with commentID %d", commentID)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to retrieve comment by id %d ", commentID)
+	var outErr error
 	var err error
 	var comment entity.Comment
 
@@ -90,7 +90,7 @@ func DeleteComment(userID int, commentID int, messageID int, between_users bool)
 	logrus.Warningf("userID %d wants delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for userID %d delete commentID %d of messageID %d between users %t", userID, commentID, messageID, between_users)
+	var outErr error
 	var err error
 
 	// Cancella il commento sul DB nella tabella corretta in base all'utente

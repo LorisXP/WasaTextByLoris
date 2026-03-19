@@ -15,7 +15,7 @@ import (
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 

@@ -18,7 +18,7 @@ import (
 func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -145,7 +145,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -227,7 +227,7 @@ func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httpr
 func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -318,7 +318,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var outErr error = nil
 	var usersIdLists []int
 	ctx.Logger.Debug("default init ok")
@@ -351,7 +351,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 				// Verifica che il Bearer token corrisponda al userID nel body
 				if userId != ctx.BearerUserID {
 					statusCode = http.StatusForbidden
-					outErr = fmt.Errorf("Bearer token does not match userID in the request body")
+					outErr = fmt.Errorf("bearer token does not match userID in the request body (token=%d, body=%d)", ctx.BearerUserID, userId)
 					ctx.Logger.WithError(outErr).Warn("authorization mismatch")
 				} else {
 					ctx.Logger.Debug("starting validation and retrieving userID")
@@ -476,7 +476,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -503,7 +503,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 			// Verifica che il Bearer token corrisponda al userID nel body
 			if reqBody.UserId != ctx.BearerUserID {
 				statusCode = http.StatusForbidden
-				outErr = fmt.Errorf("Bearer token does not match userID in the request body")
+				outErr = fmt.Errorf("bearer token does not match userID in the request body")
 				ctx.Logger.WithError(outErr).Warn("authorization mismatch")
 			} else {
 
@@ -607,7 +607,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var responseBody []byte = nil
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
@@ -637,7 +637,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 				// Verifica che il Bearer token corrisponda al userID nel form
 				if userId != ctx.BearerUserID {
 					statusCode = http.StatusForbidden
-					outErr = fmt.Errorf("Bearer token does not match userID in the form")
+					outErr = fmt.Errorf("bearer token does not match userID in the form")
 					ctx.Logger.WithError(outErr).Warn("authorization mismatch")
 				} else {
 
@@ -761,7 +761,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 
@@ -882,7 +882,7 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Imposta i default
-	var statusCode int = http.StatusInternalServerError
+	var statusCode int
 	var outErr error = nil
 	ctx.Logger.Debug("default init ok")
 

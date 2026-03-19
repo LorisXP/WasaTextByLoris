@@ -27,7 +27,7 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 	logrus.Infof("Creating a new message in conversationID %d, between users: %t", conversationID, between_users)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to create a new message in conversationID %d, between users: %t", conversationID, between_users)
+	var outErr error
 	var err error
 	var message entity.Message
 
@@ -80,7 +80,7 @@ func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 	logrus.Debug("Entered in GetMessageByID() in package model/Message")
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to retrieve message by id %d ", messageID)
+	var outErr error
 	var err error
 	var message entity.Message
 
@@ -112,7 +112,7 @@ func ForwardMessage(userID int, conversationID int, between_users bool, sourceBe
 	logrus.Infof("Forwarding messageID %d → conversationID %d (dest between_users: %t, src between_users: %t)", messageID, conversationID, between_users, sourceBetweenUsers)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable to forward a new message in conversationID %d, between users: %t", conversationID, between_users)
+	var outErr error
 	var err error
 	var message entity.Message
 
@@ -157,7 +157,7 @@ func DeleteMessage(userID int, conversationID int, between_users bool, messageID
 	logrus.Warningf("userID %d wants delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
 
 	// Imposta i default
-	outErr := fmt.Errorf("Unable for userID %d delete messageID %d in conversationID %d between users %t", userID, messageID, conversationID, between_users)
+	var outErr error
 	var err error
 
 	// Cancella il messaggio sul DB nella tabella corretta in base all'utente
