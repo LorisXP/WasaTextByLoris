@@ -58,8 +58,6 @@ export default {
 		},
 		/**
 		 * ID del gruppo (obbligatorio solo se conversationType === "groups").
-		 * Necessario per l'endpoint delle reazioni di gruppo:
-		 * POST /api/comments/groups/{groupID}/messages/{messageID}
 		 */
 		groupID: {
 			type: Number,
@@ -156,8 +154,12 @@ export default {
 			this.busy = true;
 			this.actionError = null;
 			try {
-				const url = `/api/users/${this.myUserID}/conversations/${this.conversationType}/${this.conversationID}/messages/${this.msg.messageID}`;
-				const response = await axios.delete(url);
+				let response;
+				if (this.conversationType === "groups") {
+					response = await axios.delete(`/api/users/${this.myUserID}/conversations/groups/${this.conversationID}/messages/${this.msg.messageID}`);
+				} else {
+					response = await axios.delete(`/api/users/${this.myUserID}/conversations/users/${this.conversationID}/messages/${this.msg.messageID}`);
+				}
 				if (response.status === 200) {
 					this.$emit("message-deleted");
 					this.closeMenu();
@@ -179,8 +181,8 @@ export default {
 
 		/**
 		 * Invia una reazione (emoji) al messaggio.
-		 * Users:  POST /api/comments/users/{userID}/messages/{messageID}
-		 * Groups: POST /api/comments/groups/{groupID}/messages/{messageID}
+		 * Users:  POST /api/users/{userID}/conversations/users/{conversationID}/messages/{messageID}/comments
+		 * Groups: POST /api/users/{userID}/conversations/groups/{conversationID}/messages/{messageID}/comments
 		 *
 		 * Il body richiede: { reaction: "<emoji>" }
 		 */
@@ -195,8 +197,12 @@ export default {
 			this.busy = true;
 			this.actionError = null;
 			try {
-				const url = `/api/users/${this.myUserID}/conversations/${this.conversationType}/${this.conversationID}/messages/${this.msg.messageID}/comments`;
-				const response = await axios.post(url, { reaction: emoji });
+				let response;
+				if (this.conversationType === "groups") {
+					response = await axios.post(`/api/users/${this.myUserID}/conversations/groups/${this.conversationID}/messages/${this.msg.messageID}/comments`, { reaction: emoji });
+				} else {
+					response = await axios.post(`/api/users/${this.myUserID}/conversations/users/${this.conversationID}/messages/${this.msg.messageID}/comments`, { reaction: emoji });
+				}
 				if (response.status === 200) {
 					this.$emit("reaction-added", emoji);
 					this.closeMenu();
@@ -213,7 +219,8 @@ export default {
 
 		/**
 		 * Rimuove la propria reazione dal messaggio.
-		 * DELETE /api/users/{userID}/conversations/{type}/{conversationID}/messages/{messageID}/comments/{commentID}
+		 * Users:  DELETE /api/users/{userID}/conversations/users/{conversationID}/messages/{messageID}/comments/{commentID}
+		 * Groups: DELETE /api/users/{userID}/conversations/groups/{conversationID}/messages/{messageID}/comments/{commentID}
 		 */
 		async deleteReaction() {
 			const comment = this.myComment;
@@ -221,8 +228,12 @@ export default {
 			this.busy = true;
 			this.actionError = null;
 			try {
-				const url = `/api/users/${this.myUserID}/conversations/${this.conversationType}/${this.conversationID}/messages/${this.msg.messageID}/comments/${comment.commentID}`;
-				const response = await axios.delete(url);
+				let response;
+				if (this.conversationType === "groups") {
+					response = await axios.delete(`/api/users/${this.myUserID}/conversations/groups/${this.conversationID}/messages/${this.msg.messageID}/comments/${comment.commentID}`);
+				} else {
+					response = await axios.delete(`/api/users/${this.myUserID}/conversations/users/${this.conversationID}/messages/${this.msg.messageID}/comments/${comment.commentID}`);
+				}
 				if (response.status === 204) {
 					this.$emit("reaction-removed");
 					this.closeMenu();

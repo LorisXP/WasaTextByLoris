@@ -28,8 +28,7 @@ export default {
 		},
 		/**
 		 * ID del gruppo.
-		 * Necessario per l'endpoint delle reazioni di gruppo:
-		 * POST /api/comments/groups/{groupID}/messages/{messageID}
+		 * Necessario per l'endpoint delle reazioni di gruppo.
 		 */
 		groupID: {
 			type: Number,

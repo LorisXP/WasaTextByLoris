@@ -61,6 +61,8 @@ export default {
 		/**
 		 * Carica la lista conversazioni dell'utente ed esclude quella corrente.
 		 * GET /api/users/{userID}/conversations
+		 *
+		 * NOTA: il backend restituisce type "user" per conversazioni dirette e "group" per i gruppi.
 		 */
 		async fetchConversations() {
 			this.error = null;
@@ -72,8 +74,8 @@ export default {
 					this.conversations = (response.data || []).filter(
 						c => !(
 							c.conversationID === this.conversationID &&
-							((c.type === "direct" && this.conversationType === "users") ||
-							 (c.type === "group"  && this.conversationType === "groups"))
+							((c.type === "user"  && this.conversationType === "users") ||
+							 (c.type === "group" && this.conversationType === "groups"))
 						)
 					);
 				} else {
@@ -89,17 +91,25 @@ export default {
 
 		/**
 		 * Invia la richiesta di inoltro verso la conversazione selezionata.
-		 * POST /api/users/{userID}/conversations/{targetType}/{targetID}/messages/{messageID}
-		 * Body: { source_type: "users"|"groups" }
+		 *
+		 * Se il destinatario è una conversazione diretta (type "user"):
+		 *   POST /api/users/{userID}/conversations/users/{targetID}/messages/{messageID}
+		 * Se il destinatario è un gruppo (type "group"):
+		 *   POST /api/users/{userID}/conversations/groups/{targetID}/messages/{messageID}
+		 *
+		 * Body: { source_type: "users"|"groups" } — indica da dove proviene il messaggio originale.
 		 */
 		async confirm(targetConv) {
 			if (!this.msg || !targetConv) return;
 			this.busy = true;
 			this.error = null;
-			const targetType = targetConv.type === "group" ? "groups" : "users";
 			try {
-				const url = `/api/users/${this.myUserID}/conversations/${targetType}/${targetConv.conversationID}/messages/${this.msg.messageID}`;
-				const response = await axios.post(url, { source_type: this.conversationType });
+				let response;
+				if (targetConv.type === "group") {
+					response = await axios.post(`/api/users/${this.myUserID}/conversations/groups/${targetConv.conversationID}/messages/${this.msg.messageID}`, { source_type: this.conversationType });
+				} else {
+					response = await axios.post(`/api/users/${this.myUserID}/conversations/users/${targetConv.conversationID}/messages/${this.msg.messageID}`, { source_type: this.conversationType });
+				}
 				if (response.status === 201) {
 					this.$emit("message-forwarded");
 					this.close();
