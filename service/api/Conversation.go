@@ -16,8 +16,8 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -45,7 +45,6 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 
 					// Tutto ok
 					responseBody = jsonBytes
-					outErr = nil
 
 					statusCode = http.StatusOK // 200
 					ctx.Logger.Info("conversation retrieved successfully")
@@ -88,8 +87,8 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -128,7 +127,6 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 						// Tutto ok
 						responseBody = jsonBytes
-						outErr = nil
 
 						statusCode = http.StatusOK // 200
 						ctx.Logger.Infof("messages list obtained successfully between users")
@@ -177,8 +175,8 @@ func (rt *_router) getConversationGroups(w http.ResponseWriter, r *http.Request,
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -217,7 +215,6 @@ func (rt *_router) getConversationGroups(w http.ResponseWriter, r *http.Request,
 
 						// Tutto ok
 						responseBody = jsonBytes
-						outErr = nil
 
 						statusCode = http.StatusOK // 200
 						ctx.Logger.Infof("messages list obtained successfully between users and groups")
@@ -266,8 +263,8 @@ func (rt *_router) createConversationUsers(w http.ResponseWriter, r *http.Reques
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -326,7 +323,6 @@ func (rt *_router) createConversationUsers(w http.ResponseWriter, r *http.Reques
 
 								// Tutto ok
 								responseBody = jsonBytes
-								outErr = nil
 
 								statusCode = http.StatusCreated // 201 - conversazione creata
 								ctx.Logger.Info("new conversation created successfully")

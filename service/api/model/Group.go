@@ -37,7 +37,6 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 		group.Photo = photo
 		group.AdminID = admin
 
-		outErr = nil
 
 		logrus.Info("Group created successfully")
 
@@ -114,7 +113,6 @@ func GetGroup(groupID int, userID int) (entity.GroupInfoResponse, error) {
 						})
 					}
 
-					outErr = nil
 					logrus.Info("Group obtained successfully")
 
 				} else {
@@ -150,7 +148,6 @@ func LeaveGroup(userID int, group entity.Group) error {
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 		logrus.Infof("userID %d left successfully from group by id %d", userID, group.GroupID)
 	} else {
 		outErr = fmt.Errorf("error leaving groupID %d by userID %d: %w", group.GroupID, userID, err)
@@ -188,7 +185,6 @@ func AddToGroup(group entity.Group, userName []string) error {
 			// Se non ci sono errori, prosegui
 			if err == nil {
 				logrus.Infof("adminID %d added users %v to groupID %d successfully", group.AdminID, userName, group.GroupID)
-				outErr = nil
 			} else {
 				outErr = fmt.Errorf("error during add userID list in the groupID %d: %w", group.GroupID, err)
 				logrus.Error(outErr)
@@ -224,7 +220,6 @@ func SetNameGroup(group *entity.Group, new_name string) error {
 	// Se non ci sono errori, prosegui
 	if err == nil {
 		group.Name = new_name
-		outErr = nil
 		logrus.Infof("adminID %d set the name '%s' of groupID %d successfully", group.AdminID, new_name, group.GroupID)
 	} else {
 		outErr = fmt.Errorf("error setting new group name '%s' in groupID %d: %w", new_name, group.GroupID, err)
@@ -249,7 +244,6 @@ func SetGroupPhoto(group *entity.Group, new_photo string) error {
 	// Se non ci sono errori, prosegui
 	if err == nil {
 		group.Photo = new_photo
-		outErr = nil
 		logrus.Infof("adminID %d set the photo of groupID %d successfully", group.AdminID, group.GroupID)
 	} else {
 		outErr = fmt.Errorf("error setting new group photo in groupID %d: %w", group.GroupID, err)
@@ -283,7 +277,6 @@ func KickFromGroup(group *entity.Group, userName string) error {
 
 		// Se il remove ha funzionato
 		if err == nil {
-			outErr = nil
 			logrus.Infof("adminID %d kicked userName '%s' from groupID %d successfully", group.AdminID, userName, group.GroupID)
 		} else {
 			outErr = fmt.Errorf("unable to kick userName '%s' from groupID %d: %w", userName, group.GroupID, err)
@@ -313,7 +306,6 @@ func DeleteGroup(group *entity.Group) error {
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 		logrus.Infof("adminID %d deleted groupID %d successfully", group.AdminID, group.GroupID)
 		// Azzera i campi del gruppo
 		*group = entity.Group{}

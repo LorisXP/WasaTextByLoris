@@ -16,8 +16,8 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 
 	// Decodifica il body JSON { "userName": "..." }
 	var reqBody struct {
@@ -53,7 +53,6 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 					// Tutto ok
 					responseBody = jsonBytes
-					outErr = nil
 
 					if newUser {
 						statusCode = http.StatusCreated // 201

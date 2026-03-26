@@ -32,7 +32,6 @@ func GetEventsByGroupID(groupID int) ([]map[string]interface{}, error) {
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 		logrus.Infof("Events for groupID %d obtained successfully", groupID)
 	} else {
 		outErr = fmt.Errorf("error during obtaining events for groupID %d: %w", groupID, err)

@@ -24,7 +24,6 @@ func AuthUser(username string) (int, string, bool, error) {
 
 	// Se non ci sono errori, prosegui
 	if err == nil && userID != 0 {
-		outErr = nil
 		newUser = isNew
 
 		if newUser {

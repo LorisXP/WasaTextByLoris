@@ -16,8 +16,8 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -94,7 +94,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 								// Tutto ok
 								responseBody = jsonBytes
-								outErr = nil
 
 								statusCode = http.StatusCreated // 201
 								ctx.Logger.Debugf("new message created successfully %s (ID: %d)", reqBody.Content, userId)
@@ -113,8 +112,8 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 						}
 					} else {
 						statusCode = http.StatusBadRequest
-						outErr = validationContentTypeErr
-						ctx.Logger.WithError(validationContentTypeErr).Error("invalid message content")
+						outErr = validationContentErr
+						ctx.Logger.WithError(validationContentErr).Error("invalid message content")
 					}
 
 				} else {
@@ -156,8 +155,8 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -234,7 +233,6 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 
 								// Tutto ok
 								responseBody = jsonBytes
-								outErr = nil
 
 								statusCode = http.StatusCreated // 201
 								ctx.Logger.Debugf("new message to group created successfully %s (ID: %d)", reqBody.Content, userId)
@@ -253,8 +251,8 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 						}
 					} else {
 						statusCode = http.StatusBadRequest
-						outErr = validationContentTypeErr
-						ctx.Logger.WithError(validationContentTypeErr).Error("invalid message content")
+						outErr = validationContentErr
+						ctx.Logger.WithError(validationContentErr).Error("invalid message content")
 					}
 
 				} else {
@@ -296,8 +294,8 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -353,7 +351,6 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 							// Tutto ok
 							responseBody = jsonBytes
-							outErr = nil
 
 							statusCode = http.StatusCreated // 201
 							ctx.Logger.Infof("new message (%d) forwarded successfully (%d)", forwardedMessage.MessageID, messageId)
@@ -404,8 +401,8 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -461,7 +458,6 @@ func (rt *_router) forwardMessageGroup(w http.ResponseWriter, r *http.Request, p
 
 							// Tutto ok
 							responseBody = jsonBytes
-							outErr = nil
 
 							statusCode = http.StatusCreated // 201
 							ctx.Logger.Infof("new message (%d) forwarded successfully (%d) to group", forwardedMessage.MessageID, messageId)
@@ -512,8 +508,8 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -556,7 +552,6 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 						// Tutto ok
 						responseBody = jsonBytes
-						outErr = nil
 
 						statusCode = http.StatusOK // 200
 						ctx.Logger.Infof(" message (%d) deleted successfully", messageId)
@@ -606,8 +601,8 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -650,7 +645,6 @@ func (rt *_router) deleteMessageGroup(w http.ResponseWriter, r *http.Request, ps
 
 						// Tutto ok
 						responseBody = jsonBytes
-						outErr = nil
 
 						statusCode = http.StatusOK // 200
 						ctx.Logger.Infof(" message of group (%d) deleted successfully", messageId)

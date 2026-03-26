@@ -19,8 +19,8 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -84,7 +84,6 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 								// Tutto ok
 								responseBody = jsonBytes
-								outErr = nil
 
 								statusCode = http.StatusCreated // 201
 								ctx.Logger.Infof("group created successfully: %s (ID: %d) by userID %d", reqBody.Name, group.GroupID, userId)
@@ -146,8 +145,8 @@ func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httpr
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -180,7 +179,6 @@ func (rt *_router) getGroupInfo(w http.ResponseWriter, r *http.Request, ps httpr
 
 					// Tutto ok
 					responseBody = jsonBytes
-					outErr = nil
 
 					statusCode = http.StatusOK // 200
 					ctx.Logger.Infof("group info retrieved successfully: groupID %d by userID %d", groupId, userId)
@@ -228,7 +226,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Imposta i default
 	var statusCode int
-	var outErr error = nil
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -267,7 +265,6 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 					if errLeaveGroup == nil {
 
 						// Tutto ok
-						outErr = nil
 
 						statusCode = http.StatusNoContent
 						ctx.Logger.Infof("userID %d successfully left groupID %d", userId, groupId)
@@ -319,7 +316,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Imposta i default
 	var statusCode int
-	var outErr error = nil
+	var outErr error
 	var usersIdLists []int
 	ctx.Logger.Debug("default init ok")
 
@@ -413,7 +410,6 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 									// Gruppo creato e conversazioni create per ogni u
 									if errConversation == nil {
-										outErr = nil
 										statusCode = http.StatusNoContent
 										ctx.Logger.Infof("users successfully added to groupID %d", groupId)
 									} else {
@@ -477,8 +473,8 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai groupId dai parameters
@@ -543,7 +539,6 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 
 									// Tutto ok
 									responseBody = jsonBytes
-									outErr = nil
 
 									statusCode = http.StatusOK // 200
 									ctx.Logger.Debugf("groupName update successfully: %s (ID: %d)", reqBody.Name, groupId)
@@ -608,8 +603,8 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai groupId dai parameters
@@ -685,7 +680,6 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 											// Tutto ok
 											responseBody = jsonBytes
-											outErr = nil
 
 											statusCode = http.StatusOK // 200
 											ctx.Logger.Debugf("group photo updated successfully (groupID: %d) by userID %d", groupId, userId)
@@ -762,7 +756,7 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 
 	// Imposta i default
 	var statusCode int
-	var outErr error = nil
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -817,7 +811,6 @@ func (rt *_router) kickUserFromGroup(w http.ResponseWriter, r *http.Request, ps 
 								if errKickGroup == nil {
 
 									// Tutto ok
-									outErr = nil
 
 									statusCode = http.StatusNoContent
 									ctx.Logger.Infof("user %s successfully kicked from groupID %d", userName, groupId)
@@ -883,7 +876,7 @@ func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Imposta i default
 	var statusCode int
-	var outErr error = nil
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai groupId dai parameters
@@ -922,7 +915,6 @@ func (rt *_router) removeGroup(w http.ResponseWriter, r *http.Request, ps httpro
 					if errDelete == nil {
 
 						// Tutto ok
-						outErr = nil
 						statusCode = http.StatusNoContent // 204
 						ctx.Logger.Infof("groupID %d deleted successfully by adminID %d", groupId, userId)
 

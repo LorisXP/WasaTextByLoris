@@ -18,8 +18,8 @@ import (
 func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Determina il tipo dalla URL
@@ -56,7 +56,6 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 						jsonBytes, marshalErr := json.Marshal(respData)
 						if marshalErr == nil {
 							responseBody = jsonBytes
-							outErr = nil
 							statusCode = http.StatusOK
 							ctx.Logger.Infof("reaction '%s' added to messageID %d (betweenUsers: %t)", reqBody.Reaction, messageId, betweenUsers)
 						} else {
@@ -106,7 +105,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	var statusCode int
-	var outErr error = nil
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Determina il tipo dalla URL
@@ -129,7 +128,6 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 
 				errDelete := model.DeleteComment(userId, commentId, messageId, betweenUsers)
 				if errDelete == nil {
-					outErr = nil
 					statusCode = http.StatusNoContent
 					ctx.Logger.Infof("commentID %d deleted from messageID %d (betweenUsers: %t)", commentId, messageId, betweenUsers)
 				} else {

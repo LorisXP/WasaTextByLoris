@@ -50,7 +50,6 @@ func CreateComment(userID int, messageID int, between_users bool, reaction strin
 
 	// Se non ci sono errori, prosegui
 	if err == nil && comment.CommentID != 0 {
-		outErr = nil
 		logrus.Info("Reaction added to message successfully")
 
 	} else {
@@ -75,7 +74,6 @@ func GetCommentByID(commentID int) (entity.Comment, error) {
 
 	// Se non ci sono errori, prosegui
 	if err == nil && comment.CommentID != 0 {
-		outErr = nil
 		logrus.Info("Comment obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining comment by id %d: %w", commentID, err)
@@ -108,7 +106,6 @@ func DeleteComment(userID int, commentID int, messageID int, between_users bool)
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 		logrus.Infof("userID %d deleted commentID %d of messageID %d between users %t successfully", userID, commentID, messageID, between_users)
 
 	} else {

@@ -45,7 +45,6 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 		conversation.Receiver = receiver
 		conversation.LastMessageID = 0
 
-		outErr = nil
 
 		logrus.Info("Conversation created successfully")
 
@@ -82,7 +81,6 @@ func SetLastMessageID(conversation *entity.Conversation, messageID int) error {
 	// Se non ci sono errori, prosegui
 	if err == nil {
 		conversation.LastMessageID = messageID
-		outErr = nil
 		logrus.Info("Last message ID updated successfully")
 	} else {
 		outErr = fmt.Errorf("error during updating last message ID (%d): %w", messageID, err)
@@ -114,7 +112,6 @@ func GetConversationByID(conversationID int, between_users bool) (entity.Convers
 
 	// Se non ci sono errori, prosegui
 	if err == nil && conversation.ConversationID != 0 {
-		outErr = nil
 		logrus.Info("Conversation obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining conversation by id %d: %w", conversationID, err)
@@ -243,13 +240,11 @@ func GetListMessages(conversation *entity.Conversation, userMadeRequest int) (ma
 			"messages": formattedMessages,
 		}
 
-		outErr = nil
 		logrus.Info("List of messages obtained successfully")
 
 	} else if err == nil && len(messagesList) == 0 {
 
 		// messagesList è vuota
-		outErr = nil
 		logrus.Infof("No messages found for this conversationID %d", conversation.ConversationID)
 		result = map[string]interface{}{
 			"messages": []map[string]interface{}{},
@@ -367,7 +362,6 @@ func GetConversationByUserID(userID int) ([]map[string]interface{}, error) {
 				return t1.After(t2)
 			})
 
-			outErr = nil
 			logrus.Infof("Conversations of userID %d sorted successfully", userID)
 
 		} else {

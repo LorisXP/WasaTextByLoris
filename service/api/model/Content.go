@@ -46,7 +46,6 @@ func CreateContent(content_type string, content string) (entity.Content, error) 
 		// Se non ci sono errori, prosegui
 		if err == nil && message_content.ContentID != 0 {
 
-			outErr = nil
 			logrus.Info("Content inserted successfully")
 
 		} else {
@@ -76,7 +75,6 @@ func GetContentByID(contentID int) (entity.Content, error) {
 
 	// Se non ci sono errori, prosegui
 	if err == nil && content.ContentID != 0 {
-		outErr = nil
 		logrus.Info("Content obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining content by id %d: %w", contentID, err)
@@ -102,7 +100,6 @@ func DeleteContentByID(contentID int) error {
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 		logrus.Infof("contentID %d removed from DB successfully", contentID)
 
 	} else {

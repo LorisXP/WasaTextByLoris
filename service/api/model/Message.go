@@ -65,7 +65,6 @@ func CreateMessage(userID int, conversationID int, between_users bool, content s
 	// Se non ci sono errori, prosegui
 	if err == nil && message.MessageID != 0 {
 
-		outErr = nil
 		logrus.Info("Message created successfully")
 
 	} else {
@@ -97,7 +96,6 @@ func GetMessageByID(messageID int, between_users bool) (entity.Message, error) {
 
 	// Se non ci sono errori, prosegui
 	if err == nil && message.MessageID != 0 {
-		outErr = nil
 		logrus.Info("Message obtained successfully")
 	} else {
 		outErr = fmt.Errorf("error during obtaining message by id %d: %w", messageID, err)
@@ -141,7 +139,6 @@ func ForwardMessage(userID int, conversationID int, between_users bool, sourceBe
 	// Se non ci sono errori, prosegui
 	if err == nil && message.MessageID != 0 {
 
-		outErr = nil
 		logrus.Info("Message forwarded successfully")
 
 	} else {
@@ -175,7 +172,6 @@ func DeleteMessage(userID int, conversationID int, between_users bool, messageID
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 		logrus.Infof("userID %d deleted messageID %d in conversationID %d between users %t successfully", userID, messageID, conversationID, between_users)
 
 	} else {

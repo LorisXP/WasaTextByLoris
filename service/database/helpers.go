@@ -37,7 +37,6 @@ func (db *appdbimpl) ExecuteQuery(query string, args ...interface{}) (*sql.Rows,
 
 	// Se non ci sono errori, prosegui
 	if err == nil {
-		outErr = nil
 	} else {
 		outErr = fmt.Errorf("error executing query: %w", err)
 	}
@@ -79,7 +78,7 @@ Example usage:
 func (db *appdbimpl) ExecuteInsert(query string, args ...interface{}) (int64, error) {
 	// Imposta i default
 	var outErr error
-	var lastID int64 = 0
+	var lastID int64
 
 	// Esegui l'insert
 	result, err := db.c.Exec(query, args...)
@@ -88,7 +87,6 @@ func (db *appdbimpl) ExecuteInsert(query string, args ...interface{}) (int64, er
 	if err == nil {
 		lastID, err = result.LastInsertId()
 		if err == nil {
-			outErr = nil
 		} else {
 			outErr = fmt.Errorf("error getting last insert ID: %w", err)
 		}
@@ -116,7 +114,7 @@ Example usage:
 func (db *appdbimpl) ExecuteUpdate(query string, args ...interface{}) (int64, error) {
 	// Imposta i default
 	var outErr error
-	var rowsAffected int64 = 0
+	var rowsAffected int64
 
 	// Esegui l'update
 	result, err := db.c.Exec(query, args...)
@@ -125,7 +123,6 @@ func (db *appdbimpl) ExecuteUpdate(query string, args ...interface{}) (int64, er
 	if err == nil {
 		rowsAffected, err = result.RowsAffected()
 		if err == nil {
-			outErr = nil
 		} else {
 			outErr = fmt.Errorf("error getting rows affected: %w", err)
 		}
@@ -153,7 +150,7 @@ Example usage:
 func (db *appdbimpl) ExecuteDelete(query string, args ...interface{}) (int64, error) {
 	// Imposta i default
 	var outErr error
-	var rowsAffected int64 = 0
+	var rowsAffected int64
 
 	// Esegui il delete
 	result, err := db.c.Exec(query, args...)
@@ -162,7 +159,6 @@ func (db *appdbimpl) ExecuteDelete(query string, args ...interface{}) (int64, er
 	if err == nil {
 		rowsAffected, err = result.RowsAffected()
 		if err == nil {
-			outErr = nil
 		} else {
 			outErr = fmt.Errorf("error getting rows affected: %w", err)
 		}

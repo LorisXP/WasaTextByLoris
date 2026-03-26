@@ -19,8 +19,8 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -73,7 +73,6 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 							// Tutto ok
 							responseBody = jsonBytes
-							outErr = nil
 
 							statusCode = http.StatusOK // 200
 							ctx.Logger.Debugf("new userName update successfully: %s (ID: %d)", reqBody.UserName, userId)
@@ -134,8 +133,8 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -194,7 +193,6 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 								// Tutto ok
 								responseBody = jsonBytes
-								outErr = nil
 
 								statusCode = http.StatusOK // 200
 								ctx.Logger.Debugf("new user profile picture update successfully (ID: %d)", userId)
@@ -257,8 +255,8 @@ func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httproute
 
 	// Imposta i default
 	var statusCode int
-	var responseBody []byte = nil
-	var outErr error = nil
+	var responseBody []byte
+	var outErr error
 	ctx.Logger.Debug("default init ok")
 
 	// Estrai userId dai parameters
@@ -311,7 +309,6 @@ func (rt *_router) findUser(w http.ResponseWriter, r *http.Request, ps httproute
 
 					// Tutto ok
 					responseBody = jsonBytes
-					outErr = nil
 					statusCode = http.StatusOK // 200
 					ctx.Logger.Infof("findUser completed: %d results", len(result))
 

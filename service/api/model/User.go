@@ -32,7 +32,6 @@ func GetUser(userID int) (entity.User, error) {
 
 		user = user_found
 
-		outErr = nil
 		logrus.WithField("userID", userID).Info("User loaded")
 
 	} else {
@@ -68,7 +67,6 @@ func SetUserName(u *entity.User, newUserName string) error {
 		if err == nil {
 
 			u.Name = newUserName
-			outErr = nil
 
 			logrus.WithField("userID", u.UserID).Infof("userName updated with: %s", newUserName)
 
@@ -94,7 +92,6 @@ func SetPhoto(u *entity.User, newPhoto string) error {
 	if err == nil {
 
 		u.Photo = newPhoto
-		outErr = nil
 
 		logrus.WithField("userID", u.UserID).Info("Photo updated")
 
@@ -132,7 +129,6 @@ func GetUsersByName(search string) ([]entity.User, error) {
 			outErr = fmt.Errorf("%w matching '%s'", ErrUserNotFound, search)
 			logrus.WithField("search", search).Warn("No users found")
 		} else {
-			outErr = nil
 			logrus.WithField("search", search).Infof("%d users retrieved", len(users))
 		}
 
@@ -158,7 +154,6 @@ func GetUserIdByName(userName string) (int, error) {
 	// Se la ricerca è stata eseguita
 	if errUserID == nil {
 
-		outErr = nil
 		logrus.Infof("Obtained userID by userName %s", userName)
 
 	} else {
