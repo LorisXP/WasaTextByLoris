@@ -34,6 +34,8 @@ paths:
         content:
           application/json:
             schema:
+              type: object
+              description: User credentials for authentication
               properties:
                 userName:
                   $ref: "#/components/schemas/userName"
@@ -55,10 +57,12 @@ paths:
           content:
             application/json:
               schema:
-                description: New user creation response containing user ID
+                description: Authentication response containing user ID and optional photo
                 properties:
                   userID:
                     $ref: "#/components/schemas/userID"
+                  photo:
+                    $ref: "#/components/schemas/Photo"
         "400":
           description: Invalid request or userName
         "500":
@@ -160,6 +164,7 @@ paths:
           content:
             application/json:
               schema:
+                description: List of users matching the search query
                 type: array
                 minItems: 0
                 maxItems: 500
@@ -470,6 +475,7 @@ paths:
           content:
             application/json:
               schema:
+                description: List of conversations belonging to the user
                 type: array
                 minItems: 0
                 maxItems: 500
@@ -544,6 +550,7 @@ paths:
             application/json:
               schema:
                 type: object
+                description: Response containing the list of messages in the user conversation
                 properties:
                   messages:
                     description: List of messages.
@@ -720,6 +727,7 @@ paths:
           application/json:
             schema:
               type: object
+              description: Request body specifying the source type of the original message
               required:
                 - source_type
               properties:
@@ -735,6 +743,7 @@ paths:
             application/json:
               schema:
                 type: object
+                description: Response containing the forwarded message ID and reply reference
                 properties:
                   messageID:
                     $ref: "#/components/schemas/messageID"
@@ -799,6 +808,7 @@ paths:
           application/json:
             schema:
               type: object
+              description: Request body specifying the source type of the original message for group forwarding
               required:
                 - source_type
               properties:
@@ -878,6 +888,7 @@ paths:
           application/json:
             schema:
               type: object
+              description: Request body containing the reaction emoji
               required:
                 - reaction
               properties:
@@ -895,6 +906,7 @@ paths:
             application/json:
               schema:
                 type: object
+                description: Response containing the created comment ID
                 properties:
                   commentID:
                     $ref: "#/components/schemas/commentID"
@@ -924,6 +936,7 @@ paths:
           application/json:
             schema:
               type: object
+              description: Request body containing the reaction emoji for group message
               required:
                 - reaction
               properties:
@@ -941,6 +954,7 @@ paths:
             application/json:
               schema:
                 type: object
+                description: Response containing the created comment ID for group message
                 properties:
                   commentID:
                     $ref: "#/components/schemas/commentID"
@@ -1133,16 +1147,6 @@ components:
           type: integer
           example: 1
           readOnly: true
-
-    User:
-      title: User
-      description: Represents a User.
-      type: object
-      properties:
-        userName:
-          $ref: "#/components/schemas/userName"
-        userID:
-          $ref: "#/components/schemas/userID"
 
     SimpleUser:
       title: Simple User.
