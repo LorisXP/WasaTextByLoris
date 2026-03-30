@@ -45,7 +45,6 @@ func CreateConversation(between_users bool, sender int, receiver int) (entity.Co
 		conversation.Receiver = receiver
 		conversation.LastMessageID = 0
 
-
 		logrus.Info("Conversation created successfully")
 
 	} else {

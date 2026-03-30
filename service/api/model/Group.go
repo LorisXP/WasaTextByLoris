@@ -37,7 +37,6 @@ func CreateGroup(name string, photo string, admin int) (entity.Group, error) {
 		group.Photo = photo
 		group.AdminID = admin
 
-
 		logrus.Info("Group created successfully")
 
 	} else {

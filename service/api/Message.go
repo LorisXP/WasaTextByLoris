@@ -82,27 +82,43 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 						if errCreateMessage == nil {
 							ctx.Logger.Info("new message created successfully")
 
-							// Costruisci la risposta JSON
-							respData := struct {
-								MessageID int `json:"messageID"`
-							}{MessageID: createdMessage.MessageID}
-
-							jsonBytes, marshalErr := json.Marshal(respData)
-
-							// Se il JSON viene creato correttamente
-							if marshalErr == nil {
-
-								// Tutto ok
-								responseBody = jsonBytes
-
-								statusCode = http.StatusCreated // 201
-								ctx.Logger.Debugf("new message created successfully %s (ID: %d)", reqBody.Content, userId)
-								ctx.Logger.Info("new message created successfully")
-
-							} else {
+							// Ottieni lo userName del sender
+							senderUser, errSender := model.GetUser(userId)
+							if errSender != nil {
 								statusCode = http.StatusInternalServerError
-								outErr = marshalErr
-								ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+								outErr = errSender
+								ctx.Logger.WithError(errSender).Error("error getting sender user")
+							} else {
+
+								// Costruisci la risposta JSON con schema Message
+								respData := map[string]interface{}{
+									"messageID":    createdMessage.MessageID,
+									"content":      reqBody.Content,
+									"content_type": reqBody.ContentType,
+									"timestamp":    createdMessage.Sent_at,
+									"sender":       map[string]interface{}{"userName": senderUser.Name},
+									"status":       "received",
+									"type":         "standard",
+									"comments":     []interface{}{},
+								}
+
+								jsonBytes, marshalErr := json.Marshal(respData)
+
+								// Se il JSON viene creato correttamente
+								if marshalErr == nil {
+
+									// Tutto ok
+									responseBody = jsonBytes
+
+									statusCode = http.StatusCreated // 201
+									ctx.Logger.Debugf("new message created successfully %s (ID: %d)", reqBody.Content, userId)
+									ctx.Logger.Info("new message created successfully")
+
+								} else {
+									statusCode = http.StatusInternalServerError
+									outErr = marshalErr
+									ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+								}
 							}
 
 						} else {
@@ -221,27 +237,43 @@ func (rt *_router) sendMessageGroup(w http.ResponseWriter, r *http.Request, ps h
 						if errCreateMessage == nil {
 							ctx.Logger.Info("new message to group created successfully")
 
-							// Costruisci la risposta JSON
-							respData := struct {
-								MessageID int `json:"messageID"`
-							}{MessageID: createdMessage.MessageID}
-
-							jsonBytes, marshalErr := json.Marshal(respData)
-
-							// Se il JSON viene creato correttamente
-							if marshalErr == nil {
-
-								// Tutto ok
-								responseBody = jsonBytes
-
-								statusCode = http.StatusCreated // 201
-								ctx.Logger.Debugf("new message to group created successfully %s (ID: %d)", reqBody.Content, userId)
-								ctx.Logger.Info("new message to group created successfully")
-
-							} else {
+							// Ottieni lo userName del sender
+							senderUser, errSender := model.GetUser(userId)
+							if errSender != nil {
 								statusCode = http.StatusInternalServerError
-								outErr = marshalErr
-								ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+								outErr = errSender
+								ctx.Logger.WithError(errSender).Error("error getting sender user")
+							} else {
+
+								// Costruisci la risposta JSON con schema Message
+								respData := map[string]interface{}{
+									"messageID":    createdMessage.MessageID,
+									"content":      reqBody.Content,
+									"content_type": reqBody.ContentType,
+									"timestamp":    createdMessage.Sent_at,
+									"sender":       map[string]interface{}{"userName": senderUser.Name},
+									"status":       "received",
+									"type":         "standard",
+									"comments":     []interface{}{},
+								}
+
+								jsonBytes, marshalErr := json.Marshal(respData)
+
+								// Se il JSON viene creato correttamente
+								if marshalErr == nil {
+
+									// Tutto ok
+									responseBody = jsonBytes
+
+									statusCode = http.StatusCreated // 201
+									ctx.Logger.Debugf("new message to group created successfully %s (ID: %d)", reqBody.Content, userId)
+									ctx.Logger.Info("new message to group created successfully")
+
+								} else {
+									statusCode = http.StatusInternalServerError
+									outErr = marshalErr
+									ctx.Logger.WithError(marshalErr).Error("error marshalling response")
+								}
 							}
 
 						} else {

@@ -603,11 +603,7 @@ paths:
           content:
             application/json:
               schema:
-                description: messageID of the new message
-                type: object
-                properties:
-                  messageID:
-                    $ref: "#/components/schemas/messageID"
+                $ref: "#/components/schemas/Message"
         "400":
           description: Invalid message content.
         "401":
@@ -695,11 +691,7 @@ paths:
           content:
             application/json:
               schema:
-                description: messageID of the new message
-                type: object
-                properties:
-                  messageID:
-                    $ref: "#/components/schemas/messageID"
+                $ref: "#/components/schemas/Message"
         "400":
           description: Invalid message content.
         "401":
